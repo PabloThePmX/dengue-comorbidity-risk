@@ -43,6 +43,21 @@ def test_population_excludes_invalid_age():
     assert pf.population_mask(df).tolist() == [True, False, False, True]
 
 
+def test_population_recovers_age_from_birth_year():
+    # D-50: código fora do padrão (ES 2022, anos simples) usa ano dos sintomas − ANO_NASC.
+    df = pd.DataFrame({
+        "CLASSI_FIN": ["10", "10"],
+        "EVOLUCAO": ["1", "1"],
+        "NU_IDADE_N": ["33", "33"],
+        "ANO_NASC": ["1989", None],
+        "DT_SIN_PRI": ["20220110", "20220110"],
+    })
+    assert pf.population_mask(df).tolist() == [True, False]
+    derived = pf.add_derived(df.assign(CS_GESTANT="6"))
+    assert derived["idade_anos"].iloc[0] == 33
+    assert bool(derived["idade_de_ano_nasc"].iloc[0])
+
+
 def test_exclusion_flow_counts_per_year(cases):
     flow = pf.exclusion_flow(cases)
     assert flow[2022].tolist() == [4, 3, 2, 2]

@@ -313,9 +313,11 @@ RESUMO["5"] = {"item": "Idade: decodificação e faixa", "secao": "§3.7, §3.9"
                "resultado": f"{concord['% concordância'].iloc[0]:.1f}% concordam com "
                             "ANO_NASC (±1 ano); "
                             f"{fora} fora de [0, 120]; "
-                            f"{int(age['código inválido'].sum()):,} códigos inválidos",
-               "esperado": "sim" if concord["% concordância"].iloc[0] > 95 and fora == 0
-               else "revisar", "obs": ""}
+                            f"{int(age['código inválido'].sum()):,} códigos inválidos; "
+                            f"{int(age['recuperada por ANO_NASC'].sum()):,} recuperadas por "
+                            f"ANO_NASC; {int(age['sem idade (excluída)'].sum()):,} sem idade",
+               "esperado": "sim" if concord["% concordância"].iloc[0] > 95 else "revisar",
+               "obs": "Idade inválida usa ano dos sintomas − ANO_NASC (D-50)."}
 display(age); display(units); display(concord)
 """),
     md("## Passo 6 — Demografia"),

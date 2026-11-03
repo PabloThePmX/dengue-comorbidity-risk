@@ -6,7 +6,7 @@ Convenção: os campos chegam como texto cru do DBF; branco = NaN.
 import numpy as np
 import pandas as pd
 
-from dengue_sinan.features import decode_age_years, region_from_ibge
+from dengue_sinan.features import age_years_with_fallback, decode_age_years, region_from_ibge
 
 COMORBIDADES = ["DIABETES", "HEMATOLOG", "HEPATOPAT", "RENAL", "HIPERTENSA", "ACIDO_PEPT",
                 "AUTO_IMUNE"]
@@ -68,9 +68,14 @@ def _population_filters(df: pd.DataFrame) -> tuple[pd.Series, pd.Series, pd.Seri
     classi_ok = classi.isin(CLASSI_DENGUE)
     # Grave (12) já tem y = 1 pela classificação; 10/11 precisam da evolução para saber do óbito.
     label_ok = code(df["EVOLUCAO"]).isin(EVOLUCAO_CONHECIDA) | (classi == "12")
-    age = decode_age_years(df["NU_IDADE_N"])
-    age_ok = age.between(0, 120)
+    age_ok = _age(df)[0].notna()
     return classi_ok, label_ok, age_ok
+
+
+def _age(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
+    """Idade com o fallback por ANO_NASC (D-50) e a flag de quais vieram dele."""
+    return age_years_with_fallback(df["NU_IDADE_N"], optional(df, "ANO_NASC"),
+                                   optional(df, "DT_SIN_PRI"))
 
 
 def population_mask(df: pd.DataFrame) -> pd.Series:
@@ -112,7 +117,7 @@ def add_derived(df: pd.DataFrame) -> pd.DataFrame:
     """Colunas derivadas usadas em vários passos: y, idade, faixa, região, gestante."""
     out = df.copy()
     out["y"] = target(out)
-    out["idade_anos"] = decode_age_years(out["NU_IDADE_N"])
+    out["idade_anos"], out["idade_de_ano_nasc"] = _age(out)
     out["faixa_etaria"] = pd.cut(out["idade_anos"], FAIXAS, right=False, labels=FAIXAS_ROTULOS)
     # Região pelo município de residência; se faltar, pela UF de residência.
     regiao = region_from_ibge(optional(out, "ID_MN_RESI")).astype("string")
@@ -186,13 +191,16 @@ def absent_by_target(pop: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
 def age_summary(df: pd.DataFrame, year: str = "ANO") -> pd.DataFrame:
     """Resumo da idade decodificada por ano: nulos, fora de [0, 120], quantis."""
     age = decode_age_years(df["NU_IDADE_N"])
-    grouped = age.groupby(df[year])
+    final_age, from_birth_year = _age(df)
+    grouped = final_age.groupby(df[year])
     raw_blank = code(df["NU_IDADE_N"]).isna().groupby(df[year]).sum()
     return pd.DataFrame({
         "linhas": grouped.size(),
         "NU_IDADE_N em branco": raw_blank,
         "código inválido": age.isna().groupby(df[year]).sum() - raw_blank,
         "fora de [0, 120]": ((age < 0) | (age > 120)).groupby(df[year]).sum(),
+        "recuperada por ANO_NASC": from_birth_year.groupby(df[year]).sum(),
+        "sem idade (excluída)": final_age.isna().groupby(df[year]).sum(),
         "mín": grouped.min(),
         "p50": grouped.median(),
         "p99": grouped.quantile(0.99),

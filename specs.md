@@ -1,6 +1,6 @@
 # Spec — Risco de desfecho grave em dengue por perfil de comorbidades (SINAN/DataSUS)
 
-> Status: **rascunho v0.11** — 2026-11-03. Profiling executado (Colab gratuito) e incorporado: D-02 confirmado; D-45 a D-49. Revisão de boas práticas via Consensus (D-38 a D-41); orçamento de tempo por modelo (D-42), com Colab Pro como acelerador; Optuna (D-43); tabela de vazamento cobrindo as 121 colunas. Retorno do professor sobre o pré-projeto incorporado (D-32 a D-35); melhores pesos só pela validação (D-36, D-37). Itens de documento verificados; spec alinhado ao pré-projeto enviado ao professor (D-22 a D-25) e às exigências de entrega (D-26 a D-28); cronograma retirado (D-29), com marcos sem datas (D-31); dúvidas de CEP e licença retiradas (D-30). Nenhuma decisão pendente, mas D-02 pode reabrir conforme o primeiro check do profiling (`CLASSI_FIN`, §3.6). Restam `[VERIFY]` de dados e `[OPEN QUESTION]` (§3.20).
+> Status: **rascunho v0.12** — 2026-11-03. Profiling executado duas vezes (Colab gratuito) e incorporado: D-02 confirmado; D-45 a D-50. Falta uma 3ª execução para contar com o fallback de idade (D-50). Revisão de boas práticas via Consensus (D-38 a D-41); orçamento de tempo por modelo (D-42), com Colab Pro como acelerador; Optuna (D-43); tabela de vazamento cobrindo as 121 colunas. Retorno do professor sobre o pré-projeto incorporado (D-32 a D-35); melhores pesos só pela validação (D-36, D-37). Itens de documento verificados; spec alinhado ao pré-projeto enviado ao professor (D-22 a D-25) e às exigências de entrega (D-26 a D-28); cronograma retirado (D-29), com marcos sem datas (D-31); dúvidas de CEP e licença retiradas (D-30). Nenhuma decisão pendente, mas D-02 pode reabrir conforme o primeiro check do profiling (`CLASSI_FIN`, §3.6). Restam `[VERIFY]` de dados e `[OPEN QUESTION]` (§3.20).
 > Idioma: pt-BR (entregável acadêmico).
 
 ---
@@ -198,7 +198,7 @@ O resultado é comparado com a regra de estratificação de risco já usada pelo
 - **População (D-06, revisada em D-45):** casos com `CLASSI_FIN` ∈ {10, 11, 12} **e** rótulo conhecido **e** idade válida:
   - `CLASSI_FIN` = 12 (dengue grave): entra com **qualquer** evolução, porque y = 1 já é conhecido pela classificação.
   - `CLASSI_FIN` = 10 ou 11: entra só com `EVOLUCAO` ∈ {1, 2} (cura ou óbito pelo agravo), porque sem evolução não se sabe se houve óbito.
-  - Idade decodificada em [0, 120] (D-49).
+  - Idade válida: `NU_IDADE_N` decodificado em [0, 120] ou, se o código for inválido, ano dos sintomas − `ANO_NASC` (D-49, D-50).
   - Excluídos: inconclusivos (8), código 0 e branco em `CLASSI_FIN`; casos 10/11 com evolução ignorada, em branco, em investigação ou óbito por outras causas; idade inválida. O fluxograma (FR-02) conta cada motivo.
   - Na regra antiga (D-06 original), 215 / 218 / 1.056 casos graves (2022 / 2023 / 2024; cerca de 12% dos graves) saíam só por evolução em branco ou ignorada (profiling de 2026-11-03, `profiling/RESULTADOS.md`).
 - **Alvo (D-02):** `y = 1` se `CLASSI_FIN = dengue grave` **OU** `EVOLUCAO = óbito pelo agravo`; senão `y = 0`.
@@ -232,21 +232,24 @@ O resultado é comparado com a regra de estratificação de risco já usada pelo
 - **Notas oficiais do dataset que afetam o projeto** (mesma página):
   - Para série histórica, o MS usa bases **congeladas** por ano; os dados mais recentes mudam diariamente. Por isso o hash do snapshot (§3.14) é obrigatório.
   - **Espírito Santo:** desde 2020 o estado usa o e-SUS Vigilância em Saúde, e o portal considera para dengue no ES só os dados do Sinan Online. **A hipótese de sub-representação não se confirmou** (profiling de 2026-11-03, `profiling/RESULTADOS.md`): a taxa do ES foi 236 / 2.854 / 3.053 casos por 100 mil (2022 / 2023 / 2024), contra 132 / 237 / 1.419 de mediana entre BA, MG e RJ (população do Censo 2022). O ES é o maior da vizinhança em 2023.
+    - **Idade no ES em 2022:** `NU_IDADE_N` vem em anos simples ("33"), sem o dígito de unidade: 11.175 dos 11.241 registros. Esses anos concordam 100% com ano dos sintomas − `ANO_NASC` (verificado em 2026-11-03 numa leitura temporária do arquivo de 2022, já apagada). Sem correção, o filtro de idade excluiria o ES 2022 inteiro (D-50).
     - O que difere é a **origem do registro**: no ES, `TP_SISTEMA` é "0" (116.196) ou branco (119.104); em MG, RJ e BA é quase sempre "2". Diferença de sistema pode significar diferença de preenchimento. Fica como limitação e como subgrupo a olhar na análise de erros (§3.12). `[VERIFY]` Significado dos códigos de `TP_SISTEMA` no dicionário.
 - **Período e cobertura (D-04):** Brasil, 2022–2024. 2017–2024 só na análise de sensibilidade extra (FR-16).
-- **Tamanho** (profiling de 2026-11-03, `profiling/RESULTADOS.md`), com a regra de população **antiga** (D-06 original):
+- **Tamanho** (2ª execução do profiling, 2026-11-03 03:06 UTC, `profiling/RESULTADOS.md`), com a população de D-45 e o filtro de idade **ainda sem** o fallback de D-50:
 
   | | 2022 | 2023 | 2024 |
   |---|---|---|---|
   | Notificações no arquivo | 1.405.095 | 1.645.956 | 6.564.924 |
   | Após `CLASSI_FIN` ∈ {10, 11, 12} | 1.254.238 | 1.426.773 | 6.014.359 |
-  | Após evolução conhecida | 1.148.123 | 1.304.731 | 5.330.868 |
-  | Eventos (y = 1) | 1.655 | 1.898 | 10.282 |
-  | Prevalência de y | 0,14% | 0,15% | 0,19% |
+  | Após rótulo conhecido (D-45) | 1.148.338 | 1.304.949 | 5.331.924 |
+  | Após idade válida | 1.139.152 | 1.304.897 | 5.331.688 |
+  | Eventos (y = 1) | 1.859 | 2.116 | 11.338 |
+  | Prevalência de y | 0,16% | 0,16% | 0,21% |
 
-  - Desenvolvimento (2022–23): 2.452.854 casos e 3.553 eventos; teste (2024): 5.330.868 casos e 10.282 eventos.
-  - A prevalência é **muito baixa** (cerca de 1 evento a cada 500–700 casos). A PR-AUC de B0 fica em ~0,0015.
-  - `[VERIFY]` Recontar com a população revisada (D-45: graves com qualquer evolução; idade válida) na próxima execução do notebook. Espera-se até +1.489 eventos.
+  - Desenvolvimento (2022–23): 2.444.049 casos e 3.975 eventos; teste (2024): 5.331.688 casos e 11.338 eventos.
+  - Efeito de D-45 frente à 1ª execução (regra antiga): +204 / +218 / +1.056 eventos, os graves que antes saíam por evolução em branco.
+  - A prevalência é **muito baixa** (cerca de 1 evento a cada 470–630 casos). A PR-AUC de B0 fica entre ~0,0016 e ~0,0021.
+  - **Lacuna desta execução:** o filtro de idade sem fallback tirou **9.186 casos de 2022, quase todos do Espírito Santo**: o ES caiu de 9.060 para 11 casos (§3.7, D-50). `[VERIFY]` Recontar com o fallback de D-50 na próxima execução; espera-se recuperar ~11,4 mil linhas de 2022, a maioria do ES.
 - **Dicionários de dados:**
   - [Dicionário de dengue do portal de dados abertos do MS](https://s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/SINAN/Dengue/dic_dados_dengue.pdf) (recurso criado em 22/02/2024, atualizado em 22/03/2024) — o mais recente, mas contraditório em `CLASSI_FIN` (§3.6).
   - [Dicionário SINAN Online — Dengue/Chikungunya (MS/GT-SINAN, rev. 2015)](https://app.wiki.saude.es.gov.br/vigilancia/microdados/dic_dados_dengue.pdf).
@@ -274,7 +277,7 @@ O resultado é comparado com a regra de estratificação de risco já usada pelo
   - **Mudança de sorotipo:** o DENV-3, ausente por anos, voltou a circular em 2023–2024. Até 13/12/2023 havia 130 casos de DENV-3 confirmados em 11 estados, numa população muito suscetível ([Viruses/MDPI 2024](https://pmc.ncbi.nlm.nih.gov/articles/PMC10974589); [São Paulo, PubMed 39848015](https://pubmed.ncbi.nlm.nih.gov/39848015/)). Verificado em 2026-11-01 (resumos). É uma fonte plausível de drift entre treino (2022–23) e teste (2024).
   - **Subnotificação na COVID (2020–21):** em 19 de 25 estados, houve menos casos que o esperado em 2020, e a diferença foi explicada principalmente por subnotificação ([Martinelli/Roster et al., PLOS NTD 2024](https://consensus.app/papers/details/7900fddd46c15471b49d6525ff752d3c/)). Verificado em 2026-11-01 (resumo). Reforça deixar 2017–2024 só como sensibilidade (FR-16).
 - **Checks de qualidade (FR-03):**
-  - Bloqueantes: schema esperado presente em todos os anos (121 colunas, idêntico em 2022–24); alvo sem valores fora do domínio. **Idade fora de [0, 120] ou código inválido deixou de ser bloqueante** e virou exclusão contada no fluxograma (D-49): são 11.507 códigos inválidos + 44 fora da faixa em 2022, 55 + 56 em 2023 e 111 + 240 em 2024 (profiling de 2026-11-03, `profiling/RESULTADOS.md`).
+  - Bloqueantes: schema esperado presente em todos os anos (121 colunas, idêntico em 2022–24); alvo sem valores fora do domínio. **Idade fora de [0, 120] ou código inválido deixou de ser bloqueante** (D-49): primeiro tenta-se a idade por `ANO_NASC` (D-50); só o que sobrar sem idade é excluído e contado no fluxograma. Códigos inválidos: 11.507 + 44 fora da faixa em 2022 (quase todos do ES), 55 + 56 em 2023 e 111 + 240 em 2024. Em 2022, 11.428 dos 11.551 inválidos têm `ANO_NASC` utilizável.
   - Alertas: data de primeiros sintomas > data de notificação; gestante com sexo masculino; taxa de "ignorado" > 50% em alguma comorbidade numa UF/ano.
   - Duplicatas por chave composta: só reportar a taxa (D-47).
 - **Dados pessoais:** microdados são anonimizados, mas combinações raras (idade + município + data) podem identificar pessoas. Por isso não se publica nada linha a linha (NFR-03), e a tabela de perfis só reporta células com contagem mínima (§3.12).
@@ -301,8 +304,8 @@ Por que esse desenho (evidência via Consensus, 2026-10-19 — análise completa
 Opções descartadas (registradas em D-08): split aleatório estratificado com todos os anos (esconde o drift e superestima o desempenho); corte dentro de 2024 (confundido com sazonalidade); treino só em 2022 (desperdiça 2023); 2017–2024 como desenho principal (subnotificação de 2020–21 na pandemia de COVID, §3.7) — fica como sensibilidade extra (FR-16).
 
 **Tamanho do teste.** Teste grande é vantagem: o que importa é o número de **eventos**. A regra prática é ≥ 100 eventos e 100 não-eventos, com ~200/200 para avaliar calibração com precisão; o cálculo específico de [Riley et al. (Stat Med 2021)](https://doi.org/10.1002/sim.9025) é preferível a regras fixas.
-- **Eventos no teste de 2024** (profiling de 2026-11-03, `profiling/RESULTADOS.md`): 10.282 no total. Por subgrupo: 0–4 anos 220; 5–14 anos 457; 15–39 anos 2.348; 40–59 anos 2.143; 60–79 anos 3.056; 80+ anos 2.058; sexo F 5.468 e M 4.808; gestantes **93**; regiões Centro-Oeste 1.513, Nordeste 809, **Norte 98**, Sudeste 5.857, Sul 2.005. Gestantes, Norte e sexo "I" (6 eventos) ficam abaixo de 100: reportados com aviso de IC largo, sem conclusões.
-- **Eventos por região no desenvolvimento (dobras leave-one-region-out):** Centro-Oeste 615, Nordeste 472, **Norte 109**, Sudeste 1.595, Sul 762. Todas as dobras têm ≥ 100 eventos; o Norte fica no limite, então sua calibração terá IC largo.
+- **Eventos no teste de 2024** (2ª execução do profiling, 2026-11-03 03:06 UTC, `profiling/RESULTADOS.md`): 11.338 no total. Por subgrupo: 0–4 anos 259; 5–14 anos 536; 15–39 anos 2.647; 40–59 anos 2.380; 60–79 anos 3.313; 80+ anos 2.203; sexo F 6.046 e M 5.285; gestantes **102**; regiões Centro-Oeste 1.682, Nordeste 942, **Norte 110**, Sudeste 6.510, Sul 2.094. Só o sexo "I" (7 eventos) fica abaixo de 100; gestantes e Norte ficam no limite. Esses três vêm com aviso de IC largo, sem conclusões.
+- **Eventos por região no desenvolvimento (dobras leave-one-region-out):** Centro-Oeste 735, Nordeste 582, **Norte 121**, Sudeste 1.727, Sul 810. Todas as dobras têm ≥ 100 eventos; o Norte fica no limite, então sua calibração terá IC largo. O Sudeste de 2022 ainda está sem o ES nesta contagem (D-50).
 - **Ano do split (D-46):** o ano é o **ano do arquivo**, que coincide com o ano da notificação em 99,98% dos casos (exceções: 680 casos de 2024 no arquivo de 2023; 284 de 2023 e 477 de 2025 no de 2024). O arquivo de 2024 tem 5.238 casos com sintomas em 2023, que ficam no teste.
 
 Regras gerais:
@@ -347,13 +350,13 @@ Cobertura da tabela: conferida em 2026-11-02 contra as **121 colunas** do arquiv
 ## 3.9 Features e pré-processamento
 
 - **Lista de features:** campos marcados "Entra" na tabela de §3.8.
-- **Idade:** decodificar `NU_IDADE_N` pela regra verificada em §3.7 (1º dígito = unidade; converter tudo para anos fracionários), com teste unitário cobrindo 1xxx, 2xxx, 3xxx e 4xxx. Usar idade contínua (splines na logística) e faixas para perfis e subgrupos.
+- **Idade:** decodificar `NU_IDADE_N` pela regra verificada em §3.7 (1º dígito = unidade; converter tudo para anos fracionários), com teste unitário cobrindo 1xxx, 2xxx, 3xxx e 4xxx. Se o código for inválido ou fora de [0, 120], usar ano dos sintomas − `ANO_NASC` (D-50) e marcar a flag `idade_de_ano_nasc`. Usar idade contínua (splines na logística) e faixas para perfis e subgrupos.
   - `[ASSUMPTION]` Faixas: 0–4, 5–14, 15–39, 40–59, 60–79, 80+.
 - **Comorbidades:** categóricas de 3 níveis (Sim / Não / Ausente) — D-07; "Ausente" = branco ou valor fora de 1/2 (§3.7). One-hot na logística; nativo/ordinal nos modelos de árvore.
 - **Sintomas:** mesmo esquema de 3 níveis `[ASSUMPTION]` (consistência com D-07).
 - **UF/região:** não é feature (D-21). Guardada no dataset só para dobras de validação e subgrupos.
 - **Escalonamento:** só para logística/MLP (variáveis contínuas). Árvores não precisam.
-- **Outliers:** idade inválida ou fora de [0, 120] → caso excluído da população e contado no fluxograma (D-49). Atraso de notificação > 60 dias truncado em 60: confirmado pelo profiling, com mediana de 3 dias, p99 de 61 / 38 / 52 dias e cerca de 1% dos casos acima de 60 dias.
+- **Outliers:** idade inválida ou fora de [0, 120] → fallback por `ANO_NASC` (D-50); sem `ANO_NASC` utilizável, o caso é excluído e contado no fluxograma (D-49). Atraso de notificação > 60 dias truncado em 60: confirmado pelo profiling, com mediana de 3 dias, p99 de 61 / 38 / 52 dias e cerca de 1% dos casos acima de 60 dias.
 - **Desbalanceamento (D-12, revisado em D-38):** **sem correção.** Os modelos treinam com a prevalência natural, sem pesos de classe, subamostragem ou SMOTE. O recall é controlado pelo limiar (F2, §3.12), e a calibração posterior (isotônica ou Platt) continua nas predições fora da dobra. Motivo: corrigir o desbalanceamento não melhora AUROC nem AUPRC e piora a calibração, às vezes de forma que a recalibração não conserta (van den Goorbergh et al., JAMIA 2022; Carriero et al., Stat Med 2024 — síntese em `research/consensus-boas-praticas.md` (cópia local, fora do repositório: termos do Consensus)). Exceção: a subamostra de negativos do Random Forest (§3.11), só por memória, com correção de probabilidade e verificada pela calibração.
 - **Implementação:** um único `sklearn.Pipeline` / `ColumnTransformer` por modelo, salvo inteiro no artefato (FR-12). Nada de transformação ad hoc fora do pipeline.
 
@@ -361,7 +364,7 @@ Cobertura da tabela: conferida em 2026-11-02 contra as **121 colunas** do arquiv
 
 Todos obrigatórios (FR-04). Todos os modelos são julgados contra eles.
 
-- **B0 — trivial:** prevê a prevalência do treino para todos. PR-AUC de B0 = prevalência (piso absoluto), em torno de **0,0015** (§3.7).
+- **B0 — trivial:** prevê a prevalência do treino para todos. PR-AUC de B0 = prevalência (piso absoluto), entre **~0,0016 e ~0,0021** (§3.7).
 - **B1 — logística simples:** efeitos principais (idade em splines, sexo, gestação, 7 comorbidades, nº de comorbidades), sem interações.
 - **B2 — regra do protocolo:** "alto risco" se o caso cumprir qualquer critério do grupo B do protocolo do MS (6ª ed., 2024; §3.2) que exista na ficha. Mapeamento `[ASSUMPTION]`, a revisar pelo grupo:
   - idade < 24 meses **ou** > 65 anos;
@@ -423,7 +426,7 @@ Todos obrigatórios (FR-04). Todos os modelos são julgados contra eles.
 - **Calibração:** obrigatória, porque o produto é "qual o risco". Isotônica ou Platt, ajustada nas predições fora da dobra (FR-17). No teste, reportar a curva de calibração e o calibration slope: é a métrica que a literatura mostra degradar primeiro sob drift (§3.8).
 - **Variação entre regiões no desenvolvimento:** reportar PR-AUC e calibration slope de cada dobra leave-one-region-out. É a medida de robustez geográfica do modelo.
 - **Incerteza:** IC 95% por bootstrap no teste, para todas as métricas e para a **diferença** de PR-AUC entre o melhor modelo e B1. 1.000 reamostras para métricas escalares `[ASSUMPTION]`; **2.000** nas bandas da curva de calibração, como em [Austin et al., Stat Med 2014](https://consensus.app/papers/details/90973d5732005604963231ca27adbb22/) (D-41). Se o bootstrap ficar caro demais com milhões de linhas, o IC da AUC pode usar o método por função de influência ([LeDell et al., 2015](https://consensus.app/papers/details/d349620d7e9e5108a57864ddbb717245/)).
-- **Subgrupos (D-13, D-48):** faixa etária; sexo e gestantes; região/UF; **raça/cor** (com "ignorado" como categoria). Reportar PR-AUC, recall no limiar e calibração por subgrupo, com IC. Subgrupos com < 100 eventos no teste (gestantes, Norte, sexo "I") vêm com aviso de IC largo (§3.8).
+- **Subgrupos (D-13, D-48):** faixa etária; sexo e gestantes; região/UF; **raça/cor** (com "ignorado" como categoria). Reportar PR-AUC, recall no limiar e calibração por subgrupo, com IC. Subgrupos com < 100 eventos no teste, ou no limite (sexo "I" com 7; gestantes com 102; Norte com 110), vêm com aviso de IC largo (§3.8).
 - **Análise de erros:** inspecionar os 100 falsos negativos com maior risco não detectado `[ASSUMPTION]`, por perfil (idade, comorbidades, UF, atraso de notificação), e as células de comorbidade com pior calibração.
 - **Privacidade nas tabelas:** células de perfil com < 10 casos não são publicadas `[ASSUMPTION]`.
 - **Critérios de aceitação** `[ASSUMPTION]` — todos a confirmar pelo grupo:
@@ -571,11 +574,12 @@ D-01 a D-21 registradas em 2026-10-19, na entrevista inicial (D-08, D-20 e D-21 
 - **D-47 — Duplicatas: só reportar (Q-04).** Contexto: a chave composta disponível (sem `DT_NASC`) marca 17–42% dos casos como duplicados, o que é implausível. Opções: só reportar / remover pela chave / chave mais estrita e remover. Decisão: só reportar, com uma análise de sensibilidade usando chave mais estrita (+ unidade notificadora + data de notificação). Consequência: limitação documentada no relatório.
 - **D-48 — Escolaridade fora; raça/cor só como subgrupo (Q-05).** Contexto: escolaridade tem 50–54% de ignorado; raça/cor, 16–20%. Opções: raça só subgrupo / raça como feature / as duas fora. Decisão: raça/cor não é feature, mas é subgrupo de avaliação de equidade; escolaridade fora. Consequência: D-13 ganha raça/cor; a tabela de vazamento e §3.12 foram atualizadas.
 - **D-49 — Ajustes pelo profiling (2026-11-03).**
-  - Idade inválida (código fora do padrão ou fora de [0, 120]) deixa de ser check bloqueante e vira exclusão contada no fluxograma; senão o pipeline nunca rodaria.
+  - Idade inválida (código fora do padrão ou fora de [0, 120]) deixa de ser check bloqueante e vira exclusão contada no fluxograma; senão o pipeline nunca rodaria. **Revisado por D-50:** antes de excluir, tenta-se a idade por `ANO_NASC`.
   - O vazamento por completude não se confirmou ("Ausente" ~0% na população final): Q-06 dispensada.
   - A hipótese de sub-representação do ES não se confirmou; a diferença está no sistema de origem (`TP_SISTEMA`).
   - A faixa de limiares da curva de decisão foi ajustada à prevalência real (0,1%–5%).
   - Os alertas automáticos do notebook nos passos 1 e 7b eram rigorosos demais: o código 8 (inconclusivo) disparou um falso "PARAR", e 3,3% de `ALRM_*` preenchido nos casos 10 disparou um falso "não". As regras do notebook foram corrigidas.
+- **D-50 — Idade inválida: fallback por `ANO_NASC`.** Contexto: na 2ª execução do profiling, o filtro de idade de D-49 removeu 9.186 casos de 2022, quase todos do ES. Lá, `NU_IDADE_N` vem em anos simples ("33"), sem o dígito de unidade, e esses anos concordam 100% com ano dos sintomas − `ANO_NASC`. Opções: fallback por `ANO_NASC` / regra específica do ES (1 a 3 dígitos = anos) / manter a exclusão. Decisão (2026-11-03): fallback por `ANO_NASC`. Motivo: regra geral, validada nos dados, sem caso especial por estado; a regra do ES poderia errar nos 332 códigos curtos de outras UFs. Consequências: idade com erro de até 1 ano nesses casos; a flag `idade_de_ano_nasc` registra quais idades vieram do fallback; recupera ~11,4 mil linhas de 2022.
 - **Revisão da tabela de vazamento (2026-11-03).** A tabela de §3.8 passou a cobrir as 121 colunas do arquivo de 2022, incluindo os campos da classificação antiga de FHD, os de investigação, os de unidade notificadora e os administrativos. Todos ficam fora do modelo. Não é decisão nova: a lista de features já era fechada; o registro documenta o motivo de cada exclusão.
 
 ## 3.17 Riscos
@@ -584,7 +588,7 @@ D-01 a D-21 registradas em 2026-10-19, na entrevista inicial (D-08, D-20 e D-21 
 |---|---|---|---|
 | Download do FTP do DataSUS lento ou instável | Média | Alto | Salvar Parquet no Drive; carregar só as colunas usadas. |
 | Vazamento por completude da ficha (§3.8) | Média | Alto | Check obrigatório no profiling; análise de sensibilidade. |
-| Poucos positivos em combinações raras de comorbidades | **Confirmada** | Médio | Só 3.553 eventos no desenvolvimento (prevalência ~0,15%) e comorbidades raras (~0,5% cada). Mínimo de eventos por célula; `[VERIFY]` eventos por par de comorbidades no Marco 2; considerar opção B de D-08 (mais anos). |
+| Poucos positivos em combinações raras de comorbidades | **Confirmada** | Médio | Só 3.975 eventos no desenvolvimento (prevalência ~0,16%) e comorbidades raras (~0,5% cada). Mínimo de eventos por célula; `[VERIFY]` eventos por par de comorbidades no Marco 2; considerar opção B de D-08 (mais anos). |
 | Diferença de sistema de origem no ES (`TP_SISTEMA`) | Média | Baixo | Registrar como limitação; olhar o ES na análise de erros. |
 | Códigos de `CLASSI_FIN`/`EVOLUCAO` mudam entre anos | Média | Alto | Validar domínio por ano (FR-03); testes unitários da geração do alvo. |
 | Mudança de distribuição em 2024 (epidemia, sorotipo) | Alta | Médio | É o que o teste temporal mede; reportar e discutir, não esconder. |

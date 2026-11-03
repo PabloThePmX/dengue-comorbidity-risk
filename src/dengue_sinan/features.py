@@ -37,6 +37,24 @@ def decode_age_years(nu_idade_n: pd.Series) -> pd.Series:
     return (value * factor).astype("float64").where(valid, np.nan)
 
 
+def age_years_with_fallback(nu_idade_n: pd.Series, ano_nasc: pd.Series,
+                            dt_sin_pri: pd.Series) -> tuple[pd.Series, pd.Series]:
+    """Idade em anos: NU_IDADE_N quando válido; senão, ano dos sintomas − ANO_NASC (D-50).
+
+    O ES em 2022 grava a idade em anos simples ("33"), fora do padrão unidade + valor. A conta
+    pelo ano de nascimento erra até 1 ano (não há dia e mês) e concordou 100% com o código
+    válido no profiling. Devolve a idade e uma flag de quais vieram do ANO_NASC.
+    """
+    decoded = decode_age_years(nu_idade_n)
+    decoded = decoded.where(decoded.between(0, 120))
+    onset_year = pd.to_numeric(_as_code_string(dt_sin_pri).str[:4], errors="coerce")
+    birth_year = pd.to_numeric(_as_code_string(ano_nasc), errors="coerce")
+    from_birth = (onset_year - birth_year).astype("float64")
+    from_birth = from_birth.where(from_birth.between(0, 120))
+    use_fallback = decoded.isna() & from_birth.notna()
+    return decoded.fillna(from_birth), use_fallback
+
+
 def region_from_ibge(code: pd.Series) -> pd.Series:
     """Macrorregião a partir do código IBGE de UF (2 dígitos) ou município (6–7 dígitos)."""
     text = _as_code_string(code)

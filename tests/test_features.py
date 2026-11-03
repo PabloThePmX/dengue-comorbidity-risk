@@ -3,7 +3,7 @@ import math
 import pandas as pd
 import pytest
 
-from dengue_sinan.features import decode_age_years, region_from_ibge
+from dengue_sinan.features import age_years_with_fallback, decode_age_years, region_from_ibge
 
 
 @pytest.mark.parametrize(
@@ -34,6 +34,25 @@ def test_decode_age_keeps_index_and_length():
     result = decode_age_years(s)
     assert list(result.index) == [10, 20, 30]
     assert result.dtype == "float64"
+
+
+def test_age_fallback_uses_birth_year_when_code_invalid():
+    # ES 2022 grava idade em anos simples ("33"); o código válido tem prioridade.
+    nu_idade = pd.Series(["4040", "33", "5018", None, "4999"])
+    ano_nasc = pd.Series(["1982", "1989", "1990", "2000", "1900"])
+    onset = pd.Series(["20220110"] * 5)
+    age, from_birth_year = age_years_with_fallback(nu_idade, ano_nasc, onset)
+    assert age.tolist()[:4] == [40.0, 33.0, 32.0, 22.0]
+    assert from_birth_year.tolist() == [False, True, True, True, False]
+    # 4999 decodifica para 999 anos (fora de [0, 120]) e 2022 − 1900 = 122 também: sem idade.
+    assert math.isnan(age.iloc[4])
+
+
+def test_age_fallback_without_birth_year_stays_nan():
+    age, from_birth_year = age_years_with_fallback(
+        pd.Series(["33"]), pd.Series([None], dtype=object), pd.Series(["20220110"]))
+    assert math.isnan(age.iloc[0])
+    assert not from_birth_year.iloc[0]
 
 
 @pytest.mark.parametrize(
