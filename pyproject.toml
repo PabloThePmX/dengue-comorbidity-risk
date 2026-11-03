@@ -1,0 +1,37 @@
+[project]
+name = "dengue-comorbidity-risk"
+version = "0.1.0"
+description = "Risco de desfecho grave em dengue por perfil de comorbidades (SINAN/DataSUS)"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "pyreaddbc>=2.0.4",
+    "dbfread>=2.0.7",
+    "pandas>=2.2",
+    "pyarrow>=11",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+    "ipykernel>=6",
+    "nbconvert>=7",
+    "nbformat>=5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dengue_sinan"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

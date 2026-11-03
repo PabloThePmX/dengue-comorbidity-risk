@@ -1,0 +1,33 @@
+# Ambiente e caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+
+# Microdados do SINAN: nunca versionar (NFR-03), em qualquer pasta
+data/
+*.dbc
+*.dbf
+*.parquet
+
+# Experimentos e busca de hiperparâmetros (MLflow, estudos do Optuna)
+mlruns/
+mlartifacts/
+*.db
+*.sqlite
+
+# Relatórios do Consensus: uso pessoal, redistribuição exige consentimento
+research/consensus-*.md
+
+# Segredos e arquivos do sistema
+.env
+.DS_Store
+Thumbs.db
