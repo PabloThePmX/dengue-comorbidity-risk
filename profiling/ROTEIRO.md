@@ -68,8 +68,9 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 
 **O que medir:** quantas linhas sobram, por ano, após cada filtro da população (§3.6), **nesta ordem**:
 1. Total baixado.
-2. `CLASSI_FIN` ∈ {10, 11, 12} (remove descartados, chikungunya, em branco).
-3. `EVOLUCAO` ∈ {1, 2} (remove óbito por outras causas, em investigação, ignorado, em branco).
+2. `CLASSI_FIN` ∈ {10, 11, 12} (remove inconclusivos, código 0 e em branco; nos arquivos reais não há descartados nem chikungunya).
+3. Rótulo conhecido: `CLASSI_FIN` = 12 com qualquer evolução, ou 10/11 com `EVOLUCAO` ∈ {1, 2} (D-45).
+4. Idade válida, entre 0 e 120 anos (D-49).
 
 **Por que:** é a primeira figura que o professor pede ("de onde vieram esses N casos?"), e mostra se algum filtro joga fora mais do que o esperado.
 

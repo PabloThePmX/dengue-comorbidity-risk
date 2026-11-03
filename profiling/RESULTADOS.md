@@ -1,6 +1,6 @@
 # Resultados do profiling — SINAN Dengue 2022–2024
 
-> Gerado automaticamente por `profiling/01_profiling.ipynb` em 2026-11-03 02:28 UTC (Colab). Não edite à mão: rode o notebook de novo.
+> Gerado automaticamente por `profiling/01_profiling.ipynb` em 2026-11-03 03:06 UTC (Colab). Não edite à mão: rode o notebook de novo.
 > "Dentro do esperado?" = `sim`/`não` quando a regra é objetiva; `revisar` quando depende de julgamento.
 
 ## Resumo
@@ -8,20 +8,20 @@
 | # | Item | Seção do spec | Resultado (número ou achado) | Dentro do esperado? | Observação |
 |---|---|---|---|---|---|
 | 0 | Hash, data e versão de cada Parquet | §3.14 | 2022: 1,405,095 linhas, final; 2023: 1,645,956 linhas, final; 2024: 6,564,924 linhas, final | sim | Linhas lidas = cabeçalho do DBF. |
-| 1 | Valores de CLASSI_FIN/EVOLUCAO/CRITERIO por ano | §3.6 | 2022: CLASSI_FIN ∈ {0, 10, 11, 12, 8}; 2023: CLASSI_FIN ∈ {0, 10, 11, 12, 8}; 2024: CLASSI_FIN ∈ {10, 11, 12, 8} | não — PARAR | Apareceram códigos 1/2/8 ou faltam 10/11/12: D-02 precisa ser redecidido. |
-| 2 | Fluxograma de exclusão | §3.6, FR-02 | 2022: 1,405,095 → 1,148,123; 2023: 1,645,956 → 1,304,731; 2024: 6,564,924 → 5,330,868 | revisar | Conferir motivos de saída no detalhe. |
-| 3a | Prevalência de y por ano | §3.7 | 2022: 0.14% (1,655 eventos); 2023: 0.15% (1,898 eventos); 2024: 0.19% (10,282 eventos) | revisar |  |
-| 3b | Eventos por região (2022–23) | §3.8 | mín. 109 eventos | sim | Todas as regiões com ≥ 100 eventos. |
-| 3c | Eventos por subgrupo (2024) | §3.8, §3.12 | 5 subgrupo(s) com < 100 eventos | não | faixa etária=<branco>, sexo=<branco>, sexo=I, gestante (1–4)=True, região=Norte |
+| 1 | Valores de CLASSI_FIN/EVOLUCAO/CRITERIO por ano | §3.6 | 2022: CLASSI_FIN ∈ {0, 10, 11, 12, 8}; 2023: CLASSI_FIN ∈ {0, 10, 11, 12, 8}; 2024: CLASSI_FIN ∈ {10, 11, 12, 8} | sim | 10/11/12 presentes e 1/2 ausentes; D-02 vale. |
+| 2 | Fluxograma de exclusão | §3.6, FR-02 | 2022: 1,405,095 → 1,139,152; 2023: 1,645,956 → 1,304,897; 2024: 6,564,924 → 5,331,688 | revisar | Conferir motivos de saída no detalhe. |
+| 3a | Prevalência de y por ano | §3.7 | 2022: 0.16% (1,859 eventos); 2023: 0.16% (2,116 eventos); 2024: 0.21% (11,338 eventos) | revisar |  |
+| 3b | Eventos por região (2022–23) | §3.8 | mín. 121 eventos | sim | Todas as regiões com ≥ 100 eventos. |
+| 3c | Eventos por subgrupo (2024) | §3.8, §3.12 | 2 subgrupo(s) com < 100 eventos | não | sexo=<branco>, sexo=I |
 | 4a | Valores das comorbidades | §3.7 | DIABETES: 0.0% ausente na população final | revisar | Valores fora de 1/2: 9 |
-| 4b | % ausente × y (vazamento) | §3.8 | razão y0/y1 entre 0.26 e 0.53 | sim | Nenhuma comorbidade com razão > 2. |
+| 4b | % ausente × y (vazamento) | §3.8 | razão y0/y1 entre 0.27 e 0.56 | sim | Nenhuma comorbidade com razão > 2. |
 | 5 | Idade: decodificação e faixa | §3.7, §3.9 | 100.0% concordam com ANO_NASC (±1 ano); 340 fora de [0, 120]; 11,673 códigos inválidos | revisar |  |
 | 6 | Demografia e inconsistências | §3.7 | gestante com sexo M: 19; raça ignorada/branco: 2022 20%, 2023 17%, 2024 16% | revisar | Ver Q-05 (raça/escolaridade). |
 | 7a | Sinais clínicos: % ausente | §3.8 | entre 1.7% e 4.0% | revisar |  |
-| 7b | ALRM_* preenchido por CLASSI_FIN | §3.6 | CLASSI_FIN=10: 3.3% com algum ALRM_* | não | ALRM_* aparece em casos 10: rever restrição de M2 (§3.6). |
+| 7b | ALRM_* preenchido por CLASSI_FIN | §3.6 | algum ALRM_* preenchido: 3.3% em CLASSI_FIN=10, 99.8% em 11 | sim | Preenchimento revela a classe: restrição de M2 a 11/12 necessária. |
 | 8 | Atraso sintomas → notificação | §3.9 | 2022: mediana 3 d, p99 61 d, 14,377 > 60 d; 2023: mediana 3 d, p99 38 d, 8,474 > 60 d; 2024: mediana 3 d, p99 52 d, 52,045 > 60 d | revisar | Ver também ano da data × ano do arquivo. |
-| 9 | Duplicatas | §3.6 | 2022: 17.28% em grupo duplicado; 2023: 21.07% em grupo duplicado; 2024: 42.40% em grupo duplicado | revisar | 21,524 linhas em grupos com desfecho conflitante → Q-04. Chave sem DT_NASC (mais fraca). |
-| 10 | Cobertura do ES | §3.7 | 2022: ES 236 vs mediana vizinhos 132 /100 mil; 2023: ES 2854 vs mediana vizinhos 237 /100 mil; 2024: ES 3053 vs mediana vizinhos 1419 /100 mil | revisar | População: IBGE, Censo 2022 (SIDRA 4709). |
+| 9 | Duplicatas | §3.6 | 2022: 17.39% em grupo duplicado; 2023: 21.06% em grupo duplicado; 2024: 42.40% em grupo duplicado | revisar | 25,079 linhas em grupos com desfecho conflitante → Q-04. Chave sem DT_NASC (mais fraca). |
+| 10 | Cobertura do ES | §3.7 | 2022: ES 0 vs mediana vizinhos 132 /100 mil; 2023: ES 2855 vs mediana vizinhos 237 /100 mil; 2024: ES 3053 vs mediana vizinhos 1419 /100 mil | revisar | População: IBGE, Censo 2022 (SIDRA 4709). |
 | 11 | RAM e tamanho do DataFrame | NFR-01 | RAM 12.7 GiB; DataFrame 0.46 GiB (Colab) | sim |  |
 
 ## 0. Manifesto dos dados
@@ -31,7 +31,7 @@
 | arquivo | DENGBR22.dbc | DENGBR23.dbc | DENGBR24.dbc |
 | status no DataSUS | final | final | final |
 | revisão no DataSUS (UTC) | 2026-03-19T18:03:00 | 2026-03-17T11:35:00 | 2026-02-27T14:06:00 |
-| baixado em (UTC) | 2026-11-03T02:04:18 | 2026-11-03T02:05:55 | 2026-11-03T02:12:05 |
+| baixado em (UTC) | 2026-11-03T02:48:58 | 2026-11-03T02:49:03 | 2026-11-03T02:49:09 |
 | linhas | 1 405 095 | 1 645 956 | 6 564 924 |
 | linhas no cabeçalho DBF | 1 405 095 | 1 645 956 | 6 564 924 |
 | colunas | 121 | 121 | 121 |
@@ -94,7 +94,8 @@ Colunas em comum nos 3 anos: 121. Mesmo schema em todos os anos.
 |---|---|---|---|
 | 1. Total baixado | 1 405 095 | 1 645 956 | 6 564 924 |
 | 2. CLASSI_FIN ∈ {10, 11, 12} | 1 254 238 | 1 426 773 | 6 014 359 |
-| 3. EVOLUCAO ∈ {1, 2} | 1 148 123 | 1 304 731 | 5 330 868 |
+| 3. Rótulo conhecido (12, ou 10/11 com EVOLUCAO ∈ {1, 2}) | 1 148 338 | 1 304 949 | 5 331 924 |
+| 4. Idade válida (0–120 anos) | 1 139 152 | 1 304 897 | 5 331 688 |
 
 **Removidos no filtro 2 (CLASSI_FIN)**
 
@@ -104,23 +105,30 @@ Colunas em comum nos 3 anos: 121. Mesmo schema em todos os anos.
 | 8 | 149 045 | 207 687 | 542 641 |
 | <branco> | 1 482 | 3 384 | 7 924 |
 
-**Removidos no filtro 3 (EVOLUCAO), por EVOLUCAO**
+**Removidos no filtro 3 (rótulo), por EVOLUCAO**
 
 | EVOLUCAO | 2022 | 2023 | 2024 |
 |---|---|---|---|
-| 0 | 179 | 2 794 | 2 206 |
-| 3 | 387 | 339 | 1 284 |
-| 4 | 52 | 61 | 242 |
-| 9 | 54 266 | 53 852 | 256 068 |
-| <branco> | 51 231 | 64 996 | 423 691 |
+| 0 | 179 | 2 791 | 2 204 |
+| 3 | 333 | 295 | 1 106 |
+| 4 | 41 | 45 | 180 |
+| 9 | 54 198 | 53 796 | 255 821 |
+| <branco> | 51 149 | 64 897 | 423 124 |
 
-**Removidos no filtro 3 (EVOLUCAO), por CLASSI_FIN**
+**Removidos no filtro 3 (rótulo), por CLASSI_FIN**
 
 | CLASSI_FIN | 2022 | 2023 | 2024 |
 |---|---|---|---|
 | 10 | 104 087 | 119 098 | 668 445 |
 | 11 | 1 813 | 2 726 | 13 990 |
-| 12 | 215 | 218 | 1 056 |
+
+**Removidos no filtro 4 (idade), por CLASSI_FIN**
+
+| CLASSI_FIN | 2022 | 2023 | 2024 |
+|---|---|---|---|
+| 10 | 8 936 | 50 | 234 |
+| 11 | 241 | 2 | 2 |
+| 12 | 9 | 0 | 0 |
 
 ## 3. Prevalência e eventos
 
@@ -128,57 +136,56 @@ Colunas em comum nos 3 anos: 121. Mesmo schema em todos os anos.
 
 | ANO | casos | eventos (y=1) | prevalência (%) |
 |---|---|---|---|
-| 2 022 | 1 148 123 | 1 655 | 0.14 |
-| 2 023 | 1 304 731 | 1 898 | 0.15 |
-| 2 024 | 5 330 868 | 10 282 | 0.19 |
+| 2 022 | 1 139 152 | 1 859 | 0.16 |
+| 2 023 | 1 304 897 | 2 116 | 0.16 |
+| 2 024 | 5 331 688 | 11 338 | 0.21 |
 
 **Eventos por região — desenvolvimento 2022–23 (dobras leave-one-region-out)**
 
 | regiao | casos | eventos (y=1) | prevalência (%) | < 100 eventos |
 |---|---|---|---|---|
-| Centro-Oeste | 408 600 | 615 | 0.15 |  |
-| Nordeste | 227 955 | 472 | 0.21 |  |
-| Norte | 72 711 | 109 | 0.15 |  |
-| Sudeste | 1 162 350 | 1 595 | 0.14 |  |
-| Sul | 581 238 | 762 | 0.13 |  |
+| Centro-Oeste | 408 684 | 735 | 0.18 |  |
+| Nordeste | 228 040 | 582 | 0.26 |  |
+| Norte | 72 707 | 121 | 0.17 |  |
+| Sudeste | 1 153 349 | 1 727 | 0.15 |  |
+| Sul | 581 269 | 810 | 0.14 |  |
 
 **Teste 2024 — por faixa etária**
 
 | faixa_etaria | casos | eventos (y=1) | prevalência (%) | < 100 eventos |
 |---|---|---|---|---|
-| 0–4 | 163 799 | 220 | 0.13 |  |
-| 15–39 | 2 274 240 | 2 348 | 0.10 |  |
-| 40–59 | 1 457 512 | 2 143 | 0.15 |  |
-| 5–14 | 641 187 | 457 | 0.07 |  |
-| 60–79 | 699 589 | 3 056 | 0.44 |  |
-| 80+ | 94 476 | 2 058 | 2.18 |  |
-| <branco> | 65 | 0 | 0.00 | ⚠️ |
+| 0–4 | 163 838 | 259 | 0.16 |  |
+| 15–39 | 2 274 539 | 2 647 | 0.12 |  |
+| 40–59 | 1 457 749 | 2 380 | 0.16 |  |
+| 5–14 | 641 266 | 536 | 0.08 |  |
+| 60–79 | 699 846 | 3 313 | 0.47 |  |
+| 80+ | 94 450 | 2 203 | 2.33 |  |
 
 **Teste 2024 — por sexo**
 
 | sexo | casos | eventos (y=1) | prevalência (%) | < 100 eventos |
 |---|---|---|---|---|
 | <branco> | 8 | 0 | 0.00 | ⚠️ |
-| F | 2 909 484 | 5 468 | 0.19 |  |
-| I | 6 187 | 6 | 0.10 | ⚠️ |
-| M | 2 415 189 | 4 808 | 0.20 |  |
+| F | 2 909 930 | 6 046 | 0.21 |  |
+| I | 6 188 | 7 | 0.11 | ⚠️ |
+| M | 2 415 562 | 5 285 | 0.22 |  |
 
 **Teste 2024 — por gestante (1–4)**
 
 | gestante | casos | eventos (y=1) | prevalência (%) | < 100 eventos |
 |---|---|---|---|---|
-| False | 5 290 830 | 10 189 | 0.19 |  |
-| True | 40 038 | 93 | 0.23 | ⚠️ |
+| False | 5 291 642 | 11 236 | 0.21 |  |
+| True | 40 046 | 102 | 0.25 |  |
 
 **Teste 2024 — por região**
 
 | regiao | casos | eventos (y=1) | prevalência (%) | < 100 eventos |
 |---|---|---|---|---|
-| Centro-Oeste | 491 296 | 1 513 | 0.31 |  |
-| Nordeste | 227 169 | 809 | 0.36 |  |
-| Norte | 46 108 | 98 | 0.21 | ⚠️ |
-| Sudeste | 3 501 216 | 5 857 | 0.17 |  |
-| Sul | 1 065 079 | 2 005 | 0.19 |  |
+| Centro-Oeste | 491 429 | 1 682 | 0.34 |  |
+| Nordeste | 227 287 | 942 | 0.41 |  |
+| Norte | 46 114 | 110 | 0.24 |  |
+| Sudeste | 3 501 714 | 6 510 | 0.19 |  |
+| Sul | 1 065 144 | 2 094 | 0.20 |  |
 
 ## 4. Comorbidades
 
@@ -231,13 +238,13 @@ Colunas em comum nos 3 anos: 121. Mesmo schema em todos os anos.
 
 | campo | % ausente y=0 | % ausente y=1 | razão y0/y1 | alerta (razão > 2) |
 |---|---|---|---|---|
-| DIABETES | 0.00 | 0.01 | 0.53 |  |
-| HEMATOLOG | 0.00 | 0.01 | 0.51 |  |
-| HEPATOPAT | 0.00 | 0.01 | 0.26 |  |
-| RENAL | 0.00 | 0.01 | 0.51 |  |
-| HIPERTENSA | 0.00 | 0.01 | 0.52 |  |
-| ACIDO_PEPT | 0.00 | 0.01 | 0.51 |  |
-| AUTO_IMUNE | 0.00 | 0.01 | 0.52 |  |
+| DIABETES | 0.00 | 0.01 | 0.56 |  |
+| HEMATOLOG | 0.00 | 0.01 | 0.54 |  |
+| HEPATOPAT | 0.00 | 0.01 | 0.27 |  |
+| RENAL | 0.00 | 0.01 | 0.55 |  |
+| HIPERTENSA | 0.00 | 0.01 | 0.55 |  |
+| ACIDO_PEPT | 0.00 | 0.01 | 0.54 |  |
+| AUTO_IMUNE | 0.00 | 0.01 | 0.56 |  |
 
 ## 5. Idade
 
@@ -386,18 +393,18 @@ Chave: ANO_NASC + idade (os microdados não trazem DT_NASC) + CS_SEXO + ID_MN_RE
 
 | ANO | linhas | linhas em grupo duplicado | % em grupo duplicado | linhas excedentes (remoção manteria 1) | linhas em grupos com y conflitante |
 |---|---|---|---|---|---|
-| 2 022 | 1 148 123 | 198 364 | 17.28 | 110 716 | 523 |
-| 2 023 | 1 304 731 | 274 844 | 21.07 | 160 902 | 665 |
-| 2 024 | 5 330 868 | 2 260 151 | 42.40 | 1 593 723 | 20 336 |
+| 2 022 | 1 139 152 | 198 155 | 17.39 | 110 615 | 569 |
+| 2 023 | 1 304 897 | 274 876 | 21.06 | 160 919 | 699 |
+| 2 024 | 5 331 688 | 2 260 675 | 42.40 | 1 594 148 | 23 811 |
 
 **NDUPLIC_N (marcação de duplicidade do próprio SINAN), população final**
 
 | NDUPLIC_N | 2022 | 2023 | 2024 |
 |---|---|---|---|
 | / | 0 | 26 | 0 |
-| 0 | 0 | 0 | 116 443 |
-| 1 | 1 304 | 1 918 | 12 487 |
-| <branco> | 1 146 819 | 1 302 787 | 5 201 938 |
+| 0 | 0 | 0 | 116 455 |
+| 1 | 1 304 | 1 918 | 12 491 |
+| <branco> | 1 137 848 | 1 302 953 | 5 202 742 |
 
 ## 10. Cobertura do Espírito Santo
 
@@ -407,59 +414,59 @@ População: IBGE, Censo 2022 (SIDRA 4709).
 
 | index | 2022 | 2023 | 2024 | por 100 mil — 2022 | por 100 mil — 2023 | por 100 mil — 2024 |
 |---|---|---|---|---|---|---|
-| 29 (BA) | 18 658 | 26 519 | 152 383 | 131.9 | 187.5 | 1 077.5 |
-| 31 (MG) | 66 808 | 306 113 | 1 296 501 | 325.3 | 1 490.3 | 6 312.1 |
-| 32 (ES) | 9 060 | 109 421 | 117 049 | 236.3 | 2 854.2 | 3 053.2 |
-| 33 (RJ) | 8 531 | 38 048 | 227 870 | 53.1 | 237.0 | 1 419.3 |
+| 29 (BA) | 18 666 | 26 553 | 152 450 | 132.0 | 187.8 | 1 078.0 |
+| 31 (MG) | 66 807 | 306 143 | 1 296 793 | 325.3 | 1 490.5 | 6 313.5 |
+| 32 (ES) | 11 | 109 436 | 117 062 | 0.3 | 2 854.6 | 3 053.5 |
+| 33 (RJ) | 8 536 | 38 050 | 227 884 | 53.2 | 237.0 | 1 419.4 |
 
 **TP_SISTEMA (sistema de origem) — ES e vizinhos, 2022–24**
 
 | SG_UF | / | 0 | 2 | <branco> |
 |---|---|---|---|---|
-| ES | 25 | 116 196 | 205 | 119 104 |
-| MG | 0 | 132 | 1 643 765 | 25 525 |
-| RJ | 0 | 29 | 269 294 | 5 126 |
-| BA | 0 | 29 | 195 405 | 2 126 |
+| ES | 25 | 116 208 | 206 | 110 070 |
+| MG | 0 | 132 | 1 644 082 | 25 529 |
+| RJ | 0 | 29 | 269 317 | 5 124 |
+| BA | 0 | 29 | 195 517 | 2 123 |
 
 **Todas as UFs**
 
 | index | 2022 | 2023 | 2024 | por 100 mil — 2022 | por 100 mil — 2023 | por 100 mil — 2024 |
 |---|---|---|---|---|---|---|
-| 11 (RO) | 12 793 | 9 835 | 3 864 | 809.1 | 622.0 | 244.4 |
-| 12 (AC) | 2 790 | 5 213 | 4 778 | 336.1 | 628.1 | 575.7 |
-| 13 (AM) | 4 979 | 4 881 | 7 834 | 126.3 | 123.8 | 198.8 |
+| 11 (RO) | 12 791 | 9 836 | 3 864 | 808.9 | 622.1 | 244.4 |
+| 12 (AC) | 2 790 | 5 212 | 4 778 | 336.1 | 627.9 | 575.7 |
+| 13 (AM) | 4 978 | 4 881 | 7 832 | 126.3 | 123.8 | 198.7 |
 | 14 (RR) | 60 | 190 | 517 | 9.4 | 29.8 | 81.2 |
-| 15 (PA) | 4 314 | 4 141 | 17 071 | 53.1 | 51.0 | 210.2 |
-| 16 (AP) | 276 | 844 | 8 240 | 37.6 | 115.0 | 1 123.0 |
-| 17 (TO) | 19 509 | 2 884 | 3 804 | 1 290.7 | 190.8 | 251.7 |
-| 21 (MA) | 5 159 | 3 971 | 6 946 | 76.1 | 58.6 | 102.5 |
-| 22 (PI) | 25 844 | 3 548 | 8 483 | 790.0 | 108.5 | 259.3 |
-| 23 (CE) | 39 651 | 14 021 | 11 885 | 450.8 | 159.4 | 135.1 |
-| 24 (RN) | 9 042 | 1 571 | 3 843 | 273.8 | 47.6 | 116.4 |
-| 25 (PB) | 18 847 | 5 305 | 11 810 | 474.2 | 133.5 | 297.1 |
-| 26 (PE) | 7 983 | 3 036 | 13 165 | 88.1 | 33.5 | 145.3 |
-| 27 (AL) | 32 503 | 4 752 | 16 944 | 1 039.2 | 151.9 | 541.7 |
-| 28 (SE) | 4 856 | 2 690 | 1 714 | 219.7 | 121.7 | 77.6 |
-| 29 (BA) | 18 658 | 26 519 | 152 383 | 131.9 | 187.5 | 1 077.5 |
-| 31 (MG) | 66 808 | 306 113 | 1 296 501 | 325.3 | 1 490.3 | 6 312.1 |
-| 32 (ES) | 9 060 | 109 421 | 117 049 | 236.3 | 2 854.2 | 3 053.2 |
-| 33 (RJ) | 8 531 | 38 048 | 227 870 | 53.1 | 237.0 | 1 419.3 |
-| 35 (SP) | 310 256 | 314 110 | 1 859 796 | 698.6 | 707.3 | 4 187.7 |
-| 41 (PR) | 139 807 | 162 951 | 595 719 | 1 221.6 | 1 423.9 | 5 205.3 |
-| 42 (SC) | 82 044 | 108 096 | 304 098 | 1 078.1 | 1 420.4 | 3 995.8 |
-| 43 (RS) | 61 256 | 27 084 | 165 256 | 562.9 | 248.9 | 1 518.5 |
-| 50 (MS) | 21 287 | 40 695 | 15 474 | 772.1 | 1 476.1 | 561.3 |
-| 51 (MT) | 30 618 | 25 792 | 36 688 | 836.9 | 705.0 | 1 002.8 |
-| 52 (GO) | 183 633 | 67 411 | 310 350 | 2 602.3 | 955.3 | 4 398.1 |
-| 53 (DF) | 27 559 | 11 609 | 128 786 | 978.2 | 412.0 | 4 571.1 |
+| 15 (PA) | 4 314 | 4 143 | 17 075 | 53.1 | 51.0 | 210.3 |
+| 16 (AP) | 276 | 844 | 8 244 | 37.6 | 115.0 | 1 123.5 |
+| 17 (TO) | 19 506 | 2 884 | 3 804 | 1 290.5 | 190.8 | 251.7 |
+| 21 (MA) | 5 163 | 3 979 | 6 964 | 76.2 | 58.7 | 102.8 |
+| 22 (PI) | 25 852 | 3 550 | 8 504 | 790.3 | 108.5 | 260.0 |
+| 23 (CE) | 39 642 | 14 024 | 11 885 | 450.7 | 159.5 | 135.1 |
+| 24 (RN) | 9 053 | 1 574 | 3 848 | 274.1 | 47.7 | 116.5 |
+| 25 (PB) | 18 851 | 5 305 | 11 811 | 474.3 | 133.5 | 297.2 |
+| 26 (PE) | 7 987 | 3 039 | 13 169 | 88.2 | 33.5 | 145.4 |
+| 27 (AL) | 32 502 | 4 753 | 16 945 | 1 039.2 | 152.0 | 541.8 |
+| 28 (SE) | 4 858 | 2 690 | 1 715 | 219.8 | 121.7 | 77.6 |
+| 29 (BA) | 18 666 | 26 553 | 152 450 | 132.0 | 187.8 | 1 078.0 |
+| 31 (MG) | 66 807 | 306 143 | 1 296 793 | 325.3 | 1 490.5 | 6 313.5 |
+| 32 (ES) | 11 | 109 436 | 117 062 | 0.3 | 2 854.6 | 3 053.5 |
+| 33 (RJ) | 8 536 | 38 050 | 227 884 | 53.2 | 237.0 | 1 419.4 |
+| 35 (SP) | 310 245 | 314 118 | 1 859 975 | 698.6 | 707.3 | 4 188.1 |
+| 41 (PR) | 139 808 | 162 957 | 595 755 | 1 221.6 | 1 423.9 | 5 205.7 |
+| 42 (SC) | 82 047 | 108 093 | 304 101 | 1 078.1 | 1 420.3 | 3 995.9 |
+| 43 (RS) | 61 258 | 27 106 | 165 282 | 562.9 | 249.1 | 1 518.7 |
+| 50 (MS) | 21 289 | 40 703 | 15 484 | 772.2 | 1 476.3 | 561.6 |
+| 51 (MT) | 30 633 | 25 802 | 36 709 | 837.3 | 705.2 | 1 003.3 |
+| 52 (GO) | 183 644 | 67 412 | 310 350 | 2 602.5 | 955.3 | 4 398.1 |
+| 53 (DF) | 27 585 | 11 620 | 128 888 | 979.1 | 412.4 | 4 574.7 |
 
 ## 11. Memória
 
 | item | valor |
 |---|---|
 | RAM total da sessão (GiB) | 12.67 |
-| RAM disponível agora (GiB) | 5.41 |
+| RAM disponível agora (GiB) | 5.36 |
 | DataFrame carregado (9,615,975 linhas × 40 colunas, GiB) | 0.46 |
-| População final (7,783,722 linhas, GiB) | 0.91 |
+| População final (7,775,737 linhas, GiB) | 0.91 |
 
 Ambiente: Colab.

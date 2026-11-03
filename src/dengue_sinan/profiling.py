@@ -62,21 +62,31 @@ def target(df: pd.DataFrame) -> pd.Series:
     return (severe | death).astype("int8")
 
 
+def _population_filters(df: pd.DataFrame) -> tuple[pd.Series, pd.Series, pd.Series]:
+    """Os três filtros de D-45, na ordem do fluxograma: classificação, rótulo conhecido, idade."""
+    classi = code(df["CLASSI_FIN"])
+    classi_ok = classi.isin(CLASSI_DENGUE)
+    # Grave (12) já tem y = 1 pela classificação; 10/11 precisam da evolução para saber do óbito.
+    label_ok = code(df["EVOLUCAO"]).isin(EVOLUCAO_CONHECIDA) | (classi == "12")
+    age = decode_age_years(df["NU_IDADE_N"])
+    age_ok = age.between(0, 120)
+    return classi_ok, label_ok, age_ok
+
+
 def population_mask(df: pd.DataFrame) -> pd.Series:
-    """População de D-06: dengue (10/11/12) com evolução conhecida (cura ou óbito pelo agravo)."""
-    classi_ok = code(df["CLASSI_FIN"]).isin(CLASSI_DENGUE)
-    evolucao_ok = code(df["EVOLUCAO"]).isin(EVOLUCAO_CONHECIDA)
-    return classi_ok & evolucao_ok
+    """População de D-45: dengue (10/11/12), rótulo conhecido e idade válida."""
+    classi_ok, label_ok, age_ok = _population_filters(df)
+    return classi_ok & label_ok & age_ok
 
 
 def exclusion_flow(df: pd.DataFrame, year: str = "ANO") -> pd.DataFrame:
     """Fluxograma de exclusão (FR-02): linhas restantes após cada filtro, por ano."""
-    classi_ok = code(df["CLASSI_FIN"]).isin(CLASSI_DENGUE)
-    evolucao_ok = code(df["EVOLUCAO"]).isin(EVOLUCAO_CONHECIDA)
+    classi_ok, label_ok, age_ok = _population_filters(df)
     steps = {
         "1. Total baixado": pd.Series(True, index=df.index),
         "2. CLASSI_FIN ∈ {10, 11, 12}": classi_ok,
-        "3. EVOLUCAO ∈ {1, 2}": classi_ok & evolucao_ok,
+        "3. Rótulo conhecido (12, ou 10/11 com EVOLUCAO ∈ {1, 2})": classi_ok & label_ok,
+        "4. Idade válida (0–120 anos)": classi_ok & label_ok & age_ok,
     }
     flow = pd.DataFrame({name: mask.groupby(df[year]).sum() for name, mask in steps.items()}).T
     flow.columns.name = year
@@ -85,15 +95,16 @@ def exclusion_flow(df: pd.DataFrame, year: str = "ANO") -> pd.DataFrame:
 
 def exclusion_reasons(df: pd.DataFrame, year: str = "ANO") -> dict[str, pd.DataFrame]:
     """Quem saiu em cada filtro, por valor do campo — para ver se casos graves saem por branco."""
-    classi = code(df["CLASSI_FIN"])
-    classi_ok = classi.isin(CLASSI_DENGUE)
-    evolucao_out = df[classi_ok & ~code(df["EVOLUCAO"]).isin(EVOLUCAO_CONHECIDA)]
+    classi_ok, label_ok, age_ok = _population_filters(df)
+    label_out = df[classi_ok & ~label_ok]
+    age_out = df[classi_ok & label_ok & ~age_ok]
     return {
         "Removidos no filtro 2 (CLASSI_FIN)": counts_by_year(df[~classi_ok], "CLASSI_FIN", year),
-        "Removidos no filtro 3 (EVOLUCAO), por EVOLUCAO": counts_by_year(evolucao_out, "EVOLUCAO",
+        "Removidos no filtro 3 (rótulo), por EVOLUCAO": counts_by_year(label_out, "EVOLUCAO", year),
+        "Removidos no filtro 3 (rótulo), por CLASSI_FIN": counts_by_year(label_out, "CLASSI_FIN",
                                                                         year),
-        "Removidos no filtro 3 (EVOLUCAO), por CLASSI_FIN": counts_by_year(evolucao_out,
-                                                                          "CLASSI_FIN", year),
+        "Removidos no filtro 4 (idade), por CLASSI_FIN": counts_by_year(age_out, "CLASSI_FIN",
+                                                                       year),
     }
 
 

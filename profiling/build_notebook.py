@@ -193,16 +193,18 @@ SECOES["1. Códigos do alvo"] = "\\n\\n".join(partes_md)
 
 classi_vals = set(code(df["CLASSI_FIN"]).dropna().unique())
 tem_novo = {"10", "11", "12"} <= classi_vals
-tem_antigo_2024 = bool({"1", "2", "8"} & classi_vals)
+# 1 = confirmado e 2 = descartado só existem no esquema de 2024; 8 = inconclusivo aparece junto
+# com 10/11/12 nos arquivos reais (profiling de 2026-11-03), então não indica troca de esquema.
+tem_esquema_2024 = bool({"1", "2"} & classi_vals)
 por_ano = {ano: sorted(set(code(df.loc[df.ANO == ano, "CLASSI_FIN"]).dropna().unique()))
            for ano in ANOS}
-BLOQUEIO = (not tem_novo) or tem_antigo_2024
+BLOQUEIO = (not tem_novo) or tem_esquema_2024
 RESUMO["1"] = {
     "item": "Valores de CLASSI_FIN/EVOLUCAO/CRITERIO por ano", "secao": "§3.6",
     "resultado": "; ".join(f"{a}: CLASSI_FIN ∈ {{{', '.join(v)}}}" for a, v in por_ano.items()),
     "esperado": "não — PARAR" if BLOQUEIO else "sim",
-    "obs": ("Apareceram códigos 1/2/8 ou faltam 10/11/12: D-02 precisa ser redecidido."
-            if BLOQUEIO else "10/11/12 presentes nos três anos; D-02 vale."),
+    "obs": ("Apareceram códigos 1/2 ou faltam 10/11/12: D-02 precisa ser redecidido."
+            if BLOQUEIO else "10/11/12 presentes e 1/2 ausentes; D-02 vale."),
 }
 print("BLOQUEIO" if BLOQUEIO else "OK — 10/11/12 presentes", por_ano)
 
@@ -346,11 +348,15 @@ RESUMO["7a"] = {"item": "Sinais clínicos: % ausente", "secao": "§3.8",
                 "resultado": f"entre {sinais.min().min():.1f}% e {sinais.max().max():.1f}%",
                 "esperado": "revisar", "obs": ""}
 pct10 = alarm.loc["10", "%"] if "10" in alarm.index else float("nan")
+pct11 = alarm.loc["11", "%"] if "11" in alarm.index else float("nan")
+# A restrição de M2 vale enquanto o preenchimento separar as classes (revela a classificação).
+revela_classe = pct11 - pct10 > 50
 RESUMO["7b"] = {"item": "ALRM_* preenchido por CLASSI_FIN", "secao": "§3.6",
-                "resultado": f"CLASSI_FIN=10: {pct10:.1f}% com algum ALRM_*",
-                "esperado": "sim" if pct10 < 1 else "não",
-                "obs": "Restrição de M2 a 11/12 confirmada." if pct10 < 1 else
-                "ALRM_* aparece em casos 10: rever restrição de M2 (§3.6)."}
+                "resultado": f"algum ALRM_* preenchido: {pct10:.1f}% em CLASSI_FIN=10, "
+                             f"{pct11:.1f}% em 11",
+                "esperado": "sim" if revela_classe else "revisar",
+                "obs": "Preenchimento revela a classe: restrição de M2 a 11/12 necessária."
+                if revela_classe else "Preenchimento parecido entre classes: rever M2 (§3.6)."}
 display(sinais); display(alarm)
 """),
     md("## Passo 8 — Datas"),

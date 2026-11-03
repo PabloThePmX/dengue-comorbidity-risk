@@ -11,6 +11,7 @@ def cases() -> pd.DataFrame:
         "CLASSI_FIN": ["10", "12", "5", "11", "10", None],
         "EVOLUCAO": ["1", "1", "1", "9", "2", "1"],
         "DIABETES": ["1", "2", None, "1", "9", "2"],
+        "NU_IDADE_N": ["4030"] * 6,
     })
 
 
@@ -22,10 +23,30 @@ def test_population_keeps_dengue_with_known_outcome(cases):
     assert pf.population_mask(cases).tolist() == [True, True, False, False, True, False]
 
 
+def test_population_keeps_severe_with_unknown_outcome():
+    # D-45: grave (12) já é y = 1; 10/11 sem evolução não têm rótulo conhecido.
+    df = pd.DataFrame({
+        "CLASSI_FIN": ["12", "12", "11", "10"],
+        "EVOLUCAO": [None, "9", None, "9"],
+        "NU_IDADE_N": ["4030"] * 4,
+    })
+    assert pf.population_mask(df).tolist() == [True, True, False, False]
+
+
+def test_population_excludes_invalid_age():
+    # D-49: código inválido ou idade fora de [0, 120] sai da população.
+    df = pd.DataFrame({
+        "CLASSI_FIN": ["10", "10", "10", "10"],
+        "EVOLUCAO": ["1"] * 4,
+        "NU_IDADE_N": ["4030", "4407", "5018", "3009"],
+    })
+    assert pf.population_mask(df).tolist() == [True, False, False, True]
+
+
 def test_exclusion_flow_counts_per_year(cases):
     flow = pf.exclusion_flow(cases)
-    assert flow[2022].tolist() == [4, 3, 2]
-    assert flow[2023].tolist() == [2, 1, 1]
+    assert flow[2022].tolist() == [4, 3, 2, 2]
+    assert flow[2023].tolist() == [2, 1, 1, 1]
 
 
 def test_counts_by_year_shows_blank():
