@@ -1,6 +1,6 @@
 # TODO — implementação do modelo (Marcos 2 a 7)
 
-> Fonte da verdade: [specs.md](specs.md) (v0.13). Este arquivo só **traduz** o spec em tarefas.
+> Fonte da verdade: [specs.md](specs.md) (v0.14). Este arquivo só **traduz** o spec em tarefas.
 > Se este TODO e o spec discordarem, **o spec vale** — pare e avise o Programador.
 > Marco 1 (dados e profiling) está **concluído**: ver [profiling/RESULTADOS.md](profiling/RESULTADOS.md).
 
@@ -15,6 +15,11 @@
 3. Ao terminar cada tarefa: marque `[x]`, rode `uv run pytest -q` e `uv run ruff check .`, e
    escreva uma linha em **§9 Registro de execução** no fim deste arquivo. Todo código novo vai em
    `src/dengue_sinan/` com teste em `tests/`; notebooks só chamam funções (NFR-05).
+3b. **Ambiente local (Windows):** o projeto usa o Python **3.13** do `.venv`, criado pelo `uv`; o
+   `python` do sistema (3.14) não serve. Se `uv` não estiver no PATH, use `python -m uv` ou o caminho
+   completo `%APPDATA%\Python\Python314\Scripts\uv.exe`. Se `uv run pytest` falhar com
+   "trampoline failed to canonicalize script path", rode `uv run python -m pytest -q` (mesmo efeito)
+   e registre na §10. Nunca instale pacotes com `pip` direto: só `uv add`, depois do "ok" (T-2.0).
 4. Quando o texto disser **🛑 PARE E PERGUNTE**, não continue: descreva as opções ao programador e
    espere a resposta. Nunca escolha sozinho.
 4b. **Erro inesperado** (algo quebra, não converge, estoura memória, dá número estranho): registre
@@ -131,11 +136,13 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
 - **🛑 PARE E PERGUNTE** antes de instalar. Proposta para o Programador aprovar:
   - runtime: `scikit-learn`, `statsmodels` (E1 com IC), `xgboost`, `catboost`, `optuna`, `mlflow`,
     `shap`, `pyyaml`, `matplotlib`, `streamlit`;
-  - MLP: **`torch` (PyTorch), com GPU** — já decidido (D-51). A sessão do MLP roda no Colab Pro
-    com GPU. O código escolhe o dispositivo sozinho (`"cuda"` se houver, senão `"cpu"`), para continuar
+  - MLP: **`torch` (PyTorch), com GPU** — já decidido (D-51). Os 6 modelos rodam numa **sessão
+    única** do Colab com GPU (D-53). O código escolhe o dispositivo sozinho (`"cuda"` se houver, senão `"cpu"`), para continuar
     executável no Colab gratuito (D-44);
   - TabFM: pacote/versão só depois de T-4.7.
 - Depois do "ok": `uv add <pacotes>`; rode `uv run pytest -q` (os 48 testes atuais devem passar).
+  Esperado: o `mlflow` exige `pyarrow<26`, então o `uv add` rebaixa o pyarrow para 25.x. Não é erro
+  e não precisa ir para a §10.
 - Crie `config/base.yaml` com, no mínimo:
   ```yaml
   seed: 20261103
@@ -151,8 +158,16 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
   bootstrap: {metricas: 1000, calibracao: 2000}
   supressao_min_celula: 10
   dca_limiares: {min: 0.001, max: 0.05, passos: 50}
-  orcamento_min: {elastic_net: 60, random_forest: 90, xgboost: 90, catboost: 90, mlp: 90, tabfm: 60}
-  optuna: {max_tentativas: 50}
+  # D-53: sessão única; teto por modelo, orçamento real sai da cronometragem (T-4.3)
+  ordem_modelos: [elastic_net, xgboost, catboost, mlp, random_forest, tabfm]
+  ordem_dobras: [Sudeste, Sul, Centro-Oeste, Nordeste, Norte]
+  orcamento_teto_min: {elastic_net: 20, xgboost: 30, catboost: 40, mlp: 40, random_forest: 40, tabfm: 30}
+  orcamento_piso_min: 10
+  optuna:
+    max_tentativas: {elastic_net: 15, xgboost: 30, catboost: 25, mlp: 25, random_forest: 25, tabfm: 1}
+    poda_tentativas_iniciais: 5   # MedianPruner(n_startup_trials)
+    poda_dobras_aquecimento: 2    # MedianPruner(n_warmup_steps): só poda depois da 2ª dobra
+  bootstrap_pareado: 1000
   ```
 - Crie `src/dengue_sinan/config.py` com `load_config(path) -> dict` (ou dataclass) e um teste
   que carrega `config/base.yaml`.
@@ -160,6 +175,9 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
   linhas individuais e nenhuma célula com < 10 casos.
 - **Como rodar no Colab** (crie `notebooks/colab_setup.md` com estes passos e use em todas as sessões):
   1. montar o Drive; 2. `git clone` do repositório e `pip install -e .` (ou `uv sync`);
+  2b. conferir a GPU: `nvidia-smi` e `python -c "import torch; print(torch.__version__,
+     torch.cuda.is_available())"`. Se der `False` numa VM com GPU, **🛑 PARE E PERGUNTE**: o lock
+     usa torch com CUDA 13, e o driver do Colab pode não suportar (spec `[VERIFY]`, NFR-01);
   3. apontar `caminhos.dados` e `caminhos.mlruns` do config para a pasta do Drive;
   4. chamar as funções de `src/` (notebooks não contêm lógica, só chamadas);
   5. ao terminar a sessão, desconectar o ambiente (NFR-01, para não gastar unidades com GPU ociosa).
@@ -213,6 +231,11 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
   Linhas com `regiao` nula: **🛑 PARE E PERGUNTE** se existirem (o profiling não mostrou nenhuma).
 - `inner_split(idx_treino, y, frac, seed) -> (idx_ajuste, idx_parada)`: 10% estratificado pelo alvo
   (`StratifiedShuffleSplit`), só dentro das 4 regiões de treino (R6).
+- As dobras saem **sempre na ordem `cfg.ordem_dobras`** (Sudeste → Norte, da região com mais eventos
+  para a com menos), para a poda do Optuna decidir com as dobras mais estáveis (D-53).
+- `save_folds(cfg, df, caminho) -> str` grava em Parquet, por linha: id, dobra de validação e a flag
+  de validação interna de cada dobra; devolve o **hash** (sha256) do arquivo. `load_folds(caminho,
+  hash_esperado)` levanta erro se o hash não bater. Todos os modelos usam esse mesmo arquivo (D-53).
 - Testes: 5 dobras; nenhuma interseção treino/validação; cada linha aparece em exatamente uma
   validação; a validação de cada dobra só tem uma região; `inner_split` preserva a prevalência
   (diferença < 0,01 pp em dados sintéticos grandes).
@@ -228,10 +251,14 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
   - `best_f2_threshold(y, p) -> float` (varre os valores únicos de `p` ou uma grade fina);
   - `net_benefit(y, p, limiares) -> DataFrame` com colunas `limiar`, `modelo`, `tratar_todos`
     (`tratar_ninguem` = 0). Fórmula: NB = VP/n − FP/n × (pt / (1 − pt));
-  - `bootstrap_ci(fn, y, p, n, seed) -> (estimativa, ic_inf, ic_sup)` com reamostragem estratificada.
+  - `bootstrap_ci(fn, y, p, n, seed) -> (estimativa, ic_inf, ic_sup)` com reamostragem estratificada;
+  - `paired_bootstrap_diff(fn, y, p_a, p_b, dobra, n, seed) -> (diferenca, ic_inf, ic_sup)`: em cada
+    reamostra, sorteia **os mesmos índices** para os dois modelos (estratificado por dobra e alvo),
+    calcula `fn` por dobra, tira a média das 5 e guarda `média_a − média_b` (D-53).
 - Testes: F2 de um exemplo conhecido; PR-AUC de preditor perfeito = 1; preditor constante tem
   PR-AUC = prevalência; slope = 1 e intercept = 0 para probabilidades perfeitamente calibradas
-  (simuladas); net benefit de "tratar todos" bate com a fórmula.
+  (simuladas); net benefit de "tratar todos" bate com a fórmula; `paired_bootstrap_diff` com
+  `p_a == p_b` dá diferença 0 e IC [0, 0].
 - **Pronto quando:** testes passam.
 
 ### [ ] T-2.5 — Rastreamento (`tracking.py`)
@@ -369,7 +396,10 @@ desenvolvimento, sem dobras — é inferência, não predição).
 ## 4. Marco 4 — Modelos preditivos (M1)
 
 Spec: FR-07, FR-08, FR-12, FR-13, FR-17, FR-22, NFR-01, §3.11, D-32, D-36, D-37, D-42, D-43.
-Tudo em 2022–23 (R1). **Uma sessão do Colab por modelo** (NFR-01).
+Tudo em 2022–23 (R1). **Uma sessão única do Colab para os 6 modelos** (NFR-01, D-53): mesmos dados,
+mesmas dobras (arquivo de T-2.3 com hash), mesma semente; comparação pareada no fim (T-4.9).
+VM com GPU (L4 de preferência; T4 serve) e High RAM no Pro. No gratuito, o mesmo notebook roda,
+mais devagar, retomando de onde parou.
 
 ### [ ] T-4.0 — Espaço de busca (Q-08) — 🛑 aprovação do Programador
 
@@ -378,7 +408,7 @@ Proposta (registrar no `config/base.yaml` depois do "ok"):
 | Modelo | Hiperparâmetros e faixas propostas |
 |---|---|
 | Elastic net (`LogisticRegression(penalty="elasticnet", solver="saga")`) | `C` log [1e-3, 10]; `l1_ratio` [0, 1] |
-| Random Forest | `n_estimators` [200, 800]; `max_depth` [4, 20] ou None; `min_samples_leaf` [10, 500] log; `max_features` {"sqrt", 0.3, 0.5} |
+| Random Forest | `n_estimators` [200, 800]; `max_depth` [4, 20] ou None; `min_samples_leaf` [10, 500] log; `max_features` {"sqrt", 0.3, 0.5}; `max_samples` [0.05, 0.3] (fração sorteada por árvore: acelera muito sem mudar a prevalência, D-53) |
 | XGBoost (`tree_method="hist"`) | `learning_rate` log [0.01, 0.3]; `max_depth` [3, 10]; `min_child_weight` log [1, 100]; `subsample` [0.5, 1]; `colsample_bytree` [0.5, 1]; `reg_lambda` log [1e-3, 10]; `n_estimators` até 2000 com early stopping |
 | CatBoost | `learning_rate` log [0.01, 0.3]; `depth` [4, 10]; `l2_leaf_reg` log [1, 30]; `iterations` até 3000 com early stopping |
 | MLP (PyTorch, GPU) | camadas ocultas {[64], [128], [128, 64]}; `dropout` [0, 0.3]; `weight_decay` log [1e-6, 1e-2]; `lr` log [1e-4, 1e-2] (Adam); `batch_size` {1024, 4096}; épocas até 200 com early stopping. Perda: `BCEWithLogitsLoss` **sem `pos_weight`** (R3) |
@@ -422,34 +452,62 @@ Nenhum parâmetro de peso de classe (R3).
   - `optuna.create_study(direction="maximize", sampler=TPESampler(seed=cfg.seed),
     pruner=MedianPruner(), storage="sqlite:///<Drive>/optuna/<modelo>.db", study_name=<modelo>,
     load_if_exists=True)` — busca **retomável**;
-  - `study.optimize(objetivo, n_trials=50, timeout=orcamento_min*60)`;
+  - pruner: `MedianPruner(n_startup_trials=cfg.optuna.poda_tentativas_iniciais,
+    n_warmup_steps=cfg.optuna.poda_dobras_aquecimento)`;
+  - **cronometragem (D-53):** se o estudo estiver vazio, `study.enqueue_trial(<padrões da biblioteca>)`
+    e rode essa 1ª tentativa sozinha (`n_trials=1`), medindo o tempo `t` das 5 dobras;
+  - orçamento = `max(piso, min(teto, t × max_tentativas))` (valores do config); se `3t > teto`, a
+    busca vai para a subamostra (item abaixo); grave `t` e o orçamento no MLflow;
+  - `study.optimize(objetivo, n_trials=max_tentativas[modelo], timeout=orçamento_em_segundos)`;
   - objetivo: `run_loro` reportando a PR-AUC acumulada após cada dobra (`trial.report`) e podando
     com `trial.should_prune()`;
-  - se nem uma tentativa completa couber no orçamento: busca em **subamostra estratificada pelo
-    alvo** de cada dobra (mesma prevalência, R3) e anote isso no MLflow.
+  - se `3t > teto`: busca em **subamostra estratificada pelo alvo** de cada dobra (mesma
+    prevalência, R3), no tamanho que faça `3t` caber, e anote isso no MLflow. As predições OOF finais
+    do modelo (T-4.4 em diante) usam todos os dados.
 - Registre no MLflow: tempo gasto, tentativas concluídas e podadas, hardware.
 - A melhor tentativa vai para o registro de modelos com alias **`melhor-validacao`** (FR-22).
   Tentativas piores nunca sobrescrevem.
 - **Pronto quando:** interromper e rodar de novo continua o mesmo estudo (teste manual no Colab,
   anotado no §9).
 
-### [ ] T-4.4 a T-4.8 — Um modelo por sessão
+### [ ] T-4.3b — Execução em sessão única (`runner.py`) (D-53)
 
-Para cada modelo: rode `tune`, depois `run_loro` com os melhores parâmetros, salve OOF e métricas.
+- `run_all_models(cfg)`:
+  1. carrega a população 2022–23 uma vez (`load_population`) e as dobras com `load_folds` (hash);
+  2. percorre `cfg.ordem_modelos`; para cada modelo, se existir `<Drive>/m1/<modelo>/CONCLUIDO.json`
+     com o mesmo hash de dobras e de config, **pula**;
+  3. senão: `tune` → `run_loro` com os melhores parâmetros → grava OOF (`oof.parquet`), métricas,
+     melhores parâmetros e melhores pontos por dobra; por último grava `CONCLUIDO.json`;
+  4. libera memória entre modelos (`del`, `gc.collect()`, `torch.cuda.empty_cache()`);
+  5. no fim, chama a comparação de T-4.9.
+- Notebook `notebooks/04_modelos.ipynb`: só monta o Drive, carrega o config e chama `run_all_models`
+  (sem lógica no notebook).
+- Registre no MLflow o hardware (GPU, nº de vCPUs, RAM) uma vez por sessão.
+- Teste com dados sintéticos e 2 modelos baratos: interromper depois do 1º e rodar de novo pula o 1º
+  e termina o 2º; hash de dobras diferente faz o modelo rodar de novo.
+- **Pronto quando:** teste passa; no Colab, uma queda forçada (desconectar) seguida de reexecução
+  continua do modelo em andamento (anote no §9).
 
-- [ ] **T-4.4 Random Forest** (90 min). Se faltar memória: subamostra de negativos **só no treino
+### [ ] T-4.4 a T-4.8 — Os 6 modelos (dentro de `run_all_models`)
+
+Implemente e teste cada modelo separadamente (testes rápidos em CPU), mas a execução real é **uma
+só**, pela T-4.3b, na ordem do config. Tetos de tempo e de tentativas: `config/base.yaml` (D-53).
+
+- [ ] **T-4.4 Random Forest** (teto 40 min, CPU). Se faltar memória: subamostra de negativos **só no treino
   da dobra**, depois corrija a probabilidade: `p' = p / (p + (1 − p) / taxa_amostragem)` e confira
   a calibração no OOF. Anote a taxa no MLflow.
-- [ ] **T-4.5 XGBoost** (90 min). Sem `scale_pos_weight` (R3).
-- [ ] **T-4.6 CatBoost** (90 min). Sem `auto_class_weights` (R3).
-- [ ] **T-4.6b Elastic net** (60 min) e **MLP** (90 min, GPU do Colab Pro).
+- [ ] **T-4.5 XGBoost** (teto 30 min, `device="cuda"` se houver GPU). Sem `scale_pos_weight` (R3).
+- [ ] **T-4.6 CatBoost** (teto 40 min, `task_type="GPU"` se houver GPU). Sem `auto_class_weights`
+  (R3). Se o CatBoost em GPU não aceitar `eval_metric="PRAUC"` no early stopping, use CPU e anote
+  no §10 (spec `[VERIFY]`).
+- [ ] **T-4.6b Elastic net** (teto 20 min, CPU) e **MLP** (teto 40 min, GPU).
   - MLP em `src/dengue_sinan/mlp.py`: classe compatível com sklearn (`fit`, `predict_proba`) que
     envolve a rede PyTorch, para entrar no mesmo `Pipeline` (R5) e no mesmo `run_loro`.
   - Fixe as sementes do PyTorch (`torch.manual_seed`, `torch.cuda.manual_seed_all`) com a semente do
     config (R8) e registre o dispositivo usado no MLflow.
   - Teste unitário rápido em CPU com dados sintéticos: treina, para no early stopping e devolve
     probabilidades entre 0 e 1.
-- [ ] **T-4.7 TabFM** (60 min, GPU).
+- [ ] **T-4.7 TabFM** (teto 30 min, GPU).
   - **Antes de codar, 🛑 PARE E PERGUNTE** com estas informações do model card (spec `[VERIFY]`):
     licença dos pesos cobre uso acadêmico?; limite de linhas de contexto e de features; velocidade
     de predição; nome e versão do pacote.
@@ -469,8 +527,13 @@ por dobra registrados; alias `melhor-validacao` presente.
   menor Brier OOF. Guardar o calibrador.
 - Limiar = `best_f2_threshold` nas predições OOF **calibradas**.
 - Tabela comparativa `reports/m1/comparacao_oof.md`: por modelo, PR-AUC média (e por dobra),
-  Brier, slope/intercept, ROC-AUC, métricas no limiar; com B0, B1 e B2 ao lado.
-- Aplicar a **regra de seleção** da §1.4. Registrar o vencedor e o motivo no §9 e no MLflow.
+  Brier, slope/intercept, ROC-AUC, métricas no limiar; com B0, B1 e B2 ao lado; e, por modelo, tempo
+  da cronometragem, orçamento usado e tentativas concluídas/podadas.
+- **Comparação pareada (D-53)** `reports/m1/comparacao_pareada.md`: para cada par de modelos
+  (incluindo B1), diferença de PR-AUC por dobra (5 valores) e `paired_bootstrap_diff` com IC 95%.
+  Use `bootstrap_pareado` e a semente do config; os mesmos sorteios para todos os pares.
+- Aplicar a **regra de seleção** da §1.4, com empate por "diferença < 0,005 ou ICs sobrepostos"
+  (mantida em D-53). A comparação pareada **não** entra na seleção: ela só é reportada. Registrar o vencedor e o motivo no §9 e no MLflow.
 - **Pronto quando:** um único modelo M1 escolhido, com calibrador e limiar, **sem ter lido 2024**.
 
 ### [ ] T-4.10 — Retreino final e congelamento (FR-12, FR-22, D-37)
