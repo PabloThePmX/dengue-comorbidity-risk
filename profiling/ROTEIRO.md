@@ -1,6 +1,6 @@
 # Roteiro de profiling — SINAN Dengue 2022–2024
 
-Objetivo: resolver os `[VERIFY]` de dados do [specs.md](../specs.md) **antes** de qualquer modelagem.
+Objetivo: resolver os `[VERIFY]` de dados do [spec.md](../specs/spec.md) **antes** de qualquer modelagem.
 Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O código é de vocês; no fim eu reviso.
 
 **Ordem importa.** O passo 1 é bloqueante: se ele falhar, a definição do alvo muda e os passos seguintes mudam junto.
