@@ -1,0 +1,57 @@
+seed: 20261103
+anos_dev: [2022, 2023]
+ano_teste: 2024
+caminhos:
+  dados: data
+  mlruns: mlruns
+  relatorios: reports
+  modelos: models
+dias_notificacao_max: 60
+faixas: [0, 5, 15, 40, 60, 80]
+validacao_interna_frac: 0.10
+bootstrap:
+  metricas: 1000
+  calibracao: 2000
+supressao_min_celula: 10
+dca_limiares:
+  min: 0.001
+  max: 0.05
+  passos: 50
+orcamento_min:
+  elastic_net: 60
+  random_forest: 90
+  xgboost: 90
+  catboost: 90
+  mlp: 90
+  tabfm: 60
+optuna:
+  max_tentativas: 50
+busca:
+  elastic_net:
+    C: [0.001, 10.0]
+    l1_ratio: [0.0, 1.0]
+  random_forest:
+    n_estimators: [200, 800]
+    max_depth: [4, 20]
+    min_samples_leaf: [10, 500]
+    max_features: [sqrt, 0.3, 0.5]
+  xgboost:
+    learning_rate: [0.01, 0.3]
+    max_depth: [3, 10]
+    min_child_weight: [1, 100]
+    subsample: [0.5, 1.0]
+    colsample_bytree: [0.5, 1.0]
+    reg_lambda: [0.001, 10.0]
+    n_estimators: 2000
+  catboost:
+    learning_rate: [0.01, 0.3]
+    depth: [4, 10]
+    l2_leaf_reg: [1, 30]
+    iterations: 3000
+  mlp:
+    hidden_layers: [[64], [128], [128, 64]]
+    dropout: [0.0, 0.3]
+    weight_decay: [0.000001, 0.01]
+    learning_rate: [0.0001, 0.01]
+    batch_size: [1024, 4096]
+    epochs: 200
