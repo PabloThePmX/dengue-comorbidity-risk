@@ -1,0 +1,3 @@
+ANO,linhas,NU_IDADE_N em branco,código inválido,"fora de [0, 120]",recuperada por ANO_NASC,sem idade (excluída),mín,p50,p99,máx
+2022,1405095,0,11507,44,11428,123,0.0,33.0,82.0,120.0
+2023,1645956,0,55,56,48,63,0.0,33.0,82.0,120.0

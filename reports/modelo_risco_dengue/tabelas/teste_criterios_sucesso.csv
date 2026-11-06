@@ -1,0 +1,5 @@
+critério,resultado,atendido
+"SC-01: PR-AUC de M1 > B0, IC95% da diferença sem 0",Δ = 0.0301 [0.0280; 0.0322],True
+"SC-02: no limiar F2, recall de M1 ≥ recall de B2 com precisão maior",recall 0.205 vs 0.660; precisão 0.0530 vs 0.0053,False
+"SC-03: calibration slope de M1 entre 0,8 e 1,2",slope = 0.925,True
+SC-04: ΔPR-AUC (M1 − B1) reportada com IC (qualquer sinal),Δ = 0.0164 [0.0149; 0.0179],True

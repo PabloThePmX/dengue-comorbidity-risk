@@ -1,0 +1,341 @@
+{
+  "congelado_em_utc": "2026-11-06T02:58:32+00:00",
+  "sha256_modelo": "6286d444d050279727db1ba2b7de4960114dddbf47a41d6075749ab4d9fbfde6",
+  "commit_git": "HEAD",
+  "seed": 20261103,
+  "ambiente": {
+    "python": "3.12.10",
+    "sistema": "Windows-11-10.0.26300-SP0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pyarrow": "26.0.1",
+    "scikit-learn": "1.9.1",
+    "statsmodels": "0.15.0",
+    "scipy": "1.18.1",
+    "xgboost": "3.4.1",
+    "shap": "0.54.1",
+    "matplotlib": "3.11.2",
+    "patsy": "1.0.3"
+  },
+  "assinatura_dados_dev": {
+    "2022": {
+      "sha256_parquet": null,
+      "revisao_datasus_utc": null,
+      "bytes": 28287145
+    },
+    "2023": {
+      "sha256_parquet": null,
+      "revisao_datasus_utc": null,
+      "bytes": 29953386
+    }
+  },
+  "config": {
+    "SEED": 20261103,
+    "ANOS_DEV": [
+      2022,
+      2023
+    ],
+    "ANO_TESTE": 2024,
+    "BAIXAR_SE_AUSENTE": true,
+    "MIN_CELULA": 10,
+    "MIN_EVENTOS_SUBGRUPO": 100,
+    "VALIDACAO_INTERNA_FRAC": 0.1,
+    "PACIENCIA_BOOSTING": 50,
+    "MAX_ITER_BOOSTING": 1000,
+    "BOOT": 1000,
+    "BOOT_SUBGRUPO": 200,
+    "DCA_LIMIARES": [
+      0.001,
+      0.05,
+      50
+    ],
+    "SHAP_AMOSTRA": 50000,
+    "SHAP_INTERACAO_AMOSTRA": 3000,
+    "ORCAMENTO_S": {
+      "elastic_net": 1800,
+      "random_forest": 2400,
+      "xgboost": 1800
+    },
+    "EN_MAX_ITER": 300,
+    "RF_MAX_AMOSTRAS": 0.25,
+    "DEVICE": "cpu",
+    "N_JOBS": -1,
+    "IDADE_REF": null,
+    "SENSIBILIDADE_DUPLICATAS": true
+  },
+  "grades": {
+    "elastic_net": [
+      {
+        "C": 1.0,
+        "l1_ratio": 0.5
+      },
+      {
+        "C": 0.1,
+        "l1_ratio": 0.5
+      },
+      {
+        "C": 0.01,
+        "l1_ratio": 0.5
+      },
+      {
+        "C": 0.1,
+        "l1_ratio": 0.1
+      }
+    ],
+    "random_forest": [
+      {
+        "n_estimators": 200,
+        "min_samples_leaf": 100,
+        "max_features": "sqrt",
+        "max_samples": 0.25
+      },
+      {
+        "n_estimators": 200,
+        "min_samples_leaf": 30,
+        "max_features": "sqrt",
+        "max_samples": 0.25
+      },
+      {
+        "n_estimators": 200,
+        "min_samples_leaf": 300,
+        "max_features": "sqrt",
+        "max_samples": 0.25
+      },
+      {
+        "n_estimators": 200,
+        "min_samples_leaf": 100,
+        "max_features": 0.5,
+        "max_samples": 0.25
+      }
+    ],
+    "xgboost": [
+      {
+        "max_depth": 4,
+        "learning_rate": 0.05,
+        "min_child_weight": 5,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 1.0
+      },
+      {
+        "max_depth": 3,
+        "learning_rate": 0.05,
+        "min_child_weight": 5,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 1.0
+      },
+      {
+        "max_depth": 6,
+        "learning_rate": 0.05,
+        "min_child_weight": 20,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 1.0
+      },
+      {
+        "max_depth": 4,
+        "learning_rate": 0.05,
+        "min_child_weight": 50,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 10.0
+      }
+    ]
+  },
+  "selecao": {
+    "modelo": "xgboost",
+    "motivo": "empate de PR-AUC (< 0,005): desempatou o menor Brier",
+    "boosting": "xgboost",
+    "params": {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "min_child_weight": 5,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "reg_lambda": 1.0
+    },
+    "calibrador": "isotonica"
+  },
+  "metricas_validacao": {
+    "limiar_f2_m1": 0.02582795250989377,
+    "limiar_f2_b1": 0.011923808027412627,
+    "limiar_sens_b2": 0.0023752969121140144,
+    "limiar_frac_b2": 0.0012793584113041819,
+    "metricas_oof": [
+      {
+        "modelo": "B0 (prevalência)",
+        "PR-AUC (pooled)": 0.00151,
+        "ROC-AUC": 0.4629,
+        "Brier": 0.00162,
+        "slope": NaN,
+        "intercepto (CITL)": NaN,
+        "O:E": NaN,
+        "PR-AUC (média das dobras)": NaN
+      },
+      {
+        "modelo": "B1 (logística simples)",
+        "PR-AUC (pooled)": 0.01063,
+        "ROC-AUC": 0.70722,
+        "Brier": 0.00162,
+        "slope": 0.95344,
+        "intercepto (CITL)": -0.05878,
+        "O:E": 0.94328,
+        "PR-AUC (média das dobras)": NaN
+      },
+      {
+        "modelo": "elastic_net (calibrado)",
+        "PR-AUC (pooled)": 0.02379,
+        "ROC-AUC": 0.82263,
+        "Brier": 0.0016,
+        "slope": 0.99515,
+        "intercepto (CITL)": -0.06511,
+        "O:E": 0.93789,
+        "PR-AUC (média das dobras)": 0.02649
+      },
+      {
+        "modelo": "random_forest (calibrado)",
+        "PR-AUC (pooled)": 0.02459,
+        "ROC-AUC": 0.83094,
+        "Brier": 0.0016,
+        "slope": 0.99007,
+        "intercepto (CITL)": -0.05768,
+        "O:E": 0.94481,
+        "PR-AUC (média das dobras)": 0.0269
+      },
+      {
+        "modelo": "xgboost (calibrado)",
+        "PR-AUC (pooled)": 0.02719,
+        "ROC-AUC": 0.84238,
+        "Brier": 0.0016,
+        "slope": 1.0001,
+        "intercepto (CITL)": -0.06198,
+        "O:E": 0.94085,
+        "PR-AUC (média das dobras)": 0.02811
+      }
+    ]
+  },
+  "e1": {
+    "rhs": "bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121) + sexo_M + gestante + DIABETES + HEMATOLOG + HEPATOPAT + RENAL + HIPERTENSA + ACIDO_PEPT + AUTO_IMUNE + DIABETES:HEMATOLOG + DIABETES:HEPATOPAT + DIABETES:RENAL + DIABETES:HIPERTENSA + DIABETES:AUTO_IMUNE + HEMATOLOG:HEPATOPAT + HEMATOLOG:RENAL + HEMATOLOG:HIPERTENSA + HEMATOLOG:AUTO_IMUNE + HEPATOPAT:RENAL + HEPATOPAT:HIPERTENSA + RENAL:HIPERTENSA + RENAL:AUTO_IMUNE + HIPERTENSA:ACIDO_PEPT + HIPERTENSA:AUTO_IMUNE + HIPERTENSA:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121) + DIABETES:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)",
+    "nos": [
+      6.0,
+      20.0,
+      33.0,
+      49.0,
+      70.0
+    ],
+    "pares": [
+      [
+        "DIABETES",
+        "HEMATOLOG"
+      ],
+      [
+        "DIABETES",
+        "HEPATOPAT"
+      ],
+      [
+        "DIABETES",
+        "RENAL"
+      ],
+      [
+        "DIABETES",
+        "HIPERTENSA"
+      ],
+      [
+        "DIABETES",
+        "AUTO_IMUNE"
+      ],
+      [
+        "HEMATOLOG",
+        "HEPATOPAT"
+      ],
+      [
+        "HEMATOLOG",
+        "RENAL"
+      ],
+      [
+        "HEMATOLOG",
+        "HIPERTENSA"
+      ],
+      [
+        "HEMATOLOG",
+        "AUTO_IMUNE"
+      ],
+      [
+        "HEPATOPAT",
+        "RENAL"
+      ],
+      [
+        "HEPATOPAT",
+        "HIPERTENSA"
+      ],
+      [
+        "RENAL",
+        "HIPERTENSA"
+      ],
+      [
+        "RENAL",
+        "AUTO_IMUNE"
+      ],
+      [
+        "HIPERTENSA",
+        "ACIDO_PEPT"
+      ],
+      [
+        "HIPERTENSA",
+        "AUTO_IMUNE"
+      ]
+    ],
+    "coeficientes": {
+      "Intercept": -5.74144053009684,
+      "bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[0]": -1.0542155810654192,
+      "bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[1]": -1.143905121870263,
+      "bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[2]": -1.8299076882850525,
+      "bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[3]": -1.5829890684895016,
+      "bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[4]": -1.3556835216348122,
+      "bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[5]": -0.9727546891186596,
+      "bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[6]": 4.801061172139435,
+      "bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[7]": 0.40865365144178767,
+      "sexo_M": 0.21547008250670519,
+      "gestante": 0.7029123366907579,
+      "DIABETES": -0.5012851223058435,
+      "HEMATOLOG": 2.229502424274796,
+      "HEPATOPAT": 1.60031874264623,
+      "RENAL": 1.9031795624857344,
+      "HIPERTENSA": -1.4458111945066587,
+      "ACIDO_PEPT": -0.3558021898469776,
+      "AUTO_IMUNE": 1.6142078919168599,
+      "DIABETES:HEMATOLOG": -0.7360135428487814,
+      "DIABETES:HEPATOPAT": -0.46887519532258365,
+      "DIABETES:RENAL": -0.06631228362675166,
+      "DIABETES:HIPERTENSA": -0.37034309311169733,
+      "DIABETES:AUTO_IMUNE": -1.02841218394559,
+      "HEMATOLOG:HEPATOPAT": -1.7138446667996698,
+      "HEMATOLOG:RENAL": -2.0721337267835973,
+      "HEMATOLOG:HIPERTENSA": -0.9366643948007095,
+      "HEMATOLOG:AUTO_IMUNE": -0.41654769872129577,
+      "HEPATOPAT:RENAL": -0.9167449428766251,
+      "HEPATOPAT:HIPERTENSA": -0.2205583804878864,
+      "RENAL:HIPERTENSA": -0.18820524729315066,
+      "RENAL:AUTO_IMUNE": 0.055525537860367305,
+      "HIPERTENSA:ACIDO_PEPT": -0.135794066029274,
+      "HIPERTENSA:AUTO_IMUNE": -1.0541633790012968,
+      "HIPERTENSA:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[0]": 1.9512514319268333,
+      "HIPERTENSA:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[1]": 0.7507725707818016,
+      "HIPERTENSA:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[2]": 2.03778415041294,
+      "HIPERTENSA:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[3]": 2.677915076831362,
+      "HIPERTENSA:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[4]": 2.2290111850736447,
+      "HIPERTENSA:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[5]": 2.835058458933737,
+      "HIPERTENSA:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[6]": 2.304997921874657,
+      "HIPERTENSA:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[7]": -0.25144068706139944,
+      "DIABETES:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[0]": 2.930544104734199,
+      "DIABETES:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[1]": -1.1114651846201706,
+      "DIABETES:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[2]": 1.5283359572408324,
+      "DIABETES:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[3]": 1.5256972004621379,
+      "DIABETES:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[4]": 1.7335195201115987,
+      "DIABETES:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[5]": 1.2553273098558682,
+      "DIABETES:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[6]": 1.0947634243220923,
+      "DIABETES:bs(idade, knots=[6.0, 20.0, 33.0, 49.0, 70.0], degree=3, include_intercept=False, lower_bound=0, upper_bound=121)[7]": 0.15220942344352256
+    }
+  }
+}

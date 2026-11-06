@@ -1,0 +1,9 @@
+desfecho,B2,M1 (F2),n
+sem evento,baixo risco,baixo risco,3913305
+sem evento,baixo risco,alto risco,505
+sem evento,alto risco,baixo risco,1365527
+sem evento,alto risco,alto risco,41070
+evento (grave/óbito),baixo risco,baixo risco,3841
+evento (grave/óbito),baixo risco,alto risco,13
+evento (grave/óbito),alto risco,baixo risco,5168
+evento (grave/óbito),alto risco,alto risco,2316

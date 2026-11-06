@@ -1,0 +1,5 @@
+config,p_max_depth,p_learning_rate,p_min_child_weight,p_subsample,p_colsample_bytree,p_reg_lambda,pr_auc_media,tempo_s,do_cache
+0,4,0.05,5,0.8,0.8,1.0,0.02693797426451036,129.7,True
+1,3,0.05,5,0.8,0.8,1.0,0.028106609918891367,146.4,True
+2,6,0.05,20,0.8,0.8,1.0,0.02783675099997302,128.9,True
+3,4,0.05,50,0.8,0.8,10.0,0.026793462076503172,140.6,True

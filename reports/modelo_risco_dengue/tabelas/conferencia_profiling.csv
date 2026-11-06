@@ -1,0 +1,10 @@
+item,esperado (profiling),obtido,confere
+casos 2022,1148299,1148299,True
+eventos 2022,1869,1869,True
+casos 2023,1304909,1304909,True
+eventos 2023,2116,2116,True
+eventos Centro-Oeste,736,736,True
+eventos Nordeste,582,582,True
+eventos Norte,121,121,True
+eventos Sudeste,1736,1736,True
+eventos Sul,810,810,True

@@ -1,0 +1,5 @@
+config,p_n_estimators,p_min_samples_leaf,p_max_features,p_max_samples,pr_auc_media,tempo_s,do_cache
+0,200,100,sqrt,0.25,0.02588975532109669,325.4,True
+1,200,30,sqrt,0.25,0.026896775248925857,330.8,True
+2,200,300,sqrt,0.25,0.024327291120235583,314.7,True
+3,200,100,0.5,0.25,0.024320943637661883,529.2,True

@@ -1,0 +1,4 @@
+modelo,pr_auc_media,brier,calibrador,config
+elastic_net,0.026494829744294422,0.0016019266168242363,isotonica,"{'C': 1.0, 'l1_ratio': 0.5, 'max_iter': 300}"
+random_forest,0.026896775248925857,0.0016003722334176791,isotonica,"{'n_estimators': 200, 'min_samples_leaf': 30, 'max_features': 'sqrt', 'max_samples': 0.25}"
+xgboost,0.028106609918891367,0.00159796019319916,isotonica,"{'max_depth': 3, 'learning_rate': 0.05, 'min_child_weight': 5, 'subsample': 0.8, 'colsample_bytree': 0.8, 'reg_lambda': 1.0}"

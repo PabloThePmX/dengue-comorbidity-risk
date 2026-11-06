@@ -1,0 +1,234 @@
+{
+  "populacao_dev": {
+    "casos": 2453208,
+    "eventos": 3985,
+    "prevalencia": 0.0016244036380119418,
+    "sem_regiao": 0
+  },
+  "e1_casos_completos": {
+    "linhas_excluidas": 2582,
+    "eventos_excluidos": 6,
+    "linhas_analisadas": 2450626,
+    "eventos_analisados": 3979
+  },
+  "e1_lrt": {
+    "pares": {
+      "LR": 362.30631338272906,
+      "gl": 15,
+      "p_valor": 5.586338658953943e-68
+    },
+    "idade": {
+      "LR": 41.69012389688487,
+      "gl": 16,
+      "p_valor": 0.0004388234585992135
+    }
+  },
+  "ranking_comorbidades": [
+    {
+      "posicao": 1,
+      "comorbidade": "HEMATOLOG",
+      "OR": 9.295
+    },
+    {
+      "posicao": 2,
+      "comorbidade": "RENAL",
+      "OR": 6.707
+    },
+    {
+      "posicao": 3,
+      "comorbidade": "AUTO_IMUNE",
+      "OR": 5.024
+    },
+    {
+      "posicao": 4,
+      "comorbidade": "HEPATOPAT",
+      "OR": 4.955
+    },
+    {
+      "posicao": 5,
+      "comorbidade": "DIABETES",
+      "OR": 3.066
+    },
+    {
+      "posicao": 6,
+      "comorbidade": "HIPERTENSA",
+      "OR": 2.559
+    },
+    {
+      "posicao": 7,
+      "comorbidade": "ACIDO_PEPT",
+      "OR": 0.701
+    }
+  ],
+  "selecao_m1": {
+    "modelo": "xgboost",
+    "motivo": "empate de PR-AUC (< 0,005): desempatou o menor Brier",
+    "boosting": "xgboost",
+    "params": {
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "min_child_weight": 5,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "reg_lambda": 1.0
+    },
+    "calibrador": "isotonica"
+  },
+  "dev": {
+    "limiar_f2_m1": 0.02582795250989377,
+    "limiar_f2_b1": 0.011923808027412627,
+    "limiar_sens_b2": 0.0023752969121140144,
+    "limiar_frac_b2": 0.0012793584113041819,
+    "metricas_oof": [
+      {
+        "modelo": "B0 (prevalência)",
+        "PR-AUC (pooled)": 0.00151,
+        "ROC-AUC": 0.4629,
+        "Brier": 0.00162,
+        "slope": NaN,
+        "intercepto (CITL)": NaN,
+        "O:E": NaN,
+        "PR-AUC (média das dobras)": NaN
+      },
+      {
+        "modelo": "B1 (logística simples)",
+        "PR-AUC (pooled)": 0.01063,
+        "ROC-AUC": 0.70722,
+        "Brier": 0.00162,
+        "slope": 0.95344,
+        "intercepto (CITL)": -0.05878,
+        "O:E": 0.94328,
+        "PR-AUC (média das dobras)": NaN
+      },
+      {
+        "modelo": "elastic_net (calibrado)",
+        "PR-AUC (pooled)": 0.02379,
+        "ROC-AUC": 0.82263,
+        "Brier": 0.0016,
+        "slope": 0.99515,
+        "intercepto (CITL)": -0.06511,
+        "O:E": 0.93789,
+        "PR-AUC (média das dobras)": 0.02649
+      },
+      {
+        "modelo": "random_forest (calibrado)",
+        "PR-AUC (pooled)": 0.02459,
+        "ROC-AUC": 0.83094,
+        "Brier": 0.0016,
+        "slope": 0.99007,
+        "intercepto (CITL)": -0.05768,
+        "O:E": 0.94481,
+        "PR-AUC (média das dobras)": 0.0269
+      },
+      {
+        "modelo": "xgboost (calibrado)",
+        "PR-AUC (pooled)": 0.02719,
+        "ROC-AUC": 0.84238,
+        "Brier": 0.0016,
+        "slope": 1.0001,
+        "intercepto (CITL)": -0.06198,
+        "O:E": 0.94085,
+        "PR-AUC (média das dobras)": 0.02811
+      }
+    ]
+  },
+  "teste": {
+    "n": 5331745,
+    "eventos": 11338,
+    "prevalencia": 0.002126508300753318,
+    "discriminacao": {
+      "m1": {
+        "pr_auc": 0.03219205328552669,
+        "roc_auc": 0.8335712986557722,
+        "brier": 0.0020854220819545776
+      },
+      "b1": {
+        "pr_auc": 0.01583505662234498,
+        "roc_auc": 0.7160976956843647,
+        "brier": 0.0021083791533854173
+      },
+      "b0": {
+        "pr_auc": 0.002126508300753318,
+        "roc_auc": 0.5,
+        "brier": 0.0021222383722924922
+      }
+    },
+    "calibracao": {
+      "m1": {
+        "slope": 0.924986780518264,
+        "slope_ic95": [
+          0.9141242925097303,
+          0.9358492685267977
+        ],
+        "intercepto_citl": 0.263545377548787,
+        "intercepto_ic95": [
+          0.2449030047566917,
+          0.2821877503408823
+        ],
+        "O:E": 1.2938733489458947
+      },
+      "b1": {
+        "slope": 0.9381517111860663,
+        "slope_ic95": [
+          0.9226393232352839,
+          0.9536640991368488
+        ],
+        "intercepto_citl": 0.1944910081136981,
+        "intercepto_ic95": [
+          0.17600722224753115,
+          0.21297479397986505
+        ],
+        "O:E": 1.2129002954295696
+      }
+    }
+  },
+  "criterios_sucesso": [
+    {
+      "critério": "SC-01: PR-AUC de M1 > B0, IC95% da diferença sem 0",
+      "resultado": "Δ = 0.0301 [0.0280; 0.0322]",
+      "atendido": true
+    },
+    {
+      "critério": "SC-02: no limiar F2, recall de M1 ≥ recall de B2 com precisão maior",
+      "resultado": "recall 0.205 vs 0.660; precisão 0.0530 vs 0.0053",
+      "atendido": false
+    },
+    {
+      "critério": "SC-03: calibration slope de M1 entre 0,8 e 1,2",
+      "resultado": "slope = 0.925",
+      "atendido": true
+    },
+    {
+      "critério": "SC-04: ΔPR-AUC (M1 − B1) reportada com IC (qualquer sinal)",
+      "resultado": "Δ = 0.0164 [0.0149; 0.0179]",
+      "atendido": true
+    }
+  ],
+  "resumo_texto": [
+    "**População:** desenvolvimento 2,453,208 casos (3,985 eventos, 0.16%); teste 2024 5,331,745 casos (11,338 eventos, 0.21%).",
+    "**Modelo M1 selecionado no desenvolvimento:** xgboost (empate de PR-AUC (< 0,005): desempatou o menor Brier); calibração isotonica.",
+    "**Teste 2024 — PR-AUC:** M1 0.0322 [0.0301–0.0343], B1 0.0158, B0 0.0021 (= prevalência). ΔPR-AUC M1 − B1 = 0.0164 [0.0149; 0.0179].",
+    "→ O IC da diferença **exclui 0 a favor de M1**: há evidência de ganho de discriminação sobre a logística de perfil.",
+    "**M1 (limiar F2) × regra do MS (B2):** sensibilidade 0.205 × 0.660; VPP 0.0530 × 0.0053; % sinalizados 0.8% × 26.5%.",
+    "**Na mesma sensibilidade de B2**, M1 sinaliza -11.8 p.p. de pacientes (IC95% -11.9 a -11.8); negativo = menos pacientes para a mesma captura.",
+    "**Calibração em 2024:** slope de M1 = 0.92, O:E = 1.29 (ideal 1); a diferença de prevalência entre desenvolvimento e teste é um indício de deriva temporal."
+  ],
+  "ambiente": {
+    "python": "3.12.10",
+    "sistema": "Windows-11-10.0.26300-SP0",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "pyarrow": "26.0.1",
+    "scikit-learn": "1.9.1",
+    "statsmodels": "0.15.0",
+    "scipy": "1.18.1",
+    "xgboost": "3.4.1",
+    "shap": "0.54.1",
+    "matplotlib": "3.11.2",
+    "patsy": "1.0.3"
+  },
+  "commit_git": "HEAD",
+  "sha256_modelo_congelado": "6286d444d050279727db1ba2b7de4960114dddbf47a41d6075749ab4d9fbfde6",
+  "seed": 20261103,
+  "fumaca": false
+}

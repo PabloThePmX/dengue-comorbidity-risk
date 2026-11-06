@@ -1,0 +1,27 @@
+feature,tipo
+idade_anos,contínua
+sexo,categórica (M/F/I)
+gestante,binária
+DIABETES,categórica (3 níveis)
+HEMATOLOG,categórica (3 níveis)
+HEPATOPAT,categórica (3 níveis)
+RENAL,categórica (3 níveis)
+HIPERTENSA,categórica (3 níveis)
+ACIDO_PEPT,categórica (3 níveis)
+AUTO_IMUNE,categórica (3 níveis)
+n_comorbidades,inteira
+FEBRE,categórica (3 níveis)
+MIALGIA,categórica (3 níveis)
+CEFALEIA,categórica (3 níveis)
+EXANTEMA,categórica (3 níveis)
+VOMITO,categórica (3 níveis)
+NAUSEA,categórica (3 níveis)
+DOR_COSTAS,categórica (3 níveis)
+CONJUNTVIT,categórica (3 níveis)
+ARTRITE,categórica (3 níveis)
+ARTRALGIA,categórica (3 níveis)
+PETEQUIA_N,categórica (3 níveis)
+DOR_RETRO,categórica (3 níveis)
+LEUCOPENIA,categórica (3 níveis)
+LACO,categórica (3 níveis)
+dias_ate_notificacao,contínua

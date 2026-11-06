@@ -1,0 +1,11 @@
+A,B,mean_abs_interacao
+idade_anos,dias_ate_notificacao,0.09196737
+idade_anos,VOMITO,0.081468225
+idade_anos,sexo,0.06261783
+VOMITO,dias_ate_notificacao,0.047474455
+VOMITO,DOR_COSTAS,0.03707922
+VOMITO,NAUSEA,0.026888235
+sexo,dias_ate_notificacao,0.026414642
+n_comorbidades,dias_ate_notificacao,0.022951279
+MIALGIA,ARTRALGIA,0.021843735
+idade_anos,n_comorbidades,0.021158589
