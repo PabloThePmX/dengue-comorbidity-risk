@@ -1,0 +1,38 @@
+# Valores esperados do desenvolvimento (2022–2023), copiados de profiling/RESULTADOS.md (3ª execução).
+# Regra R1: números de 2024 NÃO entram neste arquivo.
+casos_dev: 2453208
+eventos_dev: 3985
+
+populacao_por_ano:
+  2022: 1148299
+  2023: 1304909
+
+eventos_por_ano:
+  2022: 1869
+  2023: 2116
+
+casos_por_regiao_dev:
+  Centro-Oeste: 408714
+  Nordeste: 228052
+  Norte: 72715
+  Sudeste: 1162452
+  Sul: 581275
+
+eventos_por_regiao_dev:
+  Centro-Oeste: 736
+  Nordeste: 582
+  Norte: 121
+  Sudeste: 1736
+  Sul: 810
+
+fluxograma_exclusao:
+  2022:
+    "1. Total baixado": 1405095
+    "2. CLASSI_FIN ∈ {10, 11, 12}": 1254238
+    "3. Rótulo conhecido (12, ou 10/11 com EVOLUCAO ∈ {1, 2})": 1148338
+    "4. Idade válida (0–120 anos)": 1148299
+  2023:
+    "1. Total baixado": 1645956
+    "2. CLASSI_FIN ∈ {10, 11, 12}": 1426773
+    "3. Rótulo conhecido (12, ou 10/11 com EVOLUCAO ∈ {1, 2})": 1304949
+    "4. Idade válida (0–120 anos)": 1304909

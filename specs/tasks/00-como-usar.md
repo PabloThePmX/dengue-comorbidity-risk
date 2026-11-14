@@ -212,6 +212,9 @@ Uma linha por tarefa concluída: data, tarefa, resultado principal (números), o
 | Data | Tarefa | Resultado | Artefato / run MLflow |
 |---|---|---|---|
 | 2026-11-03 | Marco 1 | Profiling concluído: 7.784.953 casos, 15.323 eventos (2022–24) | `profiling/RESULTADOS.md` |
+| 2026-11-14 | T-2.0 | Dependências instaladas; `config.py` e `verify.py` implementados (58 testes passando) | `config/base.yaml`, `config/esperado.yaml`, `src/dengue_sinan/config.py`, `src/dengue_sinan/verify.py` |
+| 2026-11-14 | T-2.2 | Guarda `assert_dev_only` e `assert_dev_years` implementada e testada | `src/dengue_sinan/guard.py`, `tests/test_guard.py` |
+| 2026-11-14 | T-2.1 | pendente no Colab: rodar `notebooks/02_fundacao.ipynb`, célula `T-2.1`; gera `reports/verificacao/T-2.1.json` | `src/dengue_sinan/dataset.py`, `src/dengue_sinan/checks.py`, `notebooks/02_fundacao.ipynb` |
 
 ---
 
@@ -222,3 +225,4 @@ se houver várias tentativas, uma linha por tentativa.
 
 | Data | Tarefa | O que aconteceu (mensagem de erro ou número estranho) | O que foi tentado | Resultado | Precisou perguntar? |
 |---|---|---|---|---|---|
+| 2026-11-14 | T-2.0 | `uv add` falhou com `No interpreter found for Python 3.13.18` (`.python-version` exigia patch 3.13.18, mas o ambiente local tem 3.13.12) | Alterar `.python-version` para `3.13` (compatível com `requires-python >=3.13,<3.14`) | `uv add` instalou todos os pacotes e os 58 testes passaram | Não (correção técnica local) |

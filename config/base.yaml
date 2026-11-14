@@ -1,0 +1,23 @@
+seed: 20261103
+anos_dev: [2022, 2023]
+ano_teste: 2024
+caminhos:
+  dados: "data"            # no Colab: /content/drive/MyDrive/dengue-comorbidity-risk/data
+  mlruns: "mlruns"
+  relatorios: "reports"
+dias_notificacao_max: 60
+faixas: [0, 5, 15, 40, 60, 80]
+validacao_interna_frac: 0.10
+bootstrap: {metricas: 1000, calibracao: 2000}
+supressao_min_celula: 10
+dca_limiares: {min: 0.001, max: 0.05, passos: 50}
+# D-53: sessão única; teto por modelo, orçamento real sai da cronometragem (T-4.3)
+ordem_modelos: [elastic_net, xgboost, catboost, mlp, random_forest, tabfm]
+ordem_dobras: [Sudeste, Sul, Centro-Oeste, Nordeste, Norte]
+orcamento_teto_min: {elastic_net: 20, xgboost: 30, catboost: 40, mlp: 40, random_forest: 40, tabfm: 30}
+orcamento_piso_min: 10
+optuna:
+  max_tentativas: {elastic_net: 15, xgboost: 30, catboost: 25, mlp: 25, random_forest: 25, tabfm: 1}
+  poda_tentativas_iniciais: 5   # MedianPruner(n_startup_trials)
+  poda_dobras_aquecimento: 2    # MedianPruner(n_warmup_steps): só poda depois da 2ª dobra
+bootstrap_pareado: 1000

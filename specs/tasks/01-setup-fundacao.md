@@ -14,7 +14,7 @@ Objetivo: descrever a população e fixar o piso. Spec: FR-04, FR-17, FR-18, §3
 Critério de saída do marco (spec §3.18): análise descritiva gerada; dobras construídas; métricas
 OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 intocado**.
 
-### [ ] T-2.0 — Dependências e configuração
+### [x] T-2.0 — Dependências e configuração
 
 - **🛑 PARE E PERGUNTE** antes de instalar. Proposta para o Programador aprovar:
   - runtime: `scikit-learn`, `statsmodels` (E1 com IC), `xgboost`, `catboost`, `optuna`, `mlflow`,
@@ -84,7 +84,7 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
   5. ao terminar a sessão, desconectar o ambiente (NFR-01, para não gastar unidades com GPU ociosa).
 - **Pronto quando:** dependências instaladas com aprovação; `load_config` testado; testes e ruff passam.
 
-### [ ] T-2.1 — Carregar a população em memória (`dataset.py`)
+### [~] T-2.1 — Carregar a população em memória (`dataset.py`)
 
 - Arquivo: `src/dengue_sinan/dataset.py`.
 - Função: `load_population(cfg, anos: list[int]) -> pd.DataFrame`.
@@ -113,7 +113,7 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
   2b) tem `"passou": true` para: total de **2.453.208** casos e **3.985** eventos com
   `anos=[2022, 2023]` (§1.2) e cada etapa do fluxograma igual à de `profiling/RESULTADOS.md`.
 
-### [ ] T-2.2 [P] — Guarda contra uso do teste (`guard.py`)
+### [x] T-2.2 [P] — Guarda contra uso do teste (`guard.py`)
 
 - Arquivo: `src/dengue_sinan/guard.py`.
 - `assert_dev_only(df)`: levanta `RuntimeError("2024 é teste congelado (R1)")` se `df["ANO"]`
