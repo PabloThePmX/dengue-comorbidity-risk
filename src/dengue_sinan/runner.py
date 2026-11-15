@@ -449,9 +449,9 @@ def run_all_models(
         str(m)
         for m in cfg.get(
             "ordem_modelos",
-            ["elastic_net", "xgboost", "catboost", "random_forest", "mlp"],
+            ["elastic_net", "xgboost", "catboost", "random_forest", "mlp", "tabfm"],
         )
-        if str(m) != "tabfm" or cfg.get("habilitar_tabfm", False)
+        if str(m) != "tabfm" or cfg.get("habilitar_tabfm", True)
     ]
 
     model_results: dict[str, dict[str, Any]] = {}
@@ -477,8 +477,11 @@ def run_all_models(
             resumo["oof_p"] = oof_tbl["p"].to_numpy(dtype=np.float64)
             model_results[m] = resumo
         else:
+            t0_mod = time.perf_counter()
             tune_res = tune(cfg, m, feat, fold_df=fold_df)
             loro_res = run_loro(cfg, m, tune_res["best_params"], feat, fold_df=fold_df)
+            total_mod_s = max(float(tune_res["tempo_gasto_s"]), float(time.perf_counter() - t0_mod))
+            tune_res["tempo_gasto_s"] = total_mod_s
 
             oof_df = pd.DataFrame(
                 {

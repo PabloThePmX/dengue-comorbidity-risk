@@ -20,6 +20,7 @@ from dengue_sinan.preprocess import (
     get_catboost_cat_indices,
     make_preprocessor,
 )
+from dengue_sinan.tabfm import TabFMClassifier
 
 ITERATIVE_FAMILIES = {"xgboost", "xgb", "catboost", "mlp"}
 
@@ -217,6 +218,18 @@ def _fit_fold_model(
             clf.fit(X_tr_t, y_fit)
         pipe = Pipeline([("pre", pre), ("clf", clf)])
         return pipe, int(clf.best_iteration_)
+
+    if fam == "tabfm":
+        pre = make_preprocessor("mlp")
+        clf = TabFMClassifier(
+            max_context_rows=int(p.get("max_context_rows", 10000)),
+            batch_size=int(p.get("batch_size", 4096)),
+            seed=seed,
+            device=p.get("device"),
+        )
+        pipe = Pipeline([("pre", pre), ("clf", clf)])
+        pipe.fit(X_fit[M1_FEATURES], y_fit)
+        return pipe, int(getattr(clf, "context_size_", 1))
 
     raise ValueError(f"Família desconhecida em run_loro: '{familia}'")
 

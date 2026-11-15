@@ -21,7 +21,7 @@ Colab (`notebooks/04_modelos.ipynb`), que executa tudo e grava **um** relatório
 seleção, SHAP, retreino), cada um com seu `"passou"`. O arquivo é reescrito ao fim de cada etapa;
 se a sessão cair, o que terminou fica registrado e a reexecução continua de onde parou.
 
-### [~] T-4.0 [US2] — Espaço de busca (Q-08) — 🛑 aprovação do Programador
+### [x] T-4.0 [US2] — Espaço de busca (Q-08) — 🛑 aprovação do Programador
 
 Proposta (registrar no `config/base.yaml` depois do "ok"):
 
@@ -136,7 +136,7 @@ só**, pela T-4.3b, na ordem do config. Tetos de tempo e de tentativas: `config/
     config (R8) e registre o dispositivo usado no MLflow.
   - Teste unitário rápido em CPU com dados sintéticos: treina, para no early stopping e devolve
     probabilidades entre 0 e 1.
-- [ ] **T-4.7 TabFM** (teto 30 min, GPU).
+- [~] **T-4.7 TabFM** (teto 30 min, GPU).
   - **Antes de codar, 🛑 PARE E PERGUNTE** com estas informações do model card (spec `[VERIFY]`):
     licença dos pesos cobre uso acadêmico?; limite de linhas de contexto e de features; velocidade
     de predição; nome e versão do pacote.

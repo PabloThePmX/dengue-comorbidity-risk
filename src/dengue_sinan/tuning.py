@@ -219,17 +219,41 @@ def tune(
     feat = build_feature_frame(df) if "n_comorbidades" not in df.columns else df
 
     if m == "tabfm":
+        max_ctx = int(cfg.get("tabfm_contexto_max", 10000))
+        best_params = {"max_context_rows": max_ctx}
+        with start_run(
+            cfg,
+            "tune-tabfm",
+            tags={
+                "modelo": m,
+                "alias": "melhor-validacao",
+                "best_trial_number": "0",
+            },
+        ) as run:
+            mlflow.log_params({f"best.{k}": str(v) for k, v in best_params.items()})
+            mlflow.log_params(hardware_info())
+            mlflow.log_metrics(
+                {
+                    "n_tentativas_concluidas": 1.0,
+                    "n_tentativas_podadas": 0.0,
+                    "subamostra_frac": 1.0,
+                }
+            )
+            run_id = run.info.run_id
         return {
             "modelo": m,
-            "best_params": {},
+            "best_params": best_params,
             "best_value": 0.0,
-            "n_concluidas": 0,
+            "best_trial_number": 0,
+            "n_concluidas": 1,
             "n_podadas": 0,
             "tempo_cronometragem_s": 0.0,
-            "orcamento_s": 0.0,
+            "orcamento_s": float(cfg.get("optuna", {}).get("teto_por_modelo_min", {}).get(m, 30))
+            * 60.0,
             "tempo_gasto_s": 0.0,
             "subamostra_frac": 1.0,
             "db_path": None,
+            "mlflow_run_id": run_id,
         }
 
     opt_cfg = cfg.get("optuna", {})
