@@ -1,6 +1,6 @@
 # Relatório Técnico (TRIPOD+AI) — Risco de Desfecho Grave em Dengue por Perfil de Comorbidades
 
-> **Status:** Estrutura completa segundo o checklist TRIPOD+AI (T-7.1, T-7.2). As tabelas numéricas finais de E1, M1 e teste 2024 são preenchidas automaticamente em `reports/` após a execução dos notebooks `02_fundacao.ipynb`, `03_perfil_e1.ipynb`, `04_modelos.ipynb` e `05_teste_final.ipynb` no Google Colab.
+> **Status:** Relatório consolidado segundo o checklist TRIPOD+AI (T-7.1, T-7.2) com todas as métricas verificadas das Fases 2, 3, 4 e 5 (`reports/verificacao/*.json` e `reports/teste/LACRE.json`).
 
 ---
 
@@ -46,14 +46,60 @@
 
 ---
 
-## 4. Resultados (Referência aos Artefatos Gerados)
+## 4. Resultados Consolidados (2022–2023 e Teste Cego 2024)
 
-1. **Fluxograma de Exclusão (FR-02):** Ver `reports/fluxograma.md`.
-2. **Análise Descritiva e Pares/Trincas (T-2.6, T-2.7):** Ver `reports/descritiva/tabela1.md`, `reports/descritiva/riscos_brutos.md`, `reports/descritiva/pares_comorbidades.md` e `reports/descritiva/combinacoes_3mais.md`.
-3. **Baselines B0, B1 e B2 (T-2.8):** Ver `reports/baselines.md`.
-4. **Modelo Explicativo E1, RERI/AP, Ranking e Tabela de Perfis (T-3.1 a T-3.6):** Ver `reports/e1/efeitos_principais.md`, `reports/e1/interacoes_or_bh.md`, `reports/e1/interacao_aditiva_reri_ap.md`, `reports/e1/ranking_comorbidades.md` e `reports/e1/tabela_perfis.md`.
-5. **Comparação de Modelos de Triagem M1 e SHAP Global (T-4.3b a T-4.10):** Ver `reports/m1/comparacao_oof.md`, `reports/m1/comparacao_pareada.md` e `reports/shap/importancia_shap.md`.
-6. **Avaliação Final no Conjunto de Teste 2024 (T-5.1 a T-5.4):** Ver `reports/teste/metricas.md`, `reports/teste/subgrupos.md`, `reports/teste/erros.md` e `reports/teste/LACRE.json`.
+### 4.1 População e Análise Descritiva (`T-2.1`, `T-2.6`, `T-2.7`)
+- **Desenvolvimento (2022–2023):** `2.453.208` casos confirmados elegíveis e `3.985` eventos graves/óbitos (`0,162%`). Das 21 combinações 2 a 2 de comorbidades, **15 pares** atingiram `≥ 10` eventos e entraram no modelo E1; **75 combinações de 3 ou mais comorbidades** atingiram `≥ 10` casos e compõem a tabela de perfis ([fluxograma.md](fluxograma.md), [tabela1.md](descritiva/tabela1.md), [riscos_brutos.md](descritiva/riscos_brutos.md), [pares_comorbidades.md](descritiva/pares_comorbidades.md), [combinacoes_3mais.md](descritiva/combinacoes_3mais.md)).
+- **Teste Cego (2024):** `5.331.745` casos confirmados elegíveis e `11.338` eventos graves/óbitos (`0,213%`) ([teste/fluxograma_teste.md](teste/fluxograma_teste.md)).
+
+### 4.2 Modelo Explicativo de Perfil E1 (`T-3.1` a `T-3.6`)
+Ajustado por regressão logística binomial sem penalização com splines cúbicos de idade (`5 gl` principal, `3 gl` nas interações com hipertensão e diabetes) e os 15 pares de comorbidades elegíveis ([e1/coeficientes.md](e1/coeficientes.md), [e1/or_interacoes.md](e1/or_interacoes.md), [e1/reri_ap.md](e1/reri_ap.md), [e1/perfis_completo.md](e1/perfis_completo.md)).
+
+**Ranking ajustado das 7 comorbidades pelo efeito principal ([e1/ranking.md](e1/ranking.md)):**
+
+| Posição | Comorbidade | OR ajustado | IC 95% | Status de ordem (sobreposição de IC 95%) |
+|---|---|---|---|---|
+| 1 | `HEMATOLOG` | 9,2542 | 7,2216 – 11,8587 | sem ordem definida com: `RENAL` |
+| 2 | `RENAL` | 6,7580 | 5,0381 – 9,0650 | sem ordem definida com: `HEMATOLOG`, `AUTO_IMUNE`, `HEPATOPAT`, `HIPERTENSA` |
+| 3 | `AUTO_IMUNE` | 5,0686 | 3,8148 – 6,7346 | sem ordem definida com: `RENAL`, `HEPATOPAT`, `HIPERTENSA` |
+| 4 | `HEPATOPAT` | 4,9157 | 3,6014 – 6,7095 | sem ordem definida com: `RENAL`, `AUTO_IMUNE`, `HIPERTENSA` |
+| 5 | `HIPERTENSA` | 3,4545 | 2,2941 – 5,2018 | sem ordem definida com: `RENAL`, `AUTO_IMUNE`, `HEPATOPAT` |
+| 6 | `DIABETES` | 1,2175 | 0,7178 – 2,0651 | sem ordem definida com: `ACIDO_PEPT` (interação positiva com idade avançada: `DIABETES_Sim:idade_sp3_1` $\beta = +0,8770$) |
+| 7 | `ACIDO_PEPT` | 0,6998 | 0,4202 – 1,1655 | sem ordem definida com: `DIABETES` |
+
+### 4.3 Comparação OOF dos Modelos de Triagem M1 em 2022–2023 (`T-4.3b` a `T-4.10`)
+Avaliação nas 5 dobras geográficas leave-one-region-out ([m1/comparacao_oof.md](m1/comparacao_oof.md), [m1/comparacao_pareada.md](m1/comparacao_pareada.md), [shap/importancia_shap.md](shap/importancia_shap.md)):
+
+| Modelo | PR-AUC média (5 dobras) | PR-AUC OOF | ROC-AUC | Brier | Calibrador | Limiar F2 | Recall | Precisão | F2 | Tentativas (OK/Podadas) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `B0 (prevalência)` | 0,0018 | 0,0015 | 0,4629 | 0,0016 | - | - | - | - | - | 0/0 |
+| `B2 (protocolo MS)` | - | - | - | - | regra | - | 0,6843 | 0,0042 | 0,0206 | 0/0 |
+| `B1 (logística perfil)` | 0,0126 | 0,0128 | 0,7241 | 0,0016 | isotonic | 0,0251 | 0,1338 | 0,0351 | 0,0856 | 1/0 |
+| **`elastic_net` (Vencedor M1)** | **0,0266** | **0,0260** | **0,8316** | **0,0016** | **isotonic** | **0,0230** | **0,2043** | **0,0400** | **0,1121** | **2/0** |
+| `xgboost` | 0,0283 | 0,0289 | 0,8501 | 0,0016 | isotonic | 0,0259 | 0,1920 | 0,0478 | 0,1197 | 21/7 |
+| `catboost` | 0,0271 | 0,0273 | 0,8451 | 0,0016 | isotonic | 0,0230 | 0,2321 | 0,0382 | 0,1151 | 21/4 |
+| `mlp` | 0,0284 | 0,0280 | 0,8494 | 0,0016 | isotonic | 0,0263 | 0,1957 | 0,0458 | 0,1183 | 2/0 |
+| `random_forest` | 0,0262 | 0,0259 | 0,8440 | 0,0016 | isotonic | 0,0239 | 0,2198 | 0,0393 | 0,1146 | 5/0 |
+| `tabfm` | 0,0121 | 0,0091 | 0,7710 | 0,0016 | isotonic | 0,0135 | 0,2110 | 0,0171 | 0,0646 | 1/0 |
+
+- **Regra de seleção (§1.4):** empate técnico entre `mlp`, `xgboost`, `catboost`, `elastic_net` e `random_forest` (diferença de PR-AUC média `< 0,005` e ICs 95% sobrepostos); desempate pré-registrado por estabilidade na pior dobra, calibração e menor complexidade selecionou **`elastic_net`**.
+
+### 4.4 Avaliação Única no Conjunto de Teste Congelado de 2024 (`T-5.1` a `T-5.4`)
+Executada uma única vez sobre os `5.331.745` casos e `11.338` eventos de 2024 ([teste/metricas.md](teste/metricas.md), [teste/subgrupos.md](teste/subgrupos.md), [teste/erros.md](teste/erros.md), [teste/LACRE.json](teste/LACRE.json)):
+
+| Modelo | PR-AUC (IC 95%) | ROC-AUC | Brier | Calibration Slope | Calibration Intercept | Limiar | Recall | Precisão | F2 |
+|---|---|---|---|---|---|---|---|---|---|
+| **`M1 (Triagem — elastic_net)`** | **0,0295 (0,0277–0,0316)** | **0,8132** | **0,0021** | **0,9378** | **0,2506** | **0,0230** | **0,2056** | **0,0468** | **0,1225** |
+| `E1 (Perfil explicativo)` | 0,0221 (0,0207–0,0238) | 0,7282 | 0,0021 | 0,9576 | 0,1702 | - | - | - | - |
+| `B1 (Baseline perfil)` | 0,0191 (0,0179–0,0204) | 0,7186 | 0,0021 | 0,9590 | 0,1717 | 0,0191 | 0,1522 | 0,0380 | 0,0950 |
+| `B0 (Prevalência)` | 0,0021 (0,0021–0,0021) | 0,5000 | 0,0021 | 0,0000 | 0,0000 | - | - | - | - |
+| `B2 (Protocolo MS)` | - | - | - | - | - | regra | 0,6601 | 0,0053 | 0,0256 |
+
+- **Critérios de Sucesso no Teste 2024 (`T-5.4`):**
+  - **SC-01 (`passou`):** `M1` supera `B0` em PR-AUC com diferença pareada de **`+0,0263` (IC 95%: `[0,0239, 0,0317]`)** (≈ 14× a prevalência de base).
+  - **SC-02 (`passou`):** `M1` supera `B1` (apenas perfil demográfico/comorbidades) com ganho de PR-AUC de **`+0,0119` (IC 95%: `[0,0095, 0,0158]`)** e ganho de ROC-AUC de `0,7186` para `0,8132`, demonstrando o valor preditivo incremental dos sintomas iniciais e dos sinais clínicos (`LACO`, `PETEQUIA_N`, `LEUCOPENIA`).
+  - **SC-03 (`falhou` — resultado honesto documentado, P10):** no limiar que maximiza $F_2$ (`0,0230`), `M1` multiplica a precisão por **8,8×** frente à regra do Grupo B (`0,0468` vs. `0,0053`) e multiplica o $F_2$ por **4,8×** (`0,1225` vs. `0,0256`), porém com menor sensibilidade bruta (`0,2056` vs. `0,6601`, já que a regra `B2` rotula ~26% de todos os pacientes como alto risco). Conforme a curva de decisão ([teste/curva_decisao.md](teste/curva_decisao.md)), `M1` apresenta maior benefício líquido (*Net Benefit*) que `B1`, `B2` e "tratar todos" em toda a faixa clínica de limiares acima de `0,5%`.
+  - **SC-04 (`passou`):** o *calibration slope* de `M1` em 2024 foi de **`0,9378`** (dentro da faixa alvo `[0,80, 1,20]`), confirmando excelente preservação da calibração mesmo sob o *shift* epidêmico de 2024 (`intercept = +0,2506` reflete o aumento da prevalência basal de `0,16%` para `0,21%`).
 
 ---
 

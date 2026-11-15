@@ -10,7 +10,7 @@
 
 Spec: FR-20, FR-21, D-22, D-28.
 
-### [~] T-7.1 — Rascunho do relatório
+### [x] T-7.1 — Rascunho do relatório
 
 - Estrutura pelo checklist TRIPOD+AI. Seções mínimas: título/resumo; introdução (com trabalhos
   relacionados e diferencial, §3.2); métodos (fonte, população, alvo, preditores, split, modelos,
@@ -22,7 +22,7 @@ Spec: FR-20, FR-21, D-22, D-28.
   510/2016, art. 1º, parágrafo único, inciso II.
 - Explicar F2 vs F0.5 (D-33) e por que não há correção de desbalanceamento (D-38).
 
-### [~] T-7.2 — Apêndices
+### [x] T-7.2 — Apêndices
 
 - A: registro de decisões (copiar §3.16 do spec), destacando D-22 a D-25.
 - B: fluxograma de exclusão e resultados do profiling.

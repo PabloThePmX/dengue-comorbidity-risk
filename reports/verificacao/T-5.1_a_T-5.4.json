@@ -1,0 +1,74 @@
+{
+  "tarefa": "T-5.1_a_T-5.4",
+  "gerado_em": "2026-11-15T20:16:19Z",
+  "commit": "7f295f8457802cecb6405c78c2b72b278590b164",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 53.0,
+    "vcpus": 12,
+    "gpu": "NVIDIA L4"
+  },
+  "hash_dados": {
+    "2022": "95e860f78a9d3b75e114a45ad179ebe657990b17c9a53d6cba75d58b5c8559cf",
+    "2023": "5cb9928289d5b0e12cdc6fccf463d300b98763b405819df6f1ada8980beb6bc0"
+  },
+  "checks": [
+    {
+      "nome": "lacre_gravado",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "metricas_md_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "curva_decisao_png_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "calibracao_teste_png_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "subgrupos_md_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "erros_md_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "casos_teste_positivos",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_teste_positivos",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

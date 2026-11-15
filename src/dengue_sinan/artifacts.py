@@ -105,12 +105,42 @@ def save_bundle(
     return out_path
 
 
+def _ensure_scipy_bspline_compat() -> None:
+    """Garante compatibilidade de unpickle para `BSpline` entre SciPy 1.14 e 1.15+."""
+    try:
+        from scipy.interpolate import BSpline
+
+        orig_setstate = getattr(BSpline, "__setstate__", None)
+        if orig_setstate is not None and not getattr(
+            orig_setstate, "_dengue_compat_patched", False
+        ):
+
+            def _compat_setstate(self: Any, state: Any) -> None:
+                if isinstance(state, dict) and "t" in state and "c" in state and "k" in state:
+                    BSpline.__init__(
+                        self,
+                        state["t"],
+                        state["c"],
+                        state["k"],
+                        extrapolate=state.get("extrapolate", True),
+                        axis=state.get("axis", 0),
+                    )
+                else:
+                    orig_setstate(self, state)
+
+            _compat_setstate._dengue_compat_patched = True  # type: ignore[attr-defined]
+            BSpline.__setstate__ = _compat_setstate  # type: ignore[method-assign]
+    except Exception:
+        pass
+
+
 def load_bundle(caminho: str | Path) -> ModelBundle:
     """Carrega o pacote salvo por `save_bundle` e valida a presença dos metadados da FR-12."""
     in_path = Path(caminho)
     if not in_path.is_file():
         raise FileNotFoundError(f"Artefato não encontrado: {in_path}")
 
+    _ensure_scipy_bspline_compat()
     loaded = joblib.load(in_path)
     if not isinstance(loaded, dict) or "model" not in loaded or "metadados" not in loaded:
         raise ValueError(f"Formato de artefato inválido em {in_path}.")

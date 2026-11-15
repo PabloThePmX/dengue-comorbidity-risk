@@ -1,6 +1,6 @@
 {
   "sessao": "sessao-m1",
-  "gerado_em": "2026-11-15T17:26:44Z",
+  "gerado_em": "2026-11-15T17:36:12Z",
   "commit": "4e41ea684b8965f42cad0bd06b0234622036f3ca",
   "ambiente": {
     "python": "3.13.16",
@@ -421,6 +421,6 @@
       "passou": true
     }
   ],
-  "sessao_completa": true,
-  "passou": true
+  "sessao_completa": false,
+  "passou": false
 }

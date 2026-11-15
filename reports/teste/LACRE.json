@@ -1,0 +1,19 @@
+{
+  "gerado_em": "2026-11-15T20:16:19Z",
+  "commit": "7f295f8457802cecb6405c78c2b72b278590b164",
+  "ano_teste": 2024,
+  "casos_teste": 5331745,
+  "eventos_teste": 11338,
+  "hashes_artefatos": {
+    "e1": "0027b9b3d471789f67552b2936cef5226e134f0268cdaff75fce8108cf732586",
+    "m1": "2f65a1ccf183d5f79bbac5eab6062906033f502c044562bd5c3be9bcc6371ce2",
+    "b1": "75f2cf7f1c76ebd65cd46217ac4e526b5b44824a4297def6dc0ab88cee05a4a7"
+  },
+  "hash_dados_teste": "8ffbbcd8ec5dd4a95a9b04e5927cea161a2d4ac513602ec95b2f4d3bd602ffe5",
+  "criterios_sucesso": {
+    "SC-01": true,
+    "SC-02": true,
+    "SC-03": false,
+    "SC-04": true
+  }
+}
