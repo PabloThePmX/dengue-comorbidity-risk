@@ -27,7 +27,7 @@ from dengue_sinan.metrics import (
     roc_auc,
     threshold_metrics,
 )
-from dengue_sinan.verify import sha256_file
+from dengue_sinan.verify import check, sha256_file, write_report
 
 matplotlib.use("Agg")
 
@@ -148,14 +148,15 @@ def _plot_calibration_curves(
                 continue
             y_b = y[in_bin]
             p_b = p_arr[in_bin]
+            obs_b = float(np.mean(y_b))
             mean_pred.append(float(np.mean(p_b)))
-            obs_rate.append(float(np.mean(y_b)))
+            obs_rate.append(obs_b)
 
-            boot_means = np.empty(int(n_boot), dtype=np.float64)
             n_b = len(y_b)
-            for i in range(int(n_boot)):
-                idx = rng.integers(0, n_b, size=n_b)
-                boot_means[i] = float(np.mean(y_b[idx]))
+            # Soma de n_b sorteios com reposição de y_b binário ~ Binomial(n_b, obs_b)
+            boot_means = rng.binomial(n_b, np.clip(obs_b, 0.0, 1.0), size=int(n_boot)) / float(
+                max(1, n_b)
+            )
             lo, hi = np.percentile(boot_means, [2.5, 97.5])
             lo_band.append(float(lo))
             hi_band.append(float(hi))
@@ -393,7 +394,11 @@ def evaluate_test_once(
         else load_population(cfg, [ano_teste])
     )
     assert isinstance(raw_test, pd.DataFrame)
-    feat = build_feature_frame(raw_test) if "n_comorbidades" not in raw_test.columns else raw_test
+    feat = (
+        build_feature_frame(raw_test, allow_test=True)
+        if "n_comorbidades" not in raw_test.columns
+        else raw_test
+    )
     if "SG_UF" in raw_test.columns and "SG_UF" not in feat.columns:
         feat["SG_UF"] = raw_test["SG_UF"]
 
@@ -612,11 +617,15 @@ def evaluate_test_once(
 
     # Lacre (T-5.1, R2)
     data_dir = Path(cfg.get("caminhos", {}).get("dados", "data"))
-    test_parquet = data_dir / f"DENGBR{str(ano_teste)[-2:]}.parquet"
+    test_parquet = data_dir / "parquet" / f"dengue_{ano_teste}.parquet"
+    if not test_parquet.is_file():
+        test_parquet = data_dir / f"DENGBR{str(ano_teste)[-2:]}.parquet"
     lacre_payload = {
         "gerado_em": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "commit": _git_commit(),
         "ano_teste": ano_teste,
+        "casos_teste": int(len(feat)),
+        "eventos_teste": int(y_test.sum()),
         "hashes_artefatos": {
             "e1": sha256_file(e1_path),
             "m1": sha256_file(m1_path),
@@ -634,6 +643,19 @@ def evaluate_test_once(
         json.dumps(lacre_payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+
+    verif_dir = reports_dir / "verificacao"
+    t5_checks = [
+        check("lacre_gravado", True, lacre_path.is_file()),
+        check("metricas_md_existe", True, metricas_md_path.is_file()),
+        check("curva_decisao_png_existe", True, (teste_dir / "curva_decisao.png").is_file()),
+        check("calibracao_teste_png_existe", True, (teste_dir / "calibracao_teste.png").is_file()),
+        check("subgrupos_md_existe", True, (teste_dir / "subgrupos.md").is_file()),
+        check("erros_md_existe", True, erros_md_path.is_file()),
+        check("casos_teste_positivos", True, bool(len(feat) > 0)),
+        check("eventos_teste_positivos", True, bool(int(y_test.sum()) > 0)),
+    ]
+    write_report("T-5.1_a_T-5.4", t5_checks, verif_dir, cfg)
 
     return {
         "lacre_path": lacre_path,

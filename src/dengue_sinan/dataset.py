@@ -21,14 +21,16 @@ METADATA_COLS = ("ANO", "y", "regiao", "faixa_etaria", "CS_RACA", "idade_de_ano_
 def _write_exclusion_flowchart(
     raw_by_year: pd.DataFrame,
     cfg: dict[str, Any],
+    *,
+    filename: str = "fluxograma.md",
 ) -> pd.DataFrame:
-    """Gera e salva `reports/fluxograma.md` com `exclusion_flow` e `exclusion_reasons` (FR-02)."""
+    """Gera e salva `reports/<filename>` com `exclusion_flow` e `exclusion_reasons` (FR-02)."""
     flow = profiling.exclusion_flow(raw_by_year, year="ANO")
     reasons = profiling.exclusion_reasons(raw_by_year, year="ANO")
 
     reports_dir = Path(cfg.get("caminhos", {}).get("relatorios", "reports"))
-    reports_dir.mkdir(parents=True, exist_ok=True)
-    flow_path = reports_dir / "fluxograma.md"
+    flow_path = reports_dir / filename
+    flow_path.parent.mkdir(parents=True, exist_ok=True)
 
     sections = [
         "# Fluxograma de exclusão (FR-02)",
@@ -83,7 +85,13 @@ def load_population(
         yearly_frames.append(df_year)
 
     raw_all = pd.concat(yearly_frames, ignore_index=True)
-    flow = _write_exclusion_flowchart(raw_all, cfg)
+    ano_teste = int(cfg.get("ano_teste", 2024))
+    flow_file = (
+        "teste/fluxograma_teste.md"
+        if [int(a) for a in anos] == [ano_teste]
+        else "fluxograma.md"
+    )
+    flow = _write_exclusion_flowchart(raw_all, cfg, filename=flow_file)
 
     mask = profiling.population_mask(raw_all)
     pop = profiling.add_derived(raw_all.loc[mask]).reset_index(drop=True)
@@ -117,9 +125,14 @@ def _map_three_levels(series: pd.Series) -> pd.Series:
     )
 
 
-def build_feature_frame(df: pd.DataFrame, max_days: int = 60) -> pd.DataFrame:
+def build_feature_frame(
+    df: pd.DataFrame,
+    max_days: int = 60,
+    *,
+    allow_test: bool = False,
+) -> pd.DataFrame:
     """Monta o DataFrame com a lista fechada de features da §1.3 (R4) + metadados de dobra."""
-    if "ANO" in df.columns:
+    if "ANO" in df.columns and not allow_test:
         assert_dev_only(df)
 
     if "idade_anos" not in df.columns or "gestante" not in df.columns:
