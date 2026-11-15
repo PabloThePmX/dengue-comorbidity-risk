@@ -21,7 +21,7 @@ Colab (`notebooks/04_modelos.ipynb`), que executa tudo e grava **um** relatório
 seleção, SHAP, retreino), cada um com seu `"passou"`. O arquivo é reescrito ao fim de cada etapa;
 se a sessão cair, o que terminou fica registrado e a reexecução continua de onde parou.
 
-### [ ] T-4.0 [US2] — Espaço de busca (Q-08) — 🛑 aprovação do Programador
+### [~] T-4.0 [US2] — Espaço de busca (Q-08) — 🛑 aprovação do Programador
 
 Proposta (registrar no `config/base.yaml` depois do "ok"):
 
@@ -36,7 +36,7 @@ Proposta (registrar no `config/base.yaml` depois do "ok"):
 
 Nenhum parâmetro de peso de classe (R3).
 
-### [ ] T-4.1 [P] [US2] — Pré-processamento por família (`preprocess.py`)
+### [x] T-4.1 [P] [US2] — Pré-processamento por família (`preprocess.py`)
 
 - `make_preprocessor(familia) -> ColumnTransformer`:
   - `"linear"` (elastic net, MLP): spline + escala na idade; `StandardScaler` em `dias`;
@@ -49,7 +49,7 @@ Nenhum parâmetro de peso de classe (R3).
   mesmo nº de colunas; nenhuma coluna da lista proibida (R4) entra.
 - **Pronto quando:** testes passam.
 
-### [ ] T-4.2 [US2] — Laço de validação com early stopping (`cv.py`)
+### [x] T-4.2 [US2] — Laço de validação com early stopping (`cv.py`)
 
 - `run_loro(cfg, familia, params, df) -> dict` que, para cada dobra:
   1. separa treino (4 regiões) e validação (1 região);
@@ -66,7 +66,7 @@ Nenhum parâmetro de peso de classe (R3).
   um modelo que a viu no treino.
 - **Pronto quando:** teste passa e `run_loro` roda com B1 reproduzindo as métricas de T-2.8.
 
-### [ ] T-4.3 [US2] — Busca com Optuna (`tuning.py`) (D-43, NFR-01)
+### [x] T-4.3 [US2] — Busca com Optuna (`tuning.py`) (D-43, NFR-01)
 
 - `tune(cfg, modelo, df)`:
   - `optuna.create_study(direction="maximize", sampler=TPESampler(seed=cfg.seed),
@@ -92,7 +92,7 @@ Nenhum parâmetro de peso de classe (R3).
   tentativa anterior se perdeu (interrupção simulada).
 - **Pronto quando:** testes passam. A busca real é verificada no `sessao-m1.json` (T-4.3b).
 
-### [ ] T-4.3b [US2] — Execução em sessão única (`runner.py`) (D-53)
+### [~] T-4.3b [US2] — Execução em sessão única (`runner.py`) (D-53)
 
 - `run_all_models(cfg)`:
   1. carrega a população 2022–23 uma vez (`load_population`) e as dobras com `load_folds` (hash);
@@ -117,19 +117,19 @@ Nenhum parâmetro de peso de classe (R3).
 - **Pronto quando:** testes passam e o bloco `checagem_inicial` do `sessao-m1.json` tem
   `"passou": true`.
 
-### [ ] T-4.4 a T-4.8 [US2] — Os 6 modelos (dentro de `run_all_models`)
+### [~] T-4.4 a T-4.8 [US2] — Os 6 modelos (dentro de `run_all_models`)
 
 Implemente e teste cada modelo separadamente (testes rápidos em CPU), mas a execução real é **uma
 só**, pela T-4.3b, na ordem do config. Tetos de tempo e de tentativas: `config/base.yaml` (D-53).
 
-- [ ] **T-4.4 Random Forest** (teto 40 min, CPU). Se faltar memória: subamostra de negativos **só no treino
+- [~] **T-4.4 Random Forest** (teto 40 min, CPU). Se faltar memória: subamostra de negativos **só no treino
   da dobra**, depois corrija a probabilidade: `p' = p / (p + (1 − p) / taxa_amostragem)` e confira
   a calibração no OOF. Anote a taxa no MLflow.
-- [ ] **T-4.5 XGBoost** (teto 30 min, `device="cuda"` se houver GPU). Sem `scale_pos_weight` (R3).
-- [ ] **T-4.6 CatBoost** (teto 40 min, `task_type="GPU"` se houver GPU). Sem `auto_class_weights`
+- [~] **T-4.5 XGBoost** (teto 30 min, `device="cuda"` se houver GPU). Sem `scale_pos_weight` (R3).
+- [~] **T-4.6 CatBoost** (teto 40 min, `task_type="GPU"` se houver GPU). Sem `auto_class_weights`
   (R3). Se o CatBoost em GPU não aceitar `eval_metric="PRAUC"` no early stopping, use CPU e anote
   no §10 (spec `[VERIFY]`).
-- [ ] **T-4.6b Elastic net** (teto 20 min, CPU) e **MLP** (teto 40 min, GPU).
+- [~] **T-4.6b Elastic net** (teto 20 min, CPU) e **MLP** (teto 40 min, GPU).
   - MLP em `src/dengue_sinan/mlp.py`: classe compatível com sklearn (`fit`, `predict_proba`) que
     envolve a rede PyTorch, para entrar no mesmo `Pipeline` (R5) e no mesmo `run_loro`.
   - Fixe as sementes do PyTorch (`torch.manual_seed`, `torch.cuda.manual_seed_all`) com a semente do
@@ -142,7 +142,7 @@ só**, pela T-4.3b, na ordem do config. Tetos de tempo e de tentativas: `config/
     de predição; nome e versão do pacote.
   - Contexto = subamostra **estratificada** do treino de cada dobra, no tamanho do limite verificado.
   - Sem busca; calibração igual aos outros (T-4.9).
-- [ ] **T-4.8 SHAP global (FR-13, SHOULD).** Para o melhor modelo de árvore: valores SHAP e SHAP
+- [~] **T-4.8 SHAP global (FR-13, SHOULD).** Para o melhor modelo de árvore: valores SHAP e SHAP
   interaction values numa subamostra estratificada de 50 mil linhas `[ASSUMPTION]` de 2022–23.
   Gráficos em `reports/shap/`. Legenda: "explica o modelo, não causa; instável com features
   correlacionadas". Não usar para ranking (R10).
@@ -153,7 +153,7 @@ registrada nas 5 dobras; melhores pontos por dobra (modelos iterativos); alias `
 no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podadas. Para a T-4.8
 (SHAP, SHOULD), o bloco `shap` confere que os gráficos de `reports/shap/` foram gerados.
 
-### [ ] T-4.9 [US2] — Calibração, limiar e seleção (FR-08, FR-17, §3.11)
+### [~] T-4.9 [US2] — Calibração, limiar e seleção (FR-08, FR-17, §3.11)
 
 - Para cada modelo: ajustar **isotônica** e **Platt** nas predições OOF (2022–23); escolher a de
   menor Brier OOF. Guardar o calibrador.
@@ -170,7 +170,7 @@ no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podad
   para: um único modelo escolhido, com calibrador e limiar gravados; `comparacao_oof.md` e
   `comparacao_pareada.md` gerados; nenhum arquivo de 2024 aberto na sessão (`guard`).
 
-### [ ] T-4.10 [US2] — Retreino final e congelamento (FR-12, FR-22, D-37)
+### [~] T-4.10 [US2] — Retreino final e congelamento (FR-12, FR-22, D-37)
 
 - Retreinar o modelo escolhido em **todo** 2022–23 com os melhores hiperparâmetros.
   Iterativos: nº de árvores/épocas = **mediana** dos melhores pontos das 5 dobras (sem early stopping).

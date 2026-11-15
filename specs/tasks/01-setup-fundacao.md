@@ -124,7 +124,7 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
 - **Pronto quando:** teste passa e `grep -rn "assert_dev_only" src/` mostra a chamada em cada
   função de treino criada até aqui.
 
-### [ ] T-2.3 — Dobras leave-one-region-out e validação interna (`folds.py`)
+### [~] T-2.3 — Dobras leave-one-region-out e validação interna (`folds.py`)
 
 - Arquivo: `src/dengue_sinan/folds.py`.
 - `loro_folds(df) -> list[tuple[str, np.ndarray, np.ndarray]]`: para cada região
@@ -143,7 +143,7 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
 - **Pronto quando:** testes passam e `reports/verificacao/T-2.3.json` tem `"passou": true` para os
   eventos por dobra de §1.2 e para o hash do arquivo de dobras salvo.
 
-### [ ] T-2.4 [P] — Métricas (`metrics.py`)
+### [x] T-2.4 [P] — Métricas (`metrics.py`)
 
 - Arquivo: `src/dengue_sinan/metrics.py`. Funções puras, testadas com casos pequenos calculados à mão:
   - `pr_auc(y, p)`, `roc_auc(y, p)`, `brier(y, p)`;
@@ -163,7 +163,7 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
   `p_a == p_b` dá diferença 0 e IC [0, 0].
 - **Pronto quando:** testes passam.
 
-### [ ] T-2.5 [P] — Rastreamento (`tracking.py`)
+### [x] T-2.5 [P] — Rastreamento (`tracking.py`)
 
 - Arquivo: `src/dengue_sinan/tracking.py`.
 - `start_run(cfg, nome, tags)`: abre run no MLflow (`tracking_uri` = pasta `mlruns` do config),
@@ -173,7 +173,7 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
   Parquet **no Drive, nunca no git** (R7).
 - **Pronto quando:** um run de teste aparece em `mlflow ui` com config, hashes e commit.
 
-### [ ] T-2.6 — Análise descritiva (FR-18) (`descriptive.py`)
+### [~] T-2.6 — Análise descritiva (FR-18) (`descriptive.py`)
 
 - Arquivo: `src/dengue_sinan/descriptive.py`. Só 2022–23 (chame `assert_dev_only`).
 - Tabela de características por desfecho (`y = 0` vs `y = 1`): idade (mediana, IQR), sexo,
@@ -186,7 +186,7 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
 - **Pronto quando:** `reports/descritiva/tabela1.md`, `riscos_brutos.md` e os PNGs existem; nenhuma
   célula < 10 casos aparece; teste unitário do IC de Wilson e da supressão passa.
 
-### [ ] T-2.7 — Eventos por par de comorbidades
+### [~] T-2.7 — Eventos por par de comorbidades
 
 - Em `descriptive.py`: `pair_event_counts(df) -> DataFrame` com, para cada um dos 21 pares,
   nº de casos e de eventos com **as duas** comorbidades = Sim (2022–23).
@@ -199,7 +199,7 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
 - **Pronto quando:** tabelas geradas; anote no §9 quantos pares têm **≥ 10 eventos** (serão as
   únicas interações reportadas no E1) e quantas combinações de 3+ têm **≥ 10 casos** (entram nos perfis).
 
-### [ ] T-2.8 — Baselines B0, B1, B2 (FR-04) (`baselines.py`)
+### [~] T-2.8 — Baselines B0, B1, B2 (FR-04) (`baselines.py`)
 
 - Arquivo: `src/dengue_sinan/baselines.py`.
 - **B0:** prevê a prevalência do treino de cada dobra para todos.

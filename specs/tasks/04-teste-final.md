@@ -10,7 +10,7 @@
 
 Spec: FR-09, §3.12, D-36, D-39. **Pré-requisitos:** T-3.6 e T-4.10 prontos e commitados.
 
-### [ ] T-5.1 — Avaliação única (`evaluate.py`)
+### [~] T-5.1 — Avaliação única (`evaluate.py`)
 
 - `evaluate_test_once(cfg)`:
   1. se `reports/teste/LACRE.json` existir → `raise RuntimeError("teste já avaliado (R2)")`;
@@ -22,7 +22,7 @@ Spec: FR-09, §3.12, D-36, D-39. **Pré-requisitos:** T-3.6 e T-4.10 prontos e c
 - Teste: uma segunda chamada levanta erro.
 - **Pronto quando:** `reports/teste/metricas.md` gerado e `LACRE.json` gravado.
 
-### [ ] T-5.2 — Curva de decisão, calibração e subgrupos
+### [~] T-5.2 — Curva de decisão, calibração e subgrupos
 
 - Curva de decisão (0,1%–5%) para M1, B1 e B2, com "tratar todos" e "ninguém"; marcar o limiar F2.
 - Curva de calibração com bandas (2.000 bootstrap) para M1 e E1.
@@ -31,7 +31,7 @@ Spec: FR-09, §3.12, D-36, D-39. **Pré-requisitos:** T-3.6 e T-4.10 prontos e c
   Norte) recebem aviso de IC largo.
 - **Pronto quando:** `reports/teste/` tem as figuras e tabelas.
 
-### [ ] T-5.3 — Análise de erros
+### [~] T-5.3 — Análise de erros
 
 - Os 100 falsos negativos com **maior** risco previsto entre os não detectados `[ASSUMPTION]`:
   descrever por perfil (faixa, comorbidades, região, atraso) **em agregados** (R7).
@@ -39,7 +39,7 @@ Spec: FR-09, §3.12, D-36, D-39. **Pré-requisitos:** T-3.6 e T-4.10 prontos e c
 - Olhar o Espírito Santo à parte (sistema de origem diferente, spec §3.7).
 - **Pronto quando:** `reports/teste/erros.md` sem nenhuma linha individual.
 
-### [ ] T-5.4 — Critérios de sucesso SC-01 a SC-04 (spec, `[ASSUMPTION]`)
+### [~] T-5.4 — Critérios de sucesso SC-01 a SC-04 (spec, `[ASSUMPTION]`)
 
 Reportar cada um como passou/falhou, **sem mexer no modelo**:
 - M1 supera B0 em PR-AUC (IC da diferença não inclui 0);

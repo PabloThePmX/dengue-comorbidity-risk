@@ -215,6 +215,18 @@ Uma linha por tarefa concluída: data, tarefa, resultado principal (números), o
 | 2026-11-14 | T-2.0 | Dependências instaladas; `config.py` e `verify.py` implementados (58 testes passando) | `config/base.yaml`, `config/esperado.yaml`, `src/dengue_sinan/config.py`, `src/dengue_sinan/verify.py` |
 | 2026-11-14 | T-2.2 | Guarda `assert_dev_only` e `assert_dev_years` implementada e testada | `src/dengue_sinan/guard.py`, `tests/test_guard.py` |
 | 2026-11-14 | T-2.1 | pendente no Colab: rodar `notebooks/02_fundacao.ipynb`, célula `T-2.1`; gera `reports/verificacao/T-2.1.json` | `src/dengue_sinan/dataset.py`, `src/dengue_sinan/checks.py`, `notebooks/02_fundacao.ipynb` |
+| 2026-11-14 | T-2.3 | pendente no Colab: rodar `notebooks/02_fundacao.ipynb`, célula `T-2.3`; gera `reports/verificacao/T-2.3.json` | `src/dengue_sinan/folds.py`, `tests/test_folds.py` |
+| 2026-11-14 | T-2.4 | Métricas (`pr_auc`, `roc_auc`, `brier`, `calibration_slope_intercept`, `threshold_metrics`, `best_f2_threshold`, `net_benefit`, `bootstrap_ci`, `paired_bootstrap_diff`) implementadas e testadas | `src/dengue_sinan/metrics.py`, `tests/test_metrics.py` |
+| 2026-11-14 | T-2.5 | Rastreamento MLflow (`start_run`, `log_fold_metrics`, `log_oof_predictions`) implementado e testado | `src/dengue_sinan/tracking.py`, `tests/test_tracking.py` |
+| 2026-11-14 | T-2.6 / T-2.7 | pendente no Colab: rodar `notebooks/02_fundacao.ipynb`, célula `T-2.6-2.7`; gera `reports/verificacao/T-2.6.json` e `T-2.7.json` | `src/dengue_sinan/descriptive.py`, `tests/test_descriptive.py` |
+| 2026-11-14 | T-2.8 | pendente no Colab: rodar `notebooks/02_fundacao.ipynb`, célula `T-2.8`; gera `reports/verificacao/T-2.8.json` | `src/dengue_sinan/baselines.py`, `tests/test_baselines.py` |
+| 2026-11-14 | T-3.1 a T-3.5 | pendente no Colab: rodar `notebooks/03_perfil_e1.ipynb`, célula `T-3.1-a-3.6`; gera `reports/verificacao/T-3.1_a_T-3.6.json` | `src/dengue_sinan/explain.py`, `tests/test_explain.py`, `notebooks/03_perfil_e1.ipynb` |
+| 2026-11-14 | T-3.6 | Serialização `save_bundle` e `load_bundle` implementada e testada (precisão < 1e-9) | `src/dengue_sinan/artifacts.py`, `tests/test_artifacts.py` |
+| 2026-11-14 | T-4.1 a T-4.3 | `preprocess.py`, `cv.py`, `mlp.py` e `tuning.py` implementados e testados localmente | `src/dengue_sinan/preprocess.py`, `src/dengue_sinan/cv.py`, `src/dengue_sinan/mlp.py`, `src/dengue_sinan/tuning.py` |
+| 2026-11-14 | T-4.3b a T-4.10 | pendente no Colab: rodar `notebooks/04_modelos.ipynb`, célula `T-4.3b`; gera `reports/verificacao/sessao-m1.json` | `src/dengue_sinan/runner.py`, `tests/test_runner.py`, `notebooks/04_modelos.ipynb` |
+| 2026-11-14 | T-5.1 a T-5.4 | pendente no Colab (uma vez só após congelar E1 e M1): rodar `notebooks/05_teste_final.ipynb`, célula `T-5.1`; gera `reports/teste/LACRE.json` e `reports/teste/metricas.md` | `src/dengue_sinan/evaluate.py`, `tests/test_evaluate.py`, `notebooks/05_teste_final.ipynb` |
+| 2026-11-14 | T-6.1 a T-6.4 | App Streamlit com abas Perfil (E1) e Triagem (M1) implementado e testado (< 1 s para 20 perfis; R7 conferida) | `src/app/streamlit_app.py`, `tests/test_streamlit_app.py` |
+| 2026-11-14 | T-7.1 a T-7.2 | Estrutura do relatório TRIPOD+AI e apêndices gerada | `reports/relatorio_tripod_ai.md` |
 
 ---
 
@@ -226,3 +238,4 @@ se houver várias tentativas, uma linha por tentativa.
 | Data | Tarefa | O que aconteceu (mensagem de erro ou número estranho) | O que foi tentado | Resultado | Precisou perguntar? |
 |---|---|---|---|---|---|
 | 2026-11-14 | T-2.0 | `uv add` falhou com `No interpreter found for Python 3.13.18` (`.python-version` exigia patch 3.13.18, mas o ambiente local tem 3.13.12) | Alterar `.python-version` para `3.13` (compatível com `requires-python >=3.13,<3.14`) | `uv add` instalou todos os pacotes e os 58 testes passaram | Não (correção técnica local) |
+| 2026-11-14 | T-2.5 | MLflow 3.18 recusou `FileStore` (`file:///.../mlruns`) por padrão com `MlflowException: The filesystem tracking backend is in maintenance mode` | Definir `os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")` em `src/dengue_sinan/tracking.py` para manter o armazenamento em `mlruns/` previsto na T-2.5 | Testes de `tracking.py`, `baselines.py`, `tuning.py` e `runner.py` passaram | Não (compatibilidade com MLflow 3.x) |

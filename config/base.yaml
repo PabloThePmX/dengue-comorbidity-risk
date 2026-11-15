@@ -3,7 +3,10 @@ anos_dev: [2022, 2023]
 ano_teste: 2024
 caminhos:
   dados: "data"            # no Colab: /content/drive/MyDrive/dengue-comorbidity-risk/data
+  m1: "data/m1"
+  modelos: "models"
   mlruns: "mlruns"
+  optuna: "optuna"
   relatorios: "reports"
 dias_notificacao_max: 60
 faixas: [0, 5, 15, 40, 60, 80]
@@ -17,7 +20,41 @@ ordem_dobras: [Sudeste, Sul, Centro-Oeste, Nordeste, Norte]
 orcamento_teto_min: {elastic_net: 20, xgboost: 30, catboost: 40, mlp: 40, random_forest: 40, tabfm: 30}
 orcamento_piso_min: 10
 optuna:
+  piso_min: 10
+  teto_por_modelo_min: {elastic_net: 20, xgboost: 30, catboost: 40, mlp: 40, random_forest: 40, tabfm: 30}
   max_tentativas: {elastic_net: 15, xgboost: 30, catboost: 25, mlp: 25, random_forest: 25, tabfm: 1}
   poda_tentativas_iniciais: 5   # MedianPruner(n_startup_trials)
   poda_dobras_aquecimento: 2    # MedianPruner(n_warmup_steps): só poda depois da 2ª dobra
 bootstrap_pareado: 1000
+# T-4.0: Espaço de busca proposto (Q-08) — sem pesos de classe (R3)
+espaco_busca:
+  elastic_net:
+    C_log: [0.001, 10.0]
+    l1_ratio: [0.0, 1.0]
+  random_forest:
+    n_estimators: [200, 800]
+    max_depth: [4, 20, null]
+    min_samples_leaf_log: [10, 500]
+    max_features: ["sqrt", 0.3, 0.5]
+    max_samples: [0.05, 0.30]
+  xgboost:
+    learning_rate_log: [0.01, 0.30]
+    max_depth: [3, 10]
+    min_child_weight_log: [1.0, 100.0]
+    subsample: [0.5, 1.0]
+    colsample_bytree: [0.5, 1.0]
+    reg_lambda_log: [0.001, 10.0]
+    n_estimators_max: 2000
+  catboost:
+    learning_rate_log: [0.01, 0.30]
+    depth: [4, 10]
+    l2_leaf_reg_log: [1.0, 30.0]
+    iterations_max: 3000
+  mlp:
+    hidden_layers: [[64], [128], [128, 64]]
+    dropout: [0.0, 0.30]
+    weight_decay_log: [0.000001, 0.01]
+    lr_log: [0.0001, 0.01]
+    batch_size: [1024, 4096]
+    max_epochs: 200
+  tabfm: {}

@@ -11,6 +11,8 @@ from typing import Any
 import numpy as np
 import psutil
 
+from dengue_sinan.download import sha256_file
+
 Scalar = int | float | str | bool
 
 _TASK_TO_BLOCK_DEFAULT = {
@@ -247,3 +249,11 @@ def update_session_report(
 
     report_path.write_text(json.dumps(existing, indent=2, ensure_ascii=False), encoding="utf-8")
     return report_path
+
+
+__all__ = [
+    "check",
+    "sha256_file",
+    "update_session_report",
+    "write_report",
+]
