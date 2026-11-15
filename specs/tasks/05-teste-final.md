@@ -4,7 +4,12 @@
 > inesperados). Os registros de execução e de problemas ficam **lá**.
 
 Spec: FR-09, D-36, D-39; [spec › Plano de avaliação](../spec.md#plano-de-avaliação). Critério de
-saída: [spec › Marcos](../spec.md#marcos). **Pré-requisitos:** T-3.6 e T-4.10 prontas e commitadas.
+saída: [spec › Marcos](../spec.md#marcos). **Pré-requisitos:** T-3.6 e T-4.10 prontas e commitadas,
+e o "ok" do Programador para usar o teste (D-71).
+
+Roda no Colab, onde estão 2024 e os artefatos (D-66). O Colab grava só agregados em texto (métricas,
+pontos das curvas, tabelas por subgrupo); o agente os traz pelo MCP com SHA-256 conferido e desenha
+as figuras de `reports/teste/` localmente.
 
 ### [ ] T-5.1 — Avaliação única (`evaluate.py`)
 

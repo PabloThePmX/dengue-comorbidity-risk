@@ -38,13 +38,13 @@
     10 (só no M2); eventos por par de comorbidades (Marco 2);
   - ambiente: saldo do Colab Pro; `PRAUC` do CatBoost em GPU; torch com CUDA 13 no Colab; SQLite
     do Optuna no Drive (vCPUs e RAM alta conferidos em 2026-11-15: 8 vCPUs, 50,99 GiB);
-  - TabFM: licença para uso acadêmico, limite de contexto e de features, velocidade;
+  - TabFM: limite de linhas de contexto, conflito de torch e velocidade (licença conferida, D-69);
   - literatura: ler no texto completo Sangkaew et al., Steyerberg & Harrell e Collins (parte 1);
     conferir no PDF a validação de Huang et al.
 - [x] [Registro de decisões](../research.md#registro-de-decisões) com uma entrada por escolha
-  significativa (D-01 a D-64).
-- [ ] **Perguntas em aberto respondidas.** Restam Q-08 (espaço de busca), Q-13 (profissional de
-  saúde) e Q-14 (modelo da demo).
+  significativa (D-01 a D-72).
+- [ ] **Perguntas em aberto respondidas.** Resta Q-13 (profissional de saúde); Q-08 foi delegada
+  ao agente (D-68) e Q-14 resolvida (D-70).
 
 ## Marcos
 

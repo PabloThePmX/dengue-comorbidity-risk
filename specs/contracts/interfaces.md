@@ -66,7 +66,7 @@ Streamlit, FR-11, D-27.
   - Entrada: as colunas de [Entrada de casos](#entrada-de-casos) (perfil + sintomas iniciais + dias até a notificação).
   - Saída: risco calibrado de M1 e "alto risco" sim/não no limiar escolhido ([spec › Plano de avaliação](../spec.md#plano-de-avaliação)).
   - Explicação (D-35): os 5 fatores que mais aumentaram ou reduziram o risco do caso (SHAP local), com a frase "contribuição no modelo, não causa".
-    - Modelos de árvore: TreeSHAP exato. Elastic net: contribuição linear (coeficiente × valor). MLP: `shap.GradientExplainer` com amostra de fundo (D-51). TabFM: SHAP aproximado com amostra de fundo `[ASSUMPTION]`. Todos respeitando NFR-06.
+    - Modelos de árvore: TreeSHAP exato. Elastic net: contribuição linear (coeficiente × valor). MLP: `shap.GradientExplainer` com amostra de fundo (D-51). Todos respeitando NFR-06. O TabFM nunca é o modelo da demo (D-69); se o melhor M1 não couber, vale o D-70.
   - `[ASSUMPTION]` SHOULD mostrar também se o caso cairia no grupo B pela regra do protocolo (B2, [spec › Baselines](../spec.md#baselines)), para o usuário comparar modelo e regra.
   - Sem IC por predição: a maioria dos candidatos de M1 não tem IC analítico por caso, e a escolha do modelo só sai no Marco 4. A incerteza do modelo fica no relatório (IC bootstrap das métricas).
 - As duas abas explicam, em uma frase, a diferença entre elas: Perfil responde "qual o risco de quem tem estas condições"; Triagem responde "qual o risco deste paciente, com estes sintomas, agora".
@@ -75,15 +75,15 @@ Streamlit, FR-11, D-27.
 
 ## Relatório de verificação
 
-D-56. `reports/verificacao/<tarefa>.json`, gerado por `verify.write_report` no Colab. Só agregados (R7).
+D-56. `reports/verificacao/<tarefa>.json`, gerado por `verify.write_report` no PC local (Marcos 2 e 3) ou no Colab (Marcos 4 e 5), conforme o D-66. Só agregados (R7).
 
 ```json
 {
   "tarefa": "T-2.1",
   "gerado_em": "2026-11-10T14:03:00Z",
-  "commit": "<sha do git no Colab>",
+  "commit": "<sha do git onde o código rodou>",
   "ambiente": {"python": "3.13.x", "ram_gib": 12.7, "gpu": "T4"},
-  "hash_dados": {"2022": "<sha256 do Parquet>", "2023": "<sha256 do Parquet>"},
+  "hash_dados": {"2022": "<sha256 do .dbc>", "2023": "<sha256 do .dbc>"},
   "checks": [
     {"nome": "casos_dev", "esperado": 2453208, "obtido": 2453208, "tolerancia": 0, "passou": true},
     {"nome": "eventos_dev", "esperado": 3985, "obtido": 3985, "tolerancia": 0, "passou": true}
@@ -93,6 +93,8 @@ D-56. `reports/verificacao/<tarefa>.json`, gerado por `verify.write_report` no C
 ```
 
 - `passou` (nível de cima) = todos os `checks` passaram.
+- `hash_dados` usa o SHA-256 do `.dbc` original, e não do Parquet: o `.dbc` é o mesmo no PC e no
+  Colab, enquanto o Parquet pode mudar de bytes com outra versão do pyarrow (D-72).
 - `esperado` vem sempre de `config/esperado.yaml`; nunca é digitado no notebook.
 - `obtido` só aceita número, texto ou booleano.
 - Pelo MCP do Colab (D-64), `verify.show_report` imprime o arquivo e o SHA-256 dos seus bytes; a
@@ -109,8 +111,8 @@ cada etapa de `run_all_models`.
   "gerado_em": "2026-11-12T18:40:00Z",
   "commit": "<sha do git no Colab>",
   "ambiente": {"python": "3.13.x", "gpu": "L4", "vcpus": 8, "ram_gib": 53.0},
-  "hash_dados": {"2022": "<sha256>", "2023": "<sha256>"},
-  "hash_dobras": "<sha256 do arquivo de dobras (T-2.3)>",
+  "hash_dados": {"2022": "<sha256 do .dbc>", "2023": "<sha256 do .dbc>"},
+  "hash_dobras": "<sha256 do conteúdo das dobras, igual ao da T-2.3>",
   "blocos": [
     {"bloco": "checagem_inicial", "tarefa": "T-4.3b", "checks": [], "passou": true},
     {"bloco": "elastic_net", "tarefa": "T-4.6b", "checks": [], "passou": true},

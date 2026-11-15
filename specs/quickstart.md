@@ -19,7 +19,7 @@ uv run ruff check .
 ```
 
 - Se `uv` não estiver no PATH: `python -m uv ...` ou o caminho completo
-  `%APPDATA%\Python\Python314\Scripts\uv.exe`.
+  `%APPDATA%\Python\Python313\Scripts\uv.exe` (instalado com `pip install --user uv` em 2026-11-15).
 - Se `uv run pytest` falhar com "trampoline failed to canonicalize script path":
   `uv run python -m pytest -q` (o launcher do `.venv` ficou com um caminho antigo;
   `uv sync --reinstall-package pytest` regenera).
@@ -28,11 +28,11 @@ uv run ruff check .
 
 ## Google Colab
 
-Dados, treino e avaliação.
+Marco 4 (modelos) e Marco 5 (teste); os Marcos 2 e 3 rodam no PC local (D-66).
 
 1. Montar o Google Drive. Pasta do projeto: `MyDrive/dengue-comorbidity-risk/`.
 2. `git clone` do repositório e `pip install -e .` (ou `uv sync`). O código da tarefa precisa estar
-   commitado e no GitHub antes, porque o Colab clona o repositório.
+   commitado e no GitHub antes; o orquestrador faz o commit e o push (D-66).
 3. Conferir a GPU (Colab Pro, ou gratuito se houver):
    `nvidia-smi` e `python -c "import torch; print(torch.__version__, torch.cuda.is_available())"`.
    Se der `False` numa VM com GPU, **🛑 pare e pergunte**: o lock usa torch com CUDA 13 (ver o
@@ -66,8 +66,10 @@ ferramentas aparecem na sessão seguinte do Claude Code.
    só foi aplicada na segunda vez. O agente confere GPU e RAM por código antes de rodar; a troca
    reinicia o ambiente, mas não derruba a conexão do MCP.
 3. Autorizar o acesso ao Drive quando o Google pedir.
-4. Dar o "ok" para commit e push antes de cada execução.
-5. Deixar a aba aberta até o agente terminar, e desconectar o ambiente no fim.
+4. Deixar a aba aberta até o agente terminar, e desconectar o ambiente no fim.
+
+O commit e o push antes de cada execução são feitos pelo orquestrador, com mensagem de uma linha e
+sem co-autoria (D-66).
 
 **Comportamento observado (2026-11-15):** `run_code_cell` só volta quando a célula termina
 (testado até 2 min); um processo em segundo plano volta na hora e pode ser acompanhado por células
@@ -80,13 +82,15 @@ ao criar um arquivo na primeira tentativa.
   `data/parquet/dengue_{ano}.parquet` (todas as colunas como texto) e atualiza
   `data/manifest.json` com hash do `.dbc`, hash do Parquet e data de revisão no FTP.
 - Se o Parquet do ano já existir, ele é reutilizado.
+- **No PC local, baixe só 2022 e 2023** (D-66), em `data/` (fora do git). 2024 fica só no Drive e
+  só é lido na T-5.1 (R1).
 
 ## Validação rápida
 
 Depois de carregar a população (após T-2.1), as contagens devem bater com o
 [data-model › Tamanho e prevalência](data-model.md#tamanho-e-prevalência) e com os
-[eventos por região](data-model.md#eventos-por-região-e-subgrupo). No Colab, quem confere é o
-relatório de verificação, com os valores de `config/esperado.yaml` (após T-2.0).
+[eventos por região](data-model.md#eventos-por-região-e-subgrupo). Quem confere é o relatório de
+verificação, com os valores de `config/esperado.yaml` (após T-2.0).
 
 **2024 não é carregado antes da T-5.1** (R1). Os números de 2024 vêm do profiling e servem só para
 conferir a T-5.1.

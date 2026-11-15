@@ -365,8 +365,8 @@ Todos obrigatórios (FR-04). Todos os modelos são julgados contra eles.
 | RAM insuficiente no Colab (RF, SHAP) | Média | Médio | Tipos enxutos, subamostra estratificada para RF/SHAP. |
 | Validação por região multiplica o tempo de treino (5 dobras × 6 modelos × trials) | Alta | Médio | Orçamento de tempo por modelo ajustado pela cronometragem, poda e busca retomável (NFR-01); subamostra estratificada na busca; sessão única com marcador por modelo concluído (D-53). |
 | Colab cai no meio da sessão única (~4 h) ou não oferece GPU | Alta | Médio | Marcador por modelo e estudo Optuna no Drive: a reexecução pula os concluídos e retoma o modelo em andamento (D-53); melhores pesos já salvos (FR-22); XGBoost e CatBoost também rodam em CPU; Kaggle como alternativa. |
-| TabFM não comporta o volume (limite de contexto, GPU, velocidade) | Média | Médio | Verificar limites no model card antes do Marco 4; subamostra estratificada como contexto; registrar a restrição. |
-| Melhor M1 (ex.: TabFM ou MLP) pesado demais para a demo ou sem SHAP rápido | Média | Médio | SHAP aproximado; se não cumprir NFR-06, decidir antes do Marco 5 (Q-14). |
+| TabFM não comporta o volume (limite de contexto, GPU, velocidade) ou conflita com o torch do lock | Média | Médio | Subamostra estratificada como contexto; `tabfm` instalado só na sessão do Colab se o torch conflitar (D-69); registrar a restrição. |
+| Melhor M1 (ex.: TabFM ou MLP) pesado demais para a demo, sem SHAP rápido ou impedido pela licença | Média | Médio | A demo usa o melhor modelo que couber, e o relatório explica (D-70). O TabFM nunca vai para a demo (D-69). |
 | Profissional de saúde sugere mudança depois do teste | Média | Baixo | Não retreinar (teste já usado); registrar como limitação (FR-21). |
 | Região com poucos eventos numa dobra | **Confirmada** | Médio | Norte com 121 eventos no desenvolvimento e 110 no teste ([Tamanho do teste](#tamanho-do-teste-e-das-dobras)): reportar com aviso de IC largo. |
 | ML não supera logística/regra | Média | Baixo | Resultado válido e reportável ([Problema e contexto](#problema-e-contexto)). |
@@ -387,7 +387,7 @@ pelas tarefas `T-N.x` do arquivo `tasks/0N-…md` (D-60).
 | **1 — Dados e profiling** | Ter os dados baixados, versionados e entendidos antes de qualquer modelo. | FR-01, FR-02, FR-03 | **Concluído em 2026-11-03** (3 execuções do [roteiro](../profiling/ROTEIRO.md)). Pendências que não bloqueiam: significado de `NDUPLIC_N` e `TP_SISTEMA` no dicionário. |
 | **2 — Descrição, split e baselines** | Descrever a população e fixar o piso que todo modelo precisa superar. | FR-18, FR-04, FR-17 | Análise descritiva gerada. Dobras leave-one-region-out construídas. Métricas fora da dobra de B0, B1 e B2 registradas no MLflow. Eventos por par de comorbidades contados (decide quais interações o E1 estima). Teste de 2024 ainda intocado. |
 | **3 — Modelo explicativo (E1)** | Responder à pergunta central: quais comorbidades e combinações estão associadas a maior risco. | FR-05, FR-06, FR-19 | OR com IC 95% e correção de Benjamini-Hochberg. Interações reportadas só com ≥ 10 eventos. Ranking de comorbidades com empates marcados. Tabela de perfis com células < 10 suprimidas. |
-| **4 — Modelos preditivos (M1)** | Treinar, comparar e escolher o modelo de triagem. | FR-07, FR-08, FR-12, FR-13 | Os seis candidatos de FR-07 avaliados nas mesmas dobras, com busca registrada no MLflow (Q-08 respondida; limites do TabFM verificados; Q-14 decidida). Melhores pesos por dobra e melhor tentativa de cada modelo salvos no MLflow (FR-22). Calibrador e limiar ajustados nas predições fora da dobra. Modelo final escolhido pela [regra de seleção](plan.md#regra-de-seleção) **antes** de tocar no teste. E1 e M1 serializados com metadados. |
+| **4 — Modelos preditivos (M1)** | Treinar, comparar e escolher o modelo de triagem. | FR-07, FR-08, FR-12, FR-13 | Os seis candidatos de FR-07 avaliados nas mesmas dobras, com busca registrada no MLflow (espaço de busca definido na T-4.0, D-68; limites do TabFM verificados). Melhores pesos por dobra e melhor tentativa de cada modelo salvos no MLflow (FR-22). Calibrador e limiar ajustados nas predições fora da dobra. Modelo final escolhido pela [regra de seleção](plan.md#regra-de-seleção) **antes** de tocar no teste. E1 e M1 serializados com metadados. |
 | **5 — Avaliação final no teste** | Medir o desempenho real, uma única vez, em 2024. | FR-09 | Teste usado uma vez, com o modelo congelado do Marco 4. Todas as métricas do [Plano de avaliação](#plano-de-avaliação) com IC bootstrap. Subgrupos e análise de erros feitos. Calibração de E1 em 2024 checada. Resultado registrado mesmo se pior que B1/B2. |
 | **6 — Demo** | Permitir testar os dois modelos. | FR-11 | Demo pública com as abas Perfil e Triagem, usando os artefatos serializados (Marcos 3 e 4). Aviso de uso acadêmico nas duas abas. Nenhum microdado embarcado (NFR-03). Resposta < 1 s por perfil (NFR-06). |
 | **7 — Relatório** | Explicar processo, decisões, resultados e passos seguidos. | FR-20, FR-21 | Checklist TRIPOD+AI preenchido. Apêndices A–C presentes. Revisão do profissional de saúde registrada no apêndice D, se houver. Justificativa do alvo (D-22) incluída. [checklists/requirements.md](checklists/requirements.md) passando. |
@@ -443,9 +443,9 @@ Python, notebooks de profiling, explicação e avaliação, e MLflow. CLI só co
 ## Perguntas em aberto
 
 - **Resolvidas ou retiradas:** Q-01 e Q-02 (entrega e apresentação; D-26), Q-03 (D-33), Q-04 (D-47), Q-05 (D-48), Q-06 (D-49), Q-07 (D-32), Q-09 (D-29), Q-10 (papéis do grupo, fora do spec), Q-11 e Q-12 (D-30).
-- **Q-08** `[OPEN QUESTION]` Espaço de busca de hiperparâmetros. Quem responde: Programador, a partir da proposta da T-4.0.
+- ~~**Q-08** Espaço de busca de hiperparâmetros.~~ Delegado ao agente na T-4.0 (D-68).
 - **Q-13** `[OPEN QUESTION]` Quem será o profissional de saúde da revisão (FR-21)? Quem responde: grupo.
-- **Q-14** `[OPEN QUESTION]` Se o melhor M1 não couber na demo (velocidade, GPU, SHAP), a aba Triagem usa o melhor modelo que couber, com o motivo registrado? Quem responde: grupo, antes do Marco 5.
+- ~~**Q-14** Modelo da demo se o melhor M1 não couber nela.~~ Resolvida no D-70: o melhor que couber, com o motivo no relatório.
 
 ## Glossário
 

@@ -22,13 +22,13 @@ abas (US3) e um relatório TRIPOD+AI.
 | Item | Valor |
 |---|---|
 | **Linguagem/versão** | Python 3.13 (`requires-python >=3.13,<3.14`; o `pyreaddbc` não tem wheel para 3.14), ambiente com `uv` (D-16) |
-| **Dependências principais** | Já instaladas: `pandas`, `pyarrow`, `pyreaddbc`, `dbfread`. Propostas na T-2.0, sujeitas a aprovação: `scikit-learn`, `statsmodels`, `xgboost`, `catboost`, `optuna`, `mlflow`, `shap`, `torch`, `pyyaml`, `matplotlib`; `streamlit` no Marco 6; pacote do TabFM a definir (T-4.7) |
+| **Dependências principais** | Já instaladas: `pandas`, `pyarrow`, `pyreaddbc`, `dbfread`. Aprovadas para a T-2.0 (D-67): `scikit-learn`, `statsmodels`, `xgboost`, `catboost`, `optuna`, `mlflow`, `shap`, `torch`, `pyyaml`, `matplotlib`, `streamlit`; `tabfm[pytorch]` na T-4.7 (D-69) |
 | **Armazenamento** | Parquet por ano + `manifest.json` com hashes, no Google Drive; MLflow (`mlruns/`) e estudos do Optuna (SQLite) no Drive; `reports/` versionado só com agregados |
 | **Testes** | `pytest` (testes unitários por módulo) e `ruff` |
-| **Plataforma** | Google Colab, gratuito e Pro (D-44), para dados, treino e avaliação; Streamlit Community Cloud para a demo (D-17); Windows local para desenvolvimento |
+| **Plataforma** | PC local (Windows) para desenvolvimento e para os Marcos 2 e 3, com os dados de 2022–23 (D-66); Google Colab, gratuito e Pro (D-44), para o Marco 4 e o teste (Marco 5); Streamlit Community Cloud para a demo (D-17) |
 | **Tipo de projeto** | Projeto único: pacote de pipeline + app, layout `src` ([Arquitetura do código](#arquitetura-do-código)) |
 | **Metas de desempenho** | Demo < 1 s por consulta (NFR-06); sessão única dos 6 modelos ≈ 4 h ([Ambiente](#ambiente-de-execução-e-orçamento), D-53) |
-| **Restrições** | ~12,7 GiB de RAM no Colab gratuito; GPU não garantida; 2024 não lido antes da T-5.1 (R1); nenhum microdado no git ou no app (NFR-03) |
+| **Restrições** | PC local com 15,9 GiB de RAM e 4 núcleos; ~12,7 GiB de RAM no Colab gratuito; GPU não garantida; 2024 não lido antes da T-5.1 nem baixado no PC (R1, D-66); nenhum microdado no git ou no app (NFR-03) |
 | **Escala** | 7,78 mi de casos (2,45 mi no desenvolvimento, 5,33 mi no teste); 3.985 eventos no desenvolvimento; ~25 features ([data-model › Dicionário de features](data-model.md#dicionário-de-features)) |
 
 ## Constitution Check
@@ -62,8 +62,8 @@ tests/             pytest, um arquivo por módulo (NFR-05)
 config/            base.yaml (parâmetros) e esperado.yaml (valores conferidos, D-56)
 notebooks/         só chamam funções de src/ (NFR-05)
 profiling/         gerador do notebook de profiling e resultados do Marco 1
-reports/           só agregados, versionado (NFR-03); verificacao/ com os JSON do Colab (D-56)
-data/, mlruns/     fora do git (NFR-03); no Colab, no Google Drive
+reports/           só agregados, versionado (NFR-03); verificacao/ com os JSON das verificações (D-56)
+data/, mlruns/     fora do git (NFR-03); no PC, só 2022–23 (D-66); no Colab, no Google Drive
 ```
 
 - **Layout `src`:** o código fica em `src/` e os testes fora dele. Assim os testes importam o pacote
@@ -84,7 +84,7 @@ Módulos de `src/dengue_sinan/`:
 | `dataset.py` | Carrega a população e monta o frame de features | FR-02 | T-2.1 |
 | `checks.py` | Checks bloqueantes de qualidade | FR-03 | T-2.1 |
 | `guard.py` | `assert_dev_only`: bloqueia 2024 antes da avaliação final | FR-09, R1 | T-2.2 |
-| `folds.py` | Dobras leave-one-region-out, validação interna, `save_folds`/`load_folds` com hash | FR-17, FR-22, D-53 | T-2.3 |
+| `folds.py` | Dobras leave-one-region-out, validação interna, `save_folds`/`load_folds` e hash do conteúdo das dobras | FR-17, FR-22, D-53, D-72 | T-2.3 |
 | `metrics.py` | PR-AUC, Brier, calibração, F2, net benefit, bootstrap simples e pareado | FR-09, D-53 | T-2.4 |
 | `tracking.py` | MLflow: config, hashes, commit, métricas | NFR-02 | T-2.5 |
 | `descriptive.py` | Tabela 1, eventos por par e por combinação | FR-18, D-52 | T-2.6 |
@@ -126,12 +126,14 @@ download ─► Parquet (Drive) ─► dataset + checks ─► folds (hash) ─�
 Como cumprir a NFR-01. Pesquisa de planos, preços e fontes do Colab:
 [research › Planos do Colab](research.md#planos-do-colab).
 
+- **Onde cada marco roda (D-66):** Marcos 2 e 3 (descritiva, baselines, E1) no PC local, com 2022 e 2023 em `data/`; os relatórios nascem direto em `reports/`. Marcos 4 e 5 no Colab: o código chega por `git clone` (commit e push feitos pelo orquestrador antes, D-66); o Colab grava **agregados em texto** (tabelas, pontos de curvas, médias de SHAP), o agente os traz pelo MCP conferindo o SHA-256, e os gráficos (`.png`) são desenhados localmente a partir deles.
+
 - **Colab gratuito** (o FAQ do Google diz que os limites não são publicados e variam): sessão de até ~12 h, desconexão após ~90 min sem interação, GPU (em geral T4) não garantida, ~12 GB de RAM. A RAM e a GPU obtidas são registradas em cada execução. No profiling (2026-11-03): 12,7 GiB de RAM; os 3 anos com 40 colunas ocupam 0,46 GiB, e a população final (7,8 mi linhas), 0,91 GiB.
 - **Plano usado pelo Programador:** Google AI Pro para estudantes (assinatura paga), com **200 unidades de computação por mês** no Colab, aceleradores mais potentes e sessões mais longas (confirmado na página da oferta em 2026-11-03).
   - `[VERIFY]` Depois de assinar: conferir no Colab (*Ambiente de execução → Ver recursos*) se o saldo aparece como 200, quais GPUs ficam disponíveis e se as unidades não usadas acumulam.
 - **Consumo e custo da sessão de modelos (≈ 4 h, D-53):** T4 ≈ 1,2 unidade/h, L4 ≈ 1,7/h, A100 40 GB ≈ 5,4/h (medição de março de 2026). A sessão custa ~5 unidades em T4, ~7 em L4 e ~22 em A100; 200 unidades/mês cobrem cerca de 9 sessões em A100 e mais de 25 em T4/L4. GPU ociosa continua consumindo unidades.
 - **RAM alta (medida em 2026-11-15):** a VM com GPU T4 e "RAM alta" tem **50,99 GiB e 8 vCPUs** (a padrão, 12,67 GiB e 2 vCPUs). Com ela, Random Forest e as 5 dobras com todos os dados devem caber sem subamostra. A opção pode não ser aplicada na primeira vez que é salva, por isso a checagem inicial confere a RAM por código (`cfg.ambiente`, D-64).
-- **Como usar `[ASSUMPTION]`:** o Pro é um **acelerador**, não muda os orçamentos de tempo da tabela abaixo (mantém a comparação justa entre modelos). Sessão única (D-53) numa VM com GPU (L4 de preferência, T4 serve) e High RAM: XGBoost (`device="cuda"`), CatBoost (`task_type="GPU"`), MLP e TabFM na GPU; elastic net e Random Forest na CPU da mesma VM. A100 só se o TabFM exigir. Desconectar o ambiente ao fim da sessão.
+- **Como usar `[ASSUMPTION]`:** o Pro é um **acelerador**, não muda os orçamentos de tempo da tabela abaixo (mantém a comparação justa entre modelos). Sessão única (D-53) numa VM com GPU T4 e "RAM alta" (L4 também serve): XGBoost (`device="cuda"`), CatBoost (`task_type="GPU"`), MLP e TabFM na GPU; elastic net e Random Forest na CPU da mesma VM. A100 só se o TabFM exigir. Desconectar o ambiente ao fim da sessão.
   - `[VERIFY]` Se o CatBoost em GPU aceita `PRAUC` como métrica de early stopping; se não aceitar, CatBoost volta para a CPU.
   - `[VERIFY]` **torch com CUDA 13 no Colab.** O `uv.lock` (2026-11-03) resolve o `torch` 2.15.0 para Linux com wheels de CUDA 13 (pacotes `nvidia-*-cu13`); no Windows local, a mesma versão vem só com CPU (`2.15.0+cpu`). Depois de instalar o projeto no Colab, conferir se o driver suporta CUDA 13 (`nvidia-smi`) e se `torch.cuda.is_available()` dá `True`. Se não der, as alternativas são: usar o torch que já vem no Colab, baixando o piso de versão no `pyproject.toml`, ou instalar o torch do índice da PyTorch para a versão de CUDA do Colab. A escolha fica com o Programador, e a versão usada vai para o MLflow.
 - **Reprodutibilidade (D-44):** mesmo executado no Pro, o pipeline MUST continuar executável no Colab gratuito, ainda que mais devagar ou com subamostra na busca. Assim o professor ou outra pessoa consegue reproduzir sem assinatura.
@@ -203,8 +205,9 @@ Objetivo principal (D-01).
 Verificado em 2026-11-02 em fontes de lançamento: [blog do Google Research](https://research.google/blog/introducing-tabfm-a-zero-shot-foundation-model-for-tabular-data/), [Enterprise DNA](https://enterprisedna.co/resources/news/google-tabfm-zero-shot-tabular-data-enterprise-analytics-2026).
 
 - Lançado em 30/06/2026. Não há treino: as linhas de treino entram como **contexto** na hora da predição (aprendizado em contexto), e a arquitetura alterna atenção entre linhas e colunas.
-- Código sob Apache 2.0; pesos no Hugging Face com licença **não comercial**. `[VERIFY]` Confirmar no model card que uso acadêmico está coberto.
-- `[VERIFY]` No model card: limite de linhas de contexto e de features (uma fonte secundária cita até 500 features e 10 classes) e velocidade de predição.
+- **Licença (conferida em 2026-11-15, D-69):** código sob Apache 2.0; pesos sob a TabFM Non-Commercial License v1.0, que permite pesquisa acadêmica, mas exclui uso em interação com usuários finais e proíbe redistribuir o modelo. Por isso o TabFM **nunca vai para a demo** e o artefato fica só no Drive.
+- **Pacote:** `tabfm[pytorch]` ([model card 1.1.0](https://huggingface.co/google/tabfm-1.1.0-pytorch)); até 500 features e 10 classes. O repositório fixa `torch==2.12.1`, e o lock do projeto usa 2.15: se conflitar, o `tabfm` é instalado só na sessão do Colab e a versão vai para o MLflow (D-69).
+- `[VERIFY]` Na T-4.7: limite padrão de linhas de contexto (`max_num_rows`; o README cita um número baixo, não confirmado), ensembling de contextos (`n_estimators`) e velocidade de predição.
 - Com milhões de linhas no desenvolvimento, o contexto será uma **subamostra estratificada** do treino de cada dobra, com tamanho definido pelo limite verificado. O relatório registra que o TabFM vê só essa subamostra.
 - Precisa de GPU (Colab). Avaliado nas mesmas dobras leave-one-region-out e calibrado igual aos outros (FR-08, FR-17).
 - Os resultados no TabArena são do próprio Google, ainda sem verificação independente; não citar como evidência de superioridade.
@@ -213,7 +216,7 @@ Verificado em 2026-11-02 em fontes de lançamento: [blog do Google Research](htt
 
 - **Optuna (D-43)**, versão pinada no `uv.lock` quando a modelagem começar. Sampler TPE com semente fixa; poda com `MedianPruner`, reportando a PR-AUC acumulada a cada dobra `[ASSUMPTION]`; estado em SQLite no Drive (busca retomável); `timeout` igual ao orçamento do modelo.
 - Máximo de tentativas por modelo da tabela de [Ambiente e orçamento](#ambiente-de-execução-e-orçamento) (15 a 30), **dentro do orçamento de tempo do modelo** (NFR-01, D-42, D-53); a 1ª tentativa usa os padrões da biblioteca (`enqueue_trial`); cada tentativa é avaliada pela PR-AUC média das 5 dobras leave-one-region-out. Se o orçamento não comportar, usar subamostra estratificada na busca antes de reduzir dobras ou modelos.
-- **Espaço de busca:** `[OPEN QUESTION]` Q-08 — definido na implementação (proposta na T-4.0) e registrado no config.
+- **Espaço de busca:** definido pelo agente na T-4.0 (D-68), partindo da proposta da tarefa e ajustado pelos tempos medidos no Marco 2; registrado no config.
 
 ### Early stopping e melhores pesos
 

@@ -18,9 +18,17 @@ Colab (`notebooks/04_modelos.ipynb`), disparada pelo agente via MCP em segundo p
 seleção, SHAP, retreino), cada um com seu `"passou"`. O arquivo é reescrito ao fim de cada etapa;
 se a sessão cair, o que terminou fica registrado e a reexecução continua de onde parou.
 
-### [ ] T-4.0 [US2] — Espaço de busca (Q-08) — 🛑 aprovação do Programador
+### [ ] T-4.0 [US2] — Espaço de busca (Q-08, definido pelo agente, D-68)
 
-Proposta (registrar no `config/base.yaml` depois do "ok"):
+O agente reavalia a proposta abaixo e define o espaço, sem parar para perguntar. Limites:
+
+- parte desta tabela e só ajusta faixas com base no que o Marco 2 mediu (tamanho dos dados, tempo
+  do B1 por dobra, contagens) e no orçamento do D-53;
+- nunca inclui parâmetro de peso de classe (R3);
+- grava o espaço final no `config/base.yaml` e escreve no Registro de execução o que mudou em
+  relação à tabela e por quê; o orquestrador avisa o Programador do que foi definido.
+
+Proposta de partida:
 
 | Modelo | Hiperparâmetros e faixas propostas |
 |---|---|
@@ -32,6 +40,10 @@ Proposta (registrar no `config/base.yaml` depois do "ok"):
 | TabFM | sem busca |
 
 Nenhum parâmetro de peso de classe (R3).
+
+- **Pronto quando:** `config/base.yaml` tem o espaço de cada modelo; o Registro de execução tem a
+  justificativa das mudanças; um teste carrega o espaço do config e confere que nenhum parâmetro de
+  peso de classe aparece.
 
 ### [ ] T-4.1 [P] [US2] — Pré-processamento por família (`preprocess.py`)
 
@@ -100,7 +112,9 @@ Nenhum parâmetro de peso de classe (R3).
 ### [ ] T-4.3b [US2] — Execução em sessão única (`runner.py`) (D-53)
 
 - `run_all_models(cfg)`:
-  1. carrega a população 2022–23 uma vez (`load_population`) e as dobras com `load_folds` (hash);
+  1. carrega a população 2022–23 uma vez (`load_population`, dados do Drive) e **recria** as dobras
+     com as mesmas funções da T-2.3 (`loro_folds`, `inner_split`, `save_folds`), porque o arquivo
+     de dobras do PC não vai para o git nem para o Drive (D-72);
   2. percorre `cfg.ordem_modelos`; para cada modelo, se existir `<Drive>/m1/<modelo>/CONCLUIDO.json`
      com o mesmo hash de dobras e de config, **pula**;
   3. senão: `tune` → `run_loro` com os melhores parâmetros → grava OOF (`oof.parquet`), métricas,
@@ -108,8 +122,11 @@ Nenhum parâmetro de peso de classe (R3).
   4. libera memória entre modelos (`del`, `gc.collect()`, `torch.cuda.empty_cache()`);
   5. no fim, chama a seleção (T-4.9), o SHAP global (T-4.8) e o retreino final (T-4.10), nessa ordem;
   6. **relatório da sessão (D-57):** antes do 1º modelo, grava o bloco `checagem_inicial` (Drive
-     gravável, SQLite do Optuna abre no Drive, hash das dobras igual ao de T-2.3, e
-     `verify.environment()` com GPU e RAM iguais ou acima de `cfg.ambiente`); ao fim de cada
+     gravável; SQLite do Optuna abre no Drive; `verify.environment(cfg)` com GPU e RAM iguais ou
+     acima de `cfg.ambiente`; e, contra os valores de `reports/verificacao/T-2.3.json`, que vem no
+     clone: `sha256_dbc` de 2022 e 2023 do manifesto do Drive e hash do conteúdo das dobras
+     recriadas, D-72). Se algum desses checks falhar, a sessão **para antes de treinar** e o
+     orquestrador leva ao Programador: PC e Colab estariam usando dados ou dobras diferentes. Ao fim de cada
      etapa, chama `verify.update_session_report` com o bloco daquela etapa (checks em cada tarefa
      abaixo). Bloco de modelo pulado por `CONCLUIDO.json` é mantido como estava.
   7. **Gravações no Drive** (relatório, `CONCLUIDO.json`, OOF): grave num arquivo temporário e troque
@@ -128,6 +145,8 @@ Nenhum parâmetro de peso de classe (R3).
 - Teste local da queda simulada: `run_all_models` com uma opção de teste que levanta erro depois do
   1º modelo; na reexecução, o 1º é pulado (`CONCLUIDO.json`), o 2º termina e o relatório tem os dois
   blocos com `"passou": true`.
+- Teste local da checagem inicial: com um `T-2.3.json` sintético, um `sha256_dbc` ou um hash de
+  dobras diferente reprova o bloco e impede o treino.
 - Teste local da gravação: uma falha de E/S simulada na 1ª tentativa é repetida e o arquivo final
   fica íntegro; a entrada `python -m dengue_sinan.runner` devolve código de saída 1 quando
   `run_all_models` levanta erro.
@@ -154,22 +173,28 @@ só**, pela T-4.3b, na ordem do config. Tetos de tempo e de tentativas: `config/
   - Teste unitário rápido em CPU com dados sintéticos: treina, para no early stopping e devolve
     probabilidades entre 0 e 1.
 - [ ] **T-4.7 TabFM** (teto 30 min, GPU).
-  - **Antes de codar, 🛑 PARE E PERGUNTE** com estas informações do model card
-    ([plan › Restrições do TabFM](../plan.md#restrições-do-tabfm)):
-    licença dos pesos cobre uso acadêmico?; limite de linhas de contexto e de features; velocidade
-    de predição; nome e versão do pacote.
+  - Licença e uso já decididos (D-69): candidato só para comparação, **nunca** na demo; o artefato
+    fica no Drive. Detalhes: [plan › Restrições do TabFM](../plan.md#restrições-do-tabfm).
+  - Antes de codar, confira no model card e no repositório o limite de linhas de contexto, o
+    ensembling de contextos (`n_estimators`) e a versão do pacote `tabfm[pytorch]`.
+  - Se `uv add` conflitar com o torch do lock, **não** mude o torch do projeto: instale o `tabfm`
+    só na sessão do Colab, com versão fixa no config, e registre a versão no MLflow (D-69).
   - Contexto = subamostra **estratificada** do treino de cada dobra, no tamanho do limite verificado.
   - Sem busca; calibração igual aos outros (T-4.9).
+  - **🛑 PARE E PERGUNTE** só se o TabFM não rodar de jeito nenhum (memória, dependência ou limite).
 - [ ] **T-4.8 SHAP global (FR-13, SHOULD).** Para o melhor modelo de árvore: valores SHAP e SHAP
   interaction values numa subamostra estratificada de 50 mil linhas `[ASSUMPTION]` de 2022–23.
-  Gráficos em `reports/shap/`. Legenda: "explica o modelo, não causa; instável com features
-  correlacionadas". Não usar para ranking (R10).
+  No Colab, grave só **agregados** (média do |SHAP| por feature e matriz média de interações) em
+  texto; traga-os pelo MCP com SHA-256 e desenhe os gráficos de `reports/shap/` localmente (D-66).
+  Valores SHAP por linha não saem do Colab (R7). Legenda: "explica o modelo, não causa; instável com
+  features correlacionadas". Não usar para ranking (R10).
 
 **Pronto (para cada um) quando:** testes locais passam e o bloco do modelo no `sessao-m1.json` tem
 `"passou": true` para: OOF com exatamente uma predição por linha de 2022–23 (2.453.208); PR-AUC
 registrada nas 5 dobras; melhores pontos por dobra (modelos iterativos); alias `melhor-validacao`
 no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podadas. Para a T-4.8
-(SHAP, SHOULD), o bloco `shap` confere que os gráficos de `reports/shap/` foram gerados.
+(SHAP, SHOULD), o bloco `shap` confere que os agregados de SHAP foram gravados, e os gráficos de
+`reports/shap/` são desenhados localmente a partir deles.
 
 ### [ ] T-4.9 [US2] — Calibração, limiar e seleção (FR-08, FR-17)
 
@@ -187,7 +212,8 @@ no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podad
   reportada. Registrar o vencedor e o motivo no Registro de execução e no MLflow.
 - **Pronto quando:** testes locais passam e o bloco `selecao` do `sessao-m1.json` tem `"passou": true`
   para: um único modelo escolhido, com calibrador e limiar gravados; `comparacao_oof.md` e
-  `comparacao_pareada.md` gerados; nenhum arquivo de 2024 aberto na sessão (`guard`).
+  `comparacao_pareada.md` gerados no Colab e trazidos pelo MCP com SHA-256 conferido (D-66);
+  nenhum arquivo de 2024 aberto na sessão (`guard`).
 
 ### [ ] T-4.10 [US2] — Retreino final e congelamento (FR-12, FR-22, D-37)
 
@@ -196,8 +222,10 @@ no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podad
 - Aplicar o calibrador e o limiar da T-4.9 (não reajustar).
 - Serializar com `save_bundle` (pipeline + calibrador + limiar + metadados FR-12 + os 5 melhores pontos).
 - Medir se o modelo cabe na demo: tamanho do arquivo, tempo de predição de um caso e tempo do SHAP
-  local. Os três vão para o bloco `retreino` do `sessao-m1.json`. Se o tempo passar de 1 s
-  (NFR-06): **🛑 PARE E PERGUNTE** (Q-14).
+  local. Os três vão para o bloco `retreino` do `sessao-m1.json`.
+- **Modelo da demo (D-69, D-70):** se o vencedor for o TabFM, passar de 1 s (NFR-06) ou não tiver
+  SHAP local viável, retreine também o melhor candidato que cumpra os três, do mesmo jeito, como
+  `models/m1_demo.*`, e registre o motivo. O vencedor continua sendo o M1 avaliado no teste.
 - **Pronto quando:** o bloco `retreino` do `sessao-m1.json` tem `"passou": true` para: o artefato
   `models/m1_final.*` (no Drive) carrega e prediz; o hash do arquivo está no relatório (copie para o
   Registro de execução).

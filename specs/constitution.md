@@ -85,14 +85,17 @@ Aplicações diretas dos princípios. Esta tabela é a única fonte das regras (
 
 Quem implementa **para e pergunta** antes de:
 
-- adicionar qualquer dependência ao `pyproject.toml`;
+- adicionar qualquer dependência ao `pyproject.toml` (as da T-2.0 já foram aprovadas, D-67);
 - mudar qualquer item marcado `[OPEN QUESTION]`, `[ASSUMPTION]` ou `[DECISION NEEDED]` no spec ou
   no plano;
-- definir o espaço de busca de hiperparâmetros (Q-08);
-- decidir o que fazer se o TabFM não couber (licença, limites);
-- escolher o modelo da demo se o melhor M1 não couber nela (Q-14);
+- ~~definir o espaço de busca de hiperparâmetros (Q-08)~~ — delegado ao agente na T-4.0, com os
+  limites do D-68;
+- decidir o que fazer se o TabFM não rodar (limites de contexto, memória ou dependências); o uso
+  na demo já está decidido (D-69);
+- ~~escolher o modelo da demo se o melhor M1 não couber nela (Q-14)~~ — decidido no D-70;
 - mudar alvo, população, split, métrica, limiar, faixas etárias ou lista de features;
-- publicar qualquer coisa (app, repositório, relatório);
+- publicar qualquer coisa (app, repositório, relatório). Exceção: o orquestrador pode fazer commit
+  e push na `main` antes de cada execução no Colab (D-66);
 - aplicar uma correção de erro que mude uma decisão do spec
   ([tasks › Erros inesperados](tasks/00-como-usar.md#erros-inesperados)).
 
@@ -112,4 +115,4 @@ Quem implementa **para e pergunta** antes de:
 - **IDs estáveis:** P, R, US, FR, NFR, SC, D, Q e T nunca são renumerados. Item removido fica
   ~~riscado~~. Seções são citadas pelo nome, com link (D-60).
 
-**Versão**: 1.2 | **Ratificada**: 2026-11-04 | **Última emenda**: 2026-11-15 (D-60: referências por nome de seção, sem mudança de princípio ou regra)
+**Versão**: 1.3 | **Ratificada**: 2026-11-04 | **Última emenda**: 2026-11-15 (D-66, D-67, D-68, D-69, D-70: decisões reservadas antecipadas ou delegadas; sem mudança de princípio ou regra R1–R10)

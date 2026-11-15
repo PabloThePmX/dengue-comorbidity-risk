@@ -18,7 +18,7 @@ suas tarefas são `T-N.x` (D-60). O critério de saída do marco no spec é o ch
 | [02-fundacao.md](02-fundacao.md) | 2 — Descrição, split e baselines | T-2.0 a T-2.8 | Já pode (Marco 1 concluído). Bloqueia todos os outros. |
 | [03-us1-perfil.md](03-us1-perfil.md) | 3 — E1, perfil de risco (US1, MVP) | T-3.1 a T-3.6 | 02 todo `[x]` |
 | [04-us2-triagem.md](04-us2-triagem.md) | 4 — M1, triagem (US2) | T-4.0 a T-4.10 | 02 todo `[x]`; ordem recomendada: depois do 03 |
-| [05-teste-final.md](05-teste-final.md) | 5 — Avaliação final no teste, uma vez | T-5.1 a T-5.4 | 03 e 04 todos `[x]` e commitados. Extras que são modelos (FR-14) entram antes. |
+| [05-teste-final.md](05-teste-final.md) | 5 — Avaliação final no teste, uma vez | T-5.1 a T-5.4 | 03 e 04 todos `[x]` e commitados, e o "ok" do Programador (D-71). Extras que são modelos (FR-14) entram antes. |
 | [06-us3-demo.md](06-us3-demo.md) | 6 — Demo (US3) | T-6.1 e T-6.4 | 05 todo `[x]`. O esqueleto pode começar no Marco 2 com modelos fictícios. |
 | [07-relatorio.md](07-relatorio.md) | 7 — Relatório | T-7.1 e T-7.3 | Escrito ao longo do projeto; fecha depois de 05 e 06. |
 
@@ -28,6 +28,20 @@ suas tarefas são `T-N.x` (D-60). O critério de saída do marco no spec é o ch
   prioridade (US1 antes de US2).
 - Dentro de um arquivo, tarefas `[P]` podem rodar em paralelo (ex.: T-2.2, T-2.4, T-2.5; T-4.1).
   Tarefas que mexem no mesmo arquivo de código são sempre sequenciais.
+
+## Equipe de agentes
+
+Para executar as tarefas com agentes (D-65), diga "Kakashi, execute os passos" (ou `/kakashi`). O
+fluxo completo está na skill [kakashi](../../.claude/skills/kakashi/SKILL.md).
+
+| Agente | Papel | Quando |
+|---|---|---|
+| Kakashi (sessão principal) | Orquestra, pergunta ao Programador nos 🛑, marca `[x]` e escreve o Registro de execução | Sempre |
+| [Naruto](../../.claude/agents/naruto.md) | Implementa a tarefa e roda a verificação no Colab | Cada tarefa |
+| [Sakura](../../.claude/agents/sakura.md) | Valida os testes contra o "Pronto quando" | Cada tarefa |
+| [Sasuke](../../.claude/agents/sasuke.md) | Audita critério de saída, R1–R10, decisões e escopo | Fim de cada marco |
+
+As regras desta página valem igual com ou sem agentes.
 
 ## Formato das tarefas
 
@@ -57,9 +71,14 @@ suas tarefas são `T-N.x` (D-60). O critério de saída do marco no spec é o ch
 
 ## Verificação no Colab
 
-Para critérios que dependem de dados reais, GPU ou queda de sessão. Os dados ficam no Drive
-(NFR-03), e **ninguém digita resultado à mão** (D-56). O caminho padrão é o MCP do Colab (D-64);
-sem ele, vale o caminho manual.
+**Ninguém digita resultado à mão** (D-56). Onde a verificação roda depende do marco (D-66):
+
+- **Marcos 2 e 3: no PC local**, com 2022 e 2023 em `data/` (fora do git). A função de verificação
+  roda direto e grava o JSON em `reports/verificacao/`; os relatórios nascem em `reports/`. Valem
+  só os passos 1, 3 e 7 abaixo; não há Colab nem `[~]`.
+- **Marcos 4 e 5: no Colab**, pelo MCP (D-64); sem ele, pelo caminho manual. O Colab grava
+  **agregados em texto** (tabelas, pontos de curva, médias de SHAP); traga cada arquivo como o JSON
+  (passo 6, com SHA-256) e desenhe os gráficos localmente a partir deles.
 
 **Preparar (sempre):**
 
@@ -69,8 +88,9 @@ sem ele, vale o caminho manual.
 2. Acrescente ao notebook da tarefa a célula que chama essa função.
 3. Faça e verifique localmente tudo o que der: código, testes com dados sintéticos (inclusive da
    própria verificação), ruff.
-4. O código precisa estar commitado e no GitHub, porque o Colab clona o repositório. Commit e push
-   só com o "ok" do Programador.
+4. No Colab, o código precisa estar commitado e no GitHub, porque o Colab clona o repositório. O
+   orquestrador faz o commit e o push na `main` antes de cada execução, com mensagem de uma linha e
+   sem co-autoria (D-66).
 
 **Pelo MCP (padrão):** passos do lado do Programador em
 [quickstart › Colab pelo MCP](../quickstart.md#colab-pelo-mcp).
@@ -78,9 +98,10 @@ sem ele, vale o caminho manual.
 5. Conecte com `open_colab_browser_connection` e rode, com `run_code_cell`, as células do notebook
    da tarefa (só chamadas de função). Antes, confira o ambiente com `verify.environment(cfg)`; se a GPU
    ou a RAM não forem as do config, peça ao Programador para trocar e salvar de novo.
-6. Rode `verify.show_report(<caminho do JSON>)`, que imprime o JSON e o SHA-256 dos bytes. Salve o
-   JSON em `reports/verificacao/`, calcule o SHA-256 localmente e confira que é igual. Se não for,
-   não use o arquivo: registre em [Erros inesperados](#erros-inesperados).
+6. Rode `verify.show_report(<caminho do arquivo>)`, que imprime o arquivo (JSON ou outro texto de
+   agregados) e o SHA-256 dos bytes. Salve-o no mesmo caminho em `reports/`, calcule o SHA-256
+   localmente e confira que é igual. Se não for, não use o arquivo: registre em
+   [Erros inesperados](#erros-inesperados).
 7. Leia o JSON:
    - `"commit"` diferente do commit que contém o código da tarefa → rode de novo depois do push;
    - `"passou": true` → marque `[x]` e copie o resumo dos `checks` para o Registro de execução;
@@ -127,9 +148,10 @@ features](../data-model.md#dicionário-de-features). Números esperados:
 limiar: [spec › Plano de avaliação](../spec.md#plano-de-avaliação). Seleção:
 [plan › Regra de seleção](../plan.md#regra-de-seleção).
 
-- Parquets por ano no Drive: `MyDrive/dengue-comorbidity-risk/data/parquet/dengue_{ano}.parquet`
-  (todas as colunas como **texto cru**), manifesto em `data/manifest.json`, gerados por
-  `download.fetch_year` (FR-01, já pronto). O Colab gratuito tem ~12,7 GiB de RAM.
+- Parquets por ano em `data/parquet/dengue_{ano}.parquet` (todas as colunas como **texto cru**),
+  manifesto em `data/manifest.json`, gerados por `download.fetch_year` (FR-01, já pronto). No PC
+  local, só 2022 e 2023 (D-66; 15,9 GiB de RAM); no Drive, os três anos
+  (`MyDrive/dengue-comorbidity-risk/data/`).
 - **Ano do split = ano do arquivo** (D-46). Desenvolvimento = 2022 e 2023; teste = 2024.
 - Funções já implementadas no Marco 1 — **reutilize, não reescreva**:
 

@@ -5,7 +5,8 @@
 
 Spec: FR-05, FR-06, FR-19, D-40, D-41; [plan › Modelo explicativo (E1)](../plan.md#modelo-explicativo-e1);
 [spec › Interpretabilidade](../spec.md#interpretabilidade-e-equidade). Ajustado em 2022–23 (todos
-os dados de desenvolvimento, sem dobras — é inferência, não predição).
+os dados de desenvolvimento, sem dobras — é inferência, não predição). Roda no PC local, com 2022 e
+2023 em `data/` (D-66).
 
 Critério de saída ([spec › Marcos](../spec.md#marcos)): OR com IC 95% e Benjamini-Hochberg;
 interações só com ≥ 10 eventos; ranking com empates marcados; tabela de perfis com células < 10

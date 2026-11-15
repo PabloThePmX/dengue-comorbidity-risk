@@ -13,13 +13,13 @@ contados; **2024 intocado**.
 
 ### [ ] T-2.0 — Dependências e configuração
 
-- **🛑 PARE E PERGUNTE** antes de instalar. Proposta para o Programador aprovar:
+- **Dependências aprovadas (D-67)**, sem precisar perguntar de novo:
   - runtime: `scikit-learn`, `statsmodels` (E1 com IC), `xgboost`, `catboost`, `optuna`, `mlflow`,
     `shap`, `pyyaml`, `matplotlib`, `streamlit`;
-  - MLP: **`torch` (PyTorch), com GPU** — já decidido (D-51). O código escolhe o dispositivo
-    sozinho (`"cuda"` se houver, senão `"cpu"`), para continuar executável no Colab gratuito (D-44);
-  - TabFM: pacote/versão só depois da T-4.7.
-- Depois do "ok": `uv add <pacotes>`; rode `uv run pytest -q` (os 48 testes atuais devem passar).
+  - MLP: **`torch` (PyTorch)** (D-51). O código escolhe o dispositivo sozinho (`"cuda"` se houver,
+    senão `"cpu"`), para continuar executável no Colab gratuito (D-44);
+  - TabFM: só na T-4.7 (D-69).
+- `uv add <pacotes>`; rode `uv run pytest -q` (os 48 testes atuais devem passar).
   Esperado: o `mlflow` exige `pyarrow<26`, então o `uv add` rebaixa o pyarrow para 25.x. Não é erro
   e não precisa ir para o Registro de problemas.
 - Crie `config/base.yaml` com, no mínimo:
@@ -67,20 +67,27 @@ contados; **2024 intocado**.
   - `update_session_report(path, bloco, checks, cfg) -> Path` (D-57): cria ou reescreve o bloco
     `bloco` do relatório de sessão sem apagar os outros, e recalcula o `"passou"` geral (todos os
     blocos passaram e a sessão terminou);
-  - `show_report(path) -> str` (D-64): imprime o conteúdo do JSON e o SHA-256 dos bytes do arquivo,
-    e devolve o hash. É o que o agente lê pelo MCP do Colab para salvar a cópia local e conferir;
+  - `show_report(path) -> str` (D-64): imprime o conteúdo de um arquivo de texto (o JSON ou outro
+    arquivo de agregados) e o SHA-256 dos bytes, e devolve o hash. É o que o agente lê pelo MCP do
+    Colab para salvar a cópia local e conferir;
   - `environment(cfg) -> list[dict]` (D-64): checks de GPU (nome) e RAM total contra
     `cfg["ambiente"]`, mais o nº de vCPUs só como registro;
   - testes: um check que passa e um que falha; o JSON lido de volta tem o mesmo conteúdo; uma
     lista ou DataFrame como `obtido` levanta erro; atualizar um bloco preserva os demais;
     `show_report` devolve o mesmo SHA-256 que `hashlib` calcula sobre o arquivo; `environment`
     reprova RAM abaixo do mínimo (com valores simulados).
+- **Dados no PC local (D-66):** baixe 2022 e 2023 com `download.fetch_year(ano, "data")`. Não baixe
+  2024 no PC (R1). `data/` está no `.gitignore`.
+- **Mesmo snapshot do Drive (D-72):** compare o `sha256_dbc` de cada ano no `data/manifest.json` com
+  o do profiling (`profiling/RESULTADOS.md`, seção "0. Manifesto dos dados", que mostra os 16
+  primeiros caracteres). Se não bater, o DataSUS revisou o arquivo desde o profiling: **🛑 PARE E
+  PERGUNTE** antes de seguir, porque o PC e o Colab usariam dados diferentes.
 - `reports/` (incluindo `reports/verificacao/`) **fica versionado**, só com agregados. Antes de
   cada commit, confira R7: nenhuma tabela com linhas individuais e nenhuma célula com < 10 casos.
 - Como rodar no Colab: [quickstart › Google Colab](../quickstart.md#google-colab). Não crie outro
   guia; se algum passo mudar, atualize o quickstart.
-- **Pronto quando:** dependências instaladas com aprovação; `load_config` e `verify` testados;
-  testes e ruff passam.
+- **Pronto quando:** dependências instaladas; 2022 e 2023 em `data/`, com o `sha256_dbc` igual ao do
+  profiling; `load_config` e `verify` testados; testes e ruff passam.
 
 ### [ ] T-2.1 — Carregar a população em memória (`dataset.py`)
 
@@ -109,8 +116,8 @@ contados; **2024 intocado**.
   categorias; `n_comorbidades`; truncamento de dias em 60 e negativos em 0; check bloqueante
   falha com `CLASSI_FIN` = "1"; alerta não interrompe; `load_population` falha se `anos` incluir
   2024 quando chamada pelas funções de treino (ver T-2.2).
-- **Pronto quando:** testes passam e `reports/verificacao/T-2.1.json`
-  ([Verificação no Colab](00-como-usar.md#verificação-no-colab)) tem `"passou": true` para: total de
+- **Pronto quando:** testes passam e `reports/verificacao/T-2.1.json`, gerado no PC local
+  ([Verificação no Colab](00-como-usar.md#verificação-no-colab), D-66), tem `"passou": true` para: total de
   **2.453.208** casos e **3.985** eventos com `anos=[2022, 2023]` e cada etapa do fluxograma igual
   à de `profiling/RESULTADOS.md`.
 
@@ -135,15 +142,23 @@ contados; **2024 intocado**.
   (`StratifiedShuffleSplit`), só dentro das 4 regiões de treino (R6).
 - As dobras saem **sempre na ordem `cfg.ordem_dobras`** (Sudeste → Norte, da região com mais eventos
   para a com menos), para a poda do Optuna decidir com as dobras mais estáveis (D-53).
-- `save_folds(cfg, df, caminho) -> str` grava em Parquet, por linha: id, dobra de validação e a flag
-  de validação interna de cada dobra; devolve o **hash** (sha256) do arquivo. `load_folds(caminho,
-  hash_esperado)` levanta erro se o hash não bater. Todos os modelos usam esse mesmo arquivo (D-53).
+- `save_folds(cfg, df, caminho) -> str` grava em Parquet, por linha: id (ano do arquivo + nº da
+  linha no arquivo), dobra de validação e a flag de validação interna de cada dobra. Devolve o
+  **hash do conteúdo** (D-72), e não dos bytes do arquivo: SHA-256 de um CSV canônico (colunas em
+  ordem fixa, linhas ordenadas por ano e linha, sem índice), para que o mesmo conteúdo dê o mesmo
+  hash no PC e no Colab, com qualquer versão do pyarrow. `folds_hash(df_folds) -> str` calcula esse
+  hash; `load_folds(caminho, hash_esperado)` levanta erro se o hash não bater. Todos os modelos usam
+  essas mesmas dobras (D-53).
 - Testes: 5 dobras; nenhuma interseção treino/validação; cada linha aparece em exatamente uma
   validação; a validação de cada dobra só tem uma região; `inner_split` preserva a prevalência
-  (diferença < 0,01 pp em dados sintéticos grandes).
-- **Pronto quando:** testes passam e `reports/verificacao/T-2.3.json` tem `"passou": true` para os
-  [eventos por região](../data-model.md#eventos-por-região-e-subgrupo) em cada dobra e para o hash
-  do arquivo de dobras salvo.
+  (diferença < 0,01 pp em dados sintéticos grandes); `folds_hash` é igual para o mesmo conteúdo com
+  as linhas embaralhadas e muda quando uma linha troca de dobra; duas execuções com a mesma semente
+  dão o mesmo hash.
+- **Pronto quando:** testes passam e `reports/verificacao/T-2.3.json`, gerado no PC local (D-66),
+  tem `"passou": true` para os
+  [eventos por região](../data-model.md#eventos-por-região-e-subgrupo) em cada dobra, e registra o
+  hash do conteúdo das dobras e o `sha256_dbc` de 2022 e 2023 do `data/manifest.json`. São os
+  valores que a sessão do Colab confere (T-4.3b).
 
 ### [ ] T-2.4 [P] — Métricas (`metrics.py`)
 

@@ -30,6 +30,11 @@ challenge, and write down what we agreed.
 >    marking `[x]`; without the MCP, mark `[~]`, tell me which notebook cell to run, and stop.
 >    Cells you run through the MCP print aggregates only (R7): their output enters this chat.
 > 5. Never change `constitution.md`, `spec.md`, or `plan.md` to make code fit; ask me.
+>
+> **Agent team (D-65).** When I call **Kakashi** ("Kakashi, execute os passos") or type
+> `/kakashi`, use the `kakashi` skill: you orchestrate the subagents `naruto` (implements),
+> `sakura` (validates tests) and `sasuke` (audits each milestone), and you are the one who asks
+> me at every 🛑.
 
 ---
 
