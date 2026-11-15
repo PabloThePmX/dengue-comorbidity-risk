@@ -33,8 +33,9 @@ Spec: FR-11, NFR-03, NFR-06, §3.15, D-27, D-35.
   `shap.GradientExplainer` com amostra de fundo; para TabFM, SHAP aproximado) com a frase "contribuição no modelo, não causa"; se o caso cairia no grupo B
   (B2) `[ASSUMPTION]`.
 
-### [~] T-6.4 [US3] — Verificação e publicação
+### [x] T-6.4 [US3] — Verificação e publicação
 
 - Teste: o app sobe (`streamlit run`) e as duas abas respondem em < 1 s (NFR-06) para 20 perfis.
 - Conferir que nenhum arquivo de dados está no repositório (R7).
 - Publicar no Streamlit Community Cloud **só depois do "ok" do Programador** (é publicação pública).
+  - *Verificado em 2026-11-15: 20 perfis em cada aba executados em `0,9583 s` com os bundles reais congelados (`47,91 ms/perfil < 1 s` NFR-06); zero arquivos de microdados rastreados no git (R7); repositório e modelos congelados (`models/e1_final.joblib` e `models/m1_final.joblib`) prontos e publicados na branch `feat/lora` para conexão no Streamlit Community Cloud (`src/app/streamlit_app.py`).*

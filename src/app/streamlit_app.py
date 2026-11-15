@@ -1,15 +1,20 @@
 """App Streamlit com abas Perfil (E1) e Triagem (M1) (T-6.1 a T-6.4, FR-11, NFR-03, NFR-06)."""
 
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-from dengue_sinan.artifacts import load_bundle
-from dengue_sinan.baselines import rule_b2
-from dengue_sinan.dataset import COMORBIDADES, SINAIS
-from dengue_sinan.explain import E1Artifact, extract_or_and_interactions
+_SRC_DIR = Path(__file__).resolve().parents[1]
+if str(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(_SRC_DIR))
+
+from dengue_sinan.artifacts import load_bundle  # noqa: E402
+from dengue_sinan.baselines import rule_b2  # noqa: E402
+from dengue_sinan.dataset import COMORBIDADES, SINAIS  # noqa: E402
+from dengue_sinan.explain import E1Artifact, extract_or_and_interactions  # noqa: E402
 
 DISCLAIMER_TEXT = "Projeto acadêmico. Não é ferramenta clínica nem substitui avaliação médica."
 PERFIL_SUBTITLE = "Qual o risco de quem tem estas condições"

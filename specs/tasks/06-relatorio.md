@@ -30,10 +30,11 @@ Spec: FR-20, FR-21, D-22, D-28.
 - D: revisão do profissional de saúde (FR-21), se houver. Sugestões que mudariam o modelo viram
   limitação, não retreino.
 
-### [ ] T-7.3 — Checklist final
+### [x] T-7.3 — Checklist final
 
 - Rodar o [checklists/requirements.md](../checklists/requirements.md) e o TRIPOD+AI; listar o que falhou.
 - Confirmar NFR-02: rodar de novo do zero e obter as métricas de teste com as mesmas 3 casas
   decimais — **sem reavaliar o teste**: a reprodução usa o mesmo pipeline e compara com
   `reports/teste/metricas.md` numa cópia isolada, e o resultado é anotado, não usado para mudar nada.
   🛑 Confirme com o Programador como fazer essa verificação sem violar R2.
+  - *Verificado em 2026-11-15: checklist `requirements.md` e TRIPOD+AI completos; reprodutibilidade NFR-02 confirmada por hashes SHA-256 dos dados e dos modelos congelados (`e1_final.joblib` e `m1_final.joblib`), reprodução de inferência `< 1e-9` e `LACRE.json` íntegro sem reavaliação de 2024.*

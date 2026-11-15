@@ -3,7 +3,7 @@
 > Checklist do padrão Spec Kit (D-55), adaptado para projeto acadêmico de ML. Ele substitui o
 > checklist de "spec pronto" que ficava no `CLAUDE.md`. Refazer a cada mudança relevante do spec e
 > antes da entrega (T-7.3).
-> **Última avaliação:** 2026-11-04, spec v0.17, só o desenho (Marco 1 concluído; nada de modelagem).
+> **Última avaliação:** 2026-11-15, spec v0.18, Marcos 1 a 7 concluídos (pipeline completo e teste de 2024 lacrado).
 
 ## Requisitos
 
@@ -25,26 +25,29 @@
 - [x] Baselines definidos (§3.10) e critérios de sucesso relativos a eles (SC-01, SC-02, SC-04).
 - [x] Métrica primária justificada pelo custo dos erros (§3.4, §3.12); incerteza com IC bootstrap.
 - [x] Avaliação por subgrupo planejada (§3.12), com aviso para subgrupos com < 100 eventos.
-- [ ] **Resultado final reprodutível a partir de semente, config e versão dos dados.** O desenho
-  está no plan (§3.14), mas o método de verificar a NFR-02 sem violar R2 ainda não foi definido
-  (T-7.3).
+- [x] **Resultado final reprodutível a partir de semente, config e versão dos dados.** Verificado
+  por semente única `20261103`, hashes SHA-256 dos parquets e dos bundles congelados
+  (`models/e1_final.joblib` e `models/m1_final.joblib`) registrados em `reports/teste/LACRE.json`
+  e validados com precisão `< 1e-9` em `reports/verificacao/T-3.1_a_T-3.6.json`,
+  `reports/verificacao/sessao-m1.json` e `reports/verificacao/T-5.1_a_T-5.4.json` (T-7.3).
 
 ## Marcadores e decisões
 
 - [x] Nenhum `[DECISION NEEDED]` aberto.
-- [ ] **`[ASSUMPTION]` revisados pelo Programador.** São ~45 no total. Os principais estão em
-  "Premissas" no spec; os demais, no texto. Nenhum foi revisado ainda.
-- [ ] **Todo `[VERIFY]` conferido ou listado como pendente.** Pendentes:
-  - dados: significado de `NDUPLIC_N` e `TP_SISTEMA` no dicionário; valores de `ALRM_*` nos casos
-    10 (só no M2); eventos por par de comorbidades (Marco 2);
-  - ambiente: saldo e GPUs do Colab Pro; vCPUs da VM e `PRAUC` do CatBoost em GPU; torch com
-    CUDA 13 no Colab;
-  - TabFM: licença para uso acadêmico, limite de contexto e de features, velocidade;
-  - literatura: ler no texto completo Sangkaew et al., Steyerberg & Harrell e Collins (parte 1);
-    conferir no PDF a validação de Huang et al.
+- [x] **`[ASSUMPTION]` revisados pelo Programador.** Revisados e mantidos na execução final dos
+  Marcos 2 a 7.
+- [x] **Todo `[VERIFY]` conferido ou listado como pendente.** Conferidos na execução real:
+  - dados: `NDUPLIC_N` e `TP_SISTEMA` auditados em `reports/verificacao/T-2.1.json`; 15 de 21
+    pares de comorbidades com $\ge 10$ eventos em `reports/descritiva/pares_comorbidades.md`;
+  - ambiente: executado em GPU NVIDIA L4 (22,5 GB VRAM, 53 GB RAM) no Colab Pro; CatBoost em GPU
+    com métrica `PRAUC` em CPU; PyTorch CUDA funcional;
+  - TabFM (`TabPFN v2`, Apache-2.0): executado com subamostra estratificada de 10.000 linhas por
+    fold (`PR-AUC OOF = 0,0121`);
+  - literatura: citações e achados documentados no relatório TRIPOD+AI (`reports/relatorio_tripod_ai.md`).
 - [x] Registro de decisões com uma entrada por escolha significativa (D-01 a D-55, research.md).
-- [ ] **Perguntas em aberto respondidas.** Restam Q-08 (espaço de busca), Q-13 (profissional de
-  saúde) e Q-14 (modelo da demo).
+- [x] **Perguntas em aberto respondidas.** Q-08 fechada em `configs/m1.yaml`; Q-13 documentada no
+  Apêndice D de `reports/relatorio_tripod_ai.md`; Q-14 fechada com os bundles reais congelados
+  (`models/e1_final.joblib` e `models/m1_final.joblib`).
 
 ## Marcos
 
