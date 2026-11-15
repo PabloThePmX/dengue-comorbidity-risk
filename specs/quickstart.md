@@ -26,19 +26,20 @@ uv run ruff check .
 ## 2. Google Colab (dados, treino e avaliação)
 
 1. Montar o Google Drive. Pasta do projeto: `MyDrive/dengue-comorbidity-risk/`.
-2. `git clone` do repositório e `pip install -e .` (ou `uv sync`).
+2. `git clone -b feat/lora https://github.com/PabloThePmX/dengue-comorbidity-risk.git` e `pip install -e .` (a 1ª célula de cada notebook já faz o clone, checkout da branch `feat/lora`, instalação e montagem do Drive automaticamente via `prepare_colab_project`).
 3. Conferir a GPU (Colab Pro, ou gratuito se houver):
    `nvidia-smi` e `python -c "import torch; print(torch.__version__, torch.cuda.is_available())"`.
    Se der `False` numa VM com GPU, ver o `[VERIFY]` do torch com CUDA 13 em [plan.md](plan.md), §B.
 4. Apontar `caminhos.dados` e `caminhos.mlruns` de `config/base.yaml` para a pasta do Drive
-   (após T-2.0).
+   (após T-2.0 — feito automaticamente por `dengue_sinan.colab.prepare_colab_project`).
 5. Rodar os notebooks, que só chamam funções de `src/` (NFR-05):
+   - **Pipeline unificado (Fases 2, 3 e 4 em sequência):** `notebooks/00_pipeline_colab.ipynb` ([Abrir no Colab](https://colab.research.google.com/github/PabloThePmX/dengue-comorbidity-risk/blob/feat/lora/notebooks/00_pipeline_colab.ipynb));
    - dados e profiling: `profiling/01_profiling.ipynb` (Marco 1, concluído);
-   - modelos M1 em sessão única: `notebooks/04_modelos.ipynb` (após T-4.3b, D-53).
-6. Se a tarefa gerou um relatório de verificação (D-56), baixe `reports/verificacao/T-x.y.json`
-   (na sessão dos modelos, um arquivo só: `sessao-m1.json`, D-57)
-   (o notebook também grava uma cópia no Drive) para a mesma pasta no repositório local e faça
-   commit. Não digite nenhum número: o agente lê o arquivo.
+   - Fase 2 (Fundação): `notebooks/02_fundacao.ipynb` ([Abrir no Colab](https://colab.research.google.com/github/PabloThePmX/dengue-comorbidity-risk/blob/feat/lora/notebooks/02_fundacao.ipynb));
+   - Fase 3 (Perfil E1): `notebooks/03_perfil_e1.ipynb` ([Abrir no Colab](https://colab.research.google.com/github/PabloThePmX/dengue-comorbidity-risk/blob/feat/lora/notebooks/03_perfil_e1.ipynb));
+   - Fase 4 (Modelos M1 em sessão única): `notebooks/04_modelos.ipynb` ([Abrir no Colab](https://colab.research.google.com/github/PabloThePmX/dengue-comorbidity-risk/blob/feat/lora/notebooks/04_modelos.ipynb), após T-4.3b, D-53);
+   - Fase 5 (Teste final 2024 — rodar uma única vez): `notebooks/05_teste_final.ipynb` ([Abrir no Colab](https://colab.research.google.com/github/PabloThePmX/dengue-comorbidity-risk/blob/feat/lora/notebooks/05_teste_final.ipynb), R2).
+6. Ao final de cada notebook, `sync_and_package_reports(cfg)` sincroniza `reports/verificacao/*.json` no Drive e faz o download automático do `.zip` para você extrair na pasta `reports/` do repositório local. Não digite nenhum número: o agente lê os arquivos JSON.
 7. Ao terminar, desconectar o ambiente, para não gastar unidades com GPU ociosa.
 
 ## 3. Dados

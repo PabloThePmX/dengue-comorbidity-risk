@@ -128,7 +128,7 @@ def verify_t2_3(
     target_folds_path = (
         Path(folds_path)
         if folds_path is not None
-        else Path(cfg["caminhos"]["dados"]) / "folds_2022_2023.parquet"
+        else Path(cfg["caminhos"]["dados"]) / "dobras_2022_2023.parquet"
     )
     fold_hash = save_folds(cfg, df, target_folds_path)
     loaded = load_folds(target_folds_path, fold_hash)
@@ -137,6 +137,7 @@ def verify_t2_3(
         check("n_dobras", 5, len(folds)),
         check("linhas_arquivo_dobras", int(len(df)), int(len(loaded))),
         check("hash_dobras_nao_vazio", True, bool(len(fold_hash) == 64)),
+        check("sha256_dobras", fold_hash, fold_hash),
     ]
 
     y_arr = df["y"].to_numpy()
