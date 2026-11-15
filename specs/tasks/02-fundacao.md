@@ -1,31 +1,27 @@
-# Tarefas — Fases 1 e 2 — Setup e Fundação (Marco 2)
+# Marco 2 — Descrição, split e baselines
 
-> **Leia antes:** [00-como-usar.md](00-como-usar.md) — regras (§0, R1–R10), referência rápida (§1),
-> dependências (§7b) e os registros §9 e §10, que ficam **lá**, não neste arquivo. Os §0, §1, §7b,
-> §9 e §10 citados abaixo são daquele arquivo.
+> **Leia antes:** [00-como-usar.md](00-como-usar.md) (como executar, Verificação no Colab, Erros
+> inesperados). Os registros de execução e de problemas ficam **lá**.
 
----
+Objetivo: descrever a população e fixar o piso que todo modelo precisa superar. Spec: FR-04,
+FR-17, FR-18, [Baselines](../spec.md#baselines). T-2.0 prepara o ambiente; T-2.1 a T-2.8 são a
+fundação e bloqueiam todos os outros marcos.
 
-## 2. Fases 1 e 2 — Setup e Fundação (Marco 2: descrição, split e baselines)
-
-T-2.0 é a **Fase 1 (Setup)**. T-2.1 a T-2.8 são a **Fase 2 (Fundação)**: bloqueiam todas as histórias.
-
-Objetivo: descrever a população e fixar o piso. Spec: FR-04, FR-17, FR-18, §3.10.
-Critério de saída do marco (spec §3.18): análise descritiva gerada; dobras construídas; métricas
-OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 intocado**.
+Critério de saída ([spec › Marcos](../spec.md#marcos)): análise descritiva gerada; dobras
+construídas; métricas fora da dobra de B0, B1 e B2 no MLflow; eventos por par de comorbidades
+contados; **2024 intocado**.
 
 ### [ ] T-2.0 — Dependências e configuração
 
 - **🛑 PARE E PERGUNTE** antes de instalar. Proposta para o Programador aprovar:
   - runtime: `scikit-learn`, `statsmodels` (E1 com IC), `xgboost`, `catboost`, `optuna`, `mlflow`,
     `shap`, `pyyaml`, `matplotlib`, `streamlit`;
-  - MLP: **`torch` (PyTorch), com GPU** — já decidido (D-51). Os 6 modelos rodam numa **sessão
-    única** do Colab com GPU (D-53). O código escolhe o dispositivo sozinho (`"cuda"` se houver, senão `"cpu"`), para continuar
-    executável no Colab gratuito (D-44);
-  - TabFM: pacote/versão só depois de T-4.7.
+  - MLP: **`torch` (PyTorch), com GPU** — já decidido (D-51). O código escolhe o dispositivo
+    sozinho (`"cuda"` se houver, senão `"cpu"`), para continuar executável no Colab gratuito (D-44);
+  - TabFM: pacote/versão só depois da T-4.7.
 - Depois do "ok": `uv add <pacotes>`; rode `uv run pytest -q` (os 48 testes atuais devem passar).
   Esperado: o `mlflow` exige `pyarrow<26`, então o `uv add` rebaixa o pyarrow para 25.x. Não é erro
-  e não precisa ir para a §10.
+  e não precisa ir para o Registro de problemas.
 - Crie `config/base.yaml` com, no mínimo:
   ```yaml
   seed: 20261103
@@ -54,64 +50,61 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
   ```
 - Crie `src/dengue_sinan/config.py` com `load_config(path) -> dict` (ou dataclass) e um teste
   que carrega `config/base.yaml`.
-- Crie `config/esperado.yaml` com os valores que as verificações do Colab conferem, copiados de
-  `profiling/RESULTADOS.md` (3ª execução): população e eventos por ano de 2022–23, total do
-  desenvolvimento (2.453.208 casos, 3.985 eventos), eventos por região do desenvolvimento e o
-  fluxograma de exclusão. **Não** inclua números de 2024 aqui (R1); os de 2024 entram só na T-5.1.
+- Crie `config/esperado.yaml` com os valores que as verificações do Colab conferem, copiados do
+  [data-model › Tamanho e prevalência](../data-model.md#tamanho-e-prevalência) e dos
+  [eventos por região](../data-model.md#eventos-por-região-e-subgrupo): população e eventos por
+  ano de 2022–23, total do desenvolvimento, eventos por região do desenvolvimento e o fluxograma de
+  exclusão. **Não** inclua números de 2024 aqui (R1); os de 2024 entram só na T-5.1.
 - Crie `src/dengue_sinan/verify.py` (D-56) com:
   - `check(nome, esperado, obtido, tolerancia=0) -> dict` → `{"nome", "esperado", "obtido",
     "tolerancia", "passou"}`;
   - `write_report(tarefa, checks, out_dir, cfg) -> Path`: grava `out_dir/<tarefa>.json` no formato
-    de [contracts/interfaces.md](../contracts/interfaces.md) ("Relatório de verificação"), com
-    `"passou"` = todos os checks passaram; recusa valores que não sejam número, texto ou booleano
-    (garante R7: só agregados).
+    de [contracts › Relatório de verificação](../contracts/interfaces.md#relatório-de-verificação),
+    com `"passou"` = todos os checks passaram; recusa valores que não sejam número, texto ou
+    booleano (garante R7: só agregados);
   - `update_session_report(path, bloco, checks, cfg) -> Path` (D-57): cria ou reescreve o bloco
     `bloco` do relatório de sessão sem apagar os outros, e recalcula o `"passou"` geral (todos os
     blocos passaram e a sessão terminou);
-  - Testes: um check que passa e um que falha; o JSON lido de volta tem o mesmo conteúdo; uma
+  - testes: um check que passa e um que falha; o JSON lido de volta tem o mesmo conteúdo; uma
     lista ou DataFrame como `obtido` levanta erro; atualizar um bloco preserva os demais.
-- `reports/verificacao/` fica versionado (só agregados).
-- `reports/` **fica versionado** (só agregados). Antes de cada commit, confira R7: nenhuma tabela com
-  linhas individuais e nenhuma célula com < 10 casos.
-- **Como rodar no Colab:** o guia é o [quickstart.md](../quickstart.md) §2 (não crie outro arquivo; se
-  mudar algum passo, atualize o quickstart). Resumo:
-  1. montar o Drive; 2. `git clone` do repositório e `pip install -e .` (ou `uv sync`);
-  2b. conferir a GPU: `nvidia-smi` e `python -c "import torch; print(torch.__version__,
-     torch.cuda.is_available())"`. Se der `False` numa VM com GPU, **🛑 PARE E PERGUNTE**: o lock
-     usa torch com CUDA 13, e o driver do Colab pode não suportar (spec `[VERIFY]`, NFR-01);
-  3. apontar `caminhos.dados` e `caminhos.mlruns` do config para a pasta do Drive;
-  4. chamar as funções de `src/` (notebooks não contêm lógica, só chamadas);
-  5. ao terminar a sessão, desconectar o ambiente (NFR-01, para não gastar unidades com GPU ociosa).
-- **Pronto quando:** dependências instaladas com aprovação; `load_config` testado; testes e ruff passam.
+- `reports/` (incluindo `reports/verificacao/`) **fica versionado**, só com agregados. Antes de
+  cada commit, confira R7: nenhuma tabela com linhas individuais e nenhuma célula com < 10 casos.
+- Como rodar no Colab: [quickstart › Google Colab](../quickstart.md#google-colab). Não crie outro
+  guia; se algum passo mudar, atualize o quickstart.
+- **Pronto quando:** dependências instaladas com aprovação; `load_config` e `verify` testados;
+  testes e ruff passam.
 
 ### [ ] T-2.1 — Carregar a população em memória (`dataset.py`)
 
 - Arquivo: `src/dengue_sinan/dataset.py`.
 - Função: `load_population(cfg, anos: list[int]) -> pd.DataFrame`.
-  - Lê só as colunas necessárias (lista da §1.3 + `CLASSI_FIN`, `EVOLUCAO`, `NU_IDADE_N`,
-    `ANO_NASC`, `DT_SIN_PRI`, `DT_NOTIFIC`, `CS_SEXO`, `CS_GESTANT`, `CS_RACA`, `ID_MN_RESI`, `SG_UF`)
-    com `pyarrow.parquet.read_table(..., columns=...)` e `to_pandas(strings_to_categorical=True)`.
+  - Lê só as colunas necessárias (as do [dicionário de features](../data-model.md#dicionário-de-features)
+    + `CLASSI_FIN`, `EVOLUCAO`, `NU_IDADE_N`, `ANO_NASC`, `DT_SIN_PRI`, `DT_NOTIFIC`, `CS_SEXO`,
+    `CS_GESTANT`, `CS_RACA`, `ID_MN_RESI`, `SG_UF`) com `pyarrow.parquet.read_table(..., columns=...)`
+    e `to_pandas(strings_to_categorical=True)`.
   - Adiciona `ANO`, aplica `population_mask`, depois `add_derived` (y, idade, faixa, região, gestante).
   - **Recebe a lista de anos explicitamente.** Sem default que inclua 2024 (R1).
-- Função: `build_feature_frame(df) -> pd.DataFrame` que cria as colunas finais da §1.3
-  (`sexo`, `n_comorbidades`, `dias_ate_notificacao` truncado, níveis Sim/Não/Ausente).
+- Função: `build_feature_frame(df) -> pd.DataFrame` que cria as colunas finais do dicionário de
+  features (`sexo`, `n_comorbidades`, `dias_ate_notificacao` truncado, níveis Sim/Não/Ausente).
 - **Checks de qualidade (FR-03)**, em `src/dengue_sinan/checks.py`, rodados **antes** do filtro
-  de população; checks bloqueantes levantam `ValueError` com mensagem clara:
+  de população ([data-model › Checks de qualidade](../data-model.md#checks-de-qualidade)); checks
+  bloqueantes levantam `ValueError` com mensagem clara:
   - bloqueante: todas as colunas usadas existem em todos os anos;
   - bloqueante: `CLASSI_FIN` só tem valores em {0, 8, 10, 11, 12, branco} e `EVOLUCAO` só em
     {0, 1, 2, 3, 4, 9, branco} (domínio observado no profiling; valor novo = falha);
   - alerta (só registra, não falha): `DT_SIN_PRI` > `DT_NOTIFIC`; gestante com sexo M; "ignorado"
-    > 50% em alguma comorbidade numa UF/ano.
-  - Idade inválida **não** é bloqueante: vira fallback/exclusão (D-49, D-50).
+    > 50% em alguma comorbidade numa UF/ano;
+  - idade inválida **não** é bloqueante: vira fallback/exclusão (D-49, D-50).
 - **Fluxograma (FR-02):** `load_population` grava `reports/fluxograma.md` com
   `profiling.exclusion_flow` e `profiling.exclusion_reasons` (contagem após cada filtro, por ano).
-- Testes (`tests/test_dataset.py`, `tests/test_checks.py`) com DataFrame sintético: níveis 3
+- Testes (`tests/test_dataset.py`, `tests/test_checks.py`) com DataFrame sintético: níveis com 3
   categorias; `n_comorbidades`; truncamento de dias em 60 e negativos em 0; check bloqueante
   falha com `CLASSI_FIN` = "1"; alerta não interrompe; `load_population` falha se `anos` incluir
   2024 quando chamada pelas funções de treino (ver T-2.2).
-- **Pronto quando:** testes passam e `reports/verificacao/T-2.1.json` (gerado no Colab, §0 item
-  2b) tem `"passou": true` para: total de **2.453.208** casos e **3.985** eventos com
-  `anos=[2022, 2023]` (§1.2) e cada etapa do fluxograma igual à de `profiling/RESULTADOS.md`.
+- **Pronto quando:** testes passam e `reports/verificacao/T-2.1.json`
+  ([Verificação no Colab](00-como-usar.md#verificação-no-colab)) tem `"passou": true` para: total de
+  **2.453.208** casos e **3.985** eventos com `anos=[2022, 2023]` e cada etapa do fluxograma igual
+  à de `profiling/RESULTADOS.md`.
 
 ### [ ] T-2.2 [P] — Guarda contra uso do teste (`guard.py`)
 
@@ -141,7 +134,8 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
   validação; a validação de cada dobra só tem uma região; `inner_split` preserva a prevalência
   (diferença < 0,01 pp em dados sintéticos grandes).
 - **Pronto quando:** testes passam e `reports/verificacao/T-2.3.json` tem `"passou": true` para os
-  eventos por dobra de §1.2 e para o hash do arquivo de dobras salvo.
+  [eventos por região](../data-model.md#eventos-por-região-e-subgrupo) em cada dobra e para o hash
+  do arquivo de dobras salvo.
 
 ### [ ] T-2.4 [P] — Métricas (`metrics.py`)
 
@@ -169,48 +163,48 @@ OOF de B0, B1, B2 no MLflow; eventos por par de comorbidades contados; **2024 in
 - `start_run(cfg, nome, tags)`: abre run no MLflow (`tracking_uri` = pasta `mlruns` do config),
   registra `config` inteiro, `seed`, hashes do `manifest.json` (`sha256_dbc`, `sha256_parquet`
   por ano), commit do git (`git rev-parse HEAD`), hardware (CPU, RAM, GPU se houver).
-- `log_fold_metrics(regiao, metricas)` e `log_oof_predictions(...)` — OOF salvo como artefato
-  Parquet **no Drive, nunca no git** (R7).
+- `log_fold_metrics(regiao, metricas)` e `log_oof_predictions(...)` — predições fora da dobra (OOF)
+  salvas como artefato Parquet **no Drive, nunca no git** (R7).
 - **Pronto quando:** um run de teste aparece em `mlflow ui` com config, hashes e commit.
 
-### [ ] T-2.6 — Análise descritiva (FR-18) (`descriptive.py`)
+### [ ] T-2.6 — Análise descritiva e contagem de combinações (`descriptive.py`)
 
-- Arquivo: `src/dengue_sinan/descriptive.py`. Só 2022–23 (chame `assert_dev_only`).
-- Tabela de características por desfecho (`y = 0` vs `y = 1`): idade (mediana, IQR), sexo,
+FR-18, D-52. Só 2022–23 (chame `assert_dev_only`). Inclui a antiga T-2.7 (D-60).
+
+- **Tabela de características** por desfecho (`y = 0` vs `y = 1`): idade (mediana, IQR), sexo,
   gestação, raça/cor, cada comorbidade, nº de comorbidades.
-- Risco bruto de `y = 1` com IC 95% (Wilson) por comorbidade, por nº de comorbidades (0, 1, 2, 3+)
-  e por faixa etária.
-- Gráficos (matplotlib) desses riscos, salvos em `reports/descritiva/`.
-- Suprimir células com < 10 casos (R7).
-- Escrever no topo da tabela: "riscos brutos, descritivos; não substituem o E1".
-- **Pronto quando:** `reports/descritiva/tabela1.md`, `riscos_brutos.md` e os PNGs existem; nenhuma
-  célula < 10 casos aparece; teste unitário do IC de Wilson e da supressão passa.
+- **Risco bruto** de `y = 1` com IC 95% (Wilson) por comorbidade, por nº de comorbidades (0, 1, 2,
+  3+) e por faixa etária. Gráficos (matplotlib) desses riscos em `reports/descritiva/`. No topo da
+  tabela: "riscos brutos, descritivos; não substituem o E1".
+- **Pares:** `pair_event_counts(df) -> DataFrame` com, para cada um dos 21 pares, nº de casos e de
+  eventos com **as duas** comorbidades = Sim. Publicado em `reports/descritiva/pares_comorbidades.md`;
+  a contagem completa de eventos fica guardada para a T-3.1.
+- **Combinações de 3+:** `combination_counts(df) -> DataFrame` com **cada combinação exata** de 3
+  ou mais comorbidades = Sim que apareça nos dados (até 99 possíveis): nº de casos e de eventos.
+  Define as linhas "3 ou mais" da tabela de perfis (T-3.5). Guardada em arquivo interno.
+- Em tudo que é publicado, suprimir células com < 10 casos (R7).
+- **Pronto quando:** `reports/descritiva/tabela1.md`, `riscos_brutos.md`, `pares_comorbidades.md`
+  e os PNGs existem; nenhuma célula < 10 casos aparece; testes do IC de Wilson, da supressão e das
+  contagens de pares e combinações passam; o Registro de execução anota quantos pares têm
+  **≥ 10 eventos** (as únicas interações reportadas no E1) e quantas combinações de 3+ têm
+  **≥ 10 casos** (entram nos perfis).
 
-### [ ] T-2.7 — Eventos por par de comorbidades
+### ~~[ ] T-2.7 — Eventos por par de comorbidades~~
 
-- Em `descriptive.py`: `pair_event_counts(df) -> DataFrame` com, para cada um dos 21 pares,
-  nº de casos e de eventos com **as duas** comorbidades = Sim (2022–23).
-- Salvar em `reports/descritiva/pares_comorbidades.md` (suprimir < 10 casos na publicação, mas
-  guardar a contagem de eventos para T-3.1).
-- Também `combination_counts(df) -> DataFrame` com **cada combinação exata** de 3 ou mais
-  comorbidades = Sim que apareça nos dados (até 99 possíveis): nº de casos e de eventos (2022–23).
-  Ela define as linhas "3 ou mais" da tabela de perfis (T-3.5). Guardar em arquivo interno; na
-  publicação, suprimir < 10 casos.
-- **Pronto quando:** tabelas geradas; anote no §9 quantos pares têm **≥ 10 eventos** (serão as
-  únicas interações reportadas no E1) e quantas combinações de 3+ têm **≥ 10 casos** (entram nos perfis).
+Fundida na T-2.6 (D-60).
 
 ### [ ] T-2.8 — Baselines B0, B1, B2 (FR-04) (`baselines.py`)
 
 - Arquivo: `src/dengue_sinan/baselines.py`.
 - **B0:** prevê a prevalência do treino de cada dobra para todos.
 - **B1:** logística **sem** penalização (`LogisticRegression(penalty=None)` ou `statsmodels`),
-  features: spline de idade, sexo, gestante, 7 comorbidades, `n_comorbidades`. Dentro de
-  `Pipeline` (R5). Sem pesos de classe (R3).
+  features: spline de idade, sexo, gestante, 7 comorbidades (**sem** `n_comorbidades`, D-62).
+  Dentro de `Pipeline` (R5). Sem pesos de classe (R3).
 - **B2:** regra do protocolo (binária), "alto risco" se **qualquer**:
   idade < 2 anos **ou** > 65; `gestante` = 1; ≥ 1 comorbidade = Sim; `LACO` = Sim **ou**
   `PETEQUIA_N` = Sim. Implementar como função pura `rule_b2(df) -> np.ndarray[bool]` com teste.
-- Para B0 e B1: rodar as 5 dobras LORO, guardar predições OOF, calcular PR-AUC, Brier, ROC-AUC,
-  slope/intercept por dobra e no OOF agrupado.
+- Para B0 e B1: rodar as 5 dobras leave-one-region-out, guardar predições OOF, calcular PR-AUC,
+  Brier, ROC-AUC, slope/intercept por dobra e no OOF agrupado.
 - Para B2: recall, precisão, F2 no OOF (é regra, sem PR-AUC).
 - Registrar tudo no MLflow (T-2.5).
 - **Pronto quando:** PR-AUC OOF de B0 ≈ prevalência (~0,0016); B1 com PR-AUC > B0; métricas de B2

@@ -5,23 +5,23 @@
 
 ## Resumo
 
-| # | Item | Seção do spec | Resultado (número ou achado) | Dentro do esperado? | Observação |
+| # | Item | Onde nos specs | Resultado (número ou achado) | Dentro do esperado? | Observação |
 |---|---|---|---|---|---|
-| 0 | Hash, data e versão de cada Parquet | §3.14 | 2022: 1,405,095 linhas, final; 2023: 1,645,956 linhas, final; 2024: 6,564,924 linhas, final | sim | Linhas lidas = cabeçalho do DBF. |
-| 1 | Valores de CLASSI_FIN/EVOLUCAO/CRITERIO por ano | §3.6 | 2022: CLASSI_FIN ∈ {0, 10, 11, 12, 8}; 2023: CLASSI_FIN ∈ {0, 10, 11, 12, 8}; 2024: CLASSI_FIN ∈ {10, 11, 12, 8} | sim | 10/11/12 presentes e 1/2 ausentes; D-02 vale. |
-| 2 | Fluxograma de exclusão | §3.6, FR-02 | 2022: 1,405,095 → 1,148,299; 2023: 1,645,956 → 1,304,909; 2024: 6,564,924 → 5,331,745 | revisar | Conferir motivos de saída no detalhe. |
-| 3a | Prevalência de y por ano | §3.7 | 2022: 0.16% (1,869 eventos); 2023: 0.16% (2,116 eventos); 2024: 0.21% (11,338 eventos) | revisar |  |
-| 3b | Eventos por região (2022–23) | §3.8 | mín. 121 eventos | sim | Todas as regiões com ≥ 100 eventos. |
-| 3c | Eventos por subgrupo (2024) | §3.8, §3.12 | 2 subgrupo(s) com < 100 eventos | não | sexo=<branco>, sexo=I |
-| 4a | Valores das comorbidades | §3.7 | DIABETES: 0.0% ausente na população final | revisar | Valores fora de 1/2: 9 |
-| 4b | % ausente × y (vazamento) | §3.8 | razão y0/y1 entre 0.28 e 0.59 | sim | Nenhuma comorbidade com razão > 2. |
-| 5 | Idade: decodificação e faixa | §3.7, §3.9 | 100.0% concordam com ANO_NASC (±1 ano); 340 fora de [0, 120]; 11,673 códigos inválidos; 11,571 recuperadas por ANO_NASC; 442 sem idade | sim | Idade inválida usa ano dos sintomas − ANO_NASC (D-50). |
-| 6 | Demografia e inconsistências | §3.7 | gestante com sexo M: 19; raça ignorada/branco: 2022 20%, 2023 17%, 2024 16% | revisar | Ver Q-05 (raça/escolaridade). |
-| 7a | Sinais clínicos: % ausente | §3.8 | entre 1.7% e 4.0% | revisar |  |
-| 7b | ALRM_* preenchido por CLASSI_FIN | §3.6 | algum ALRM_* preenchido: 3.3% em CLASSI_FIN=10, 99.8% em 11 | sim | Preenchimento revela a classe: restrição de M2 a 11/12 necessária. |
-| 8 | Atraso sintomas → notificação | §3.9 | 2022: mediana 3 d, p99 61 d, 14,377 > 60 d; 2023: mediana 3 d, p99 38 d, 8,474 > 60 d; 2024: mediana 3 d, p99 52 d, 52,045 > 60 d | revisar | Ver também ano da data × ano do arquivo. |
-| 9 | Duplicatas | §3.6 | 2022: 17.28% em grupo duplicado; 2023: 21.06% em grupo duplicado; 2024: 42.40% em grupo duplicado | revisar | 25,079 linhas em grupos com desfecho conflitante → Q-04. Chave sem DT_NASC (mais fraca). |
-| 10 | Cobertura do ES | §3.7 | 2022: ES 236 vs mediana vizinhos 132 /100 mil; 2023: ES 2855 vs mediana vizinhos 237 /100 mil; 2024: ES 3053 vs mediana vizinhos 1419 /100 mil | revisar | População: IBGE, Censo 2022 (SIDRA 4709). |
+| 0 | Hash, data e versão de cada Parquet | [plan › Reprodutibilidade](../specs/plan.md#reprodutibilidade) | 2022: 1,405,095 linhas, final; 2023: 1,645,956 linhas, final; 2024: 6,564,924 linhas, final | sim | Linhas lidas = cabeçalho do DBF. |
+| 1 | Valores de CLASSI_FIN/EVOLUCAO/CRITERIO por ano | [spec › Formulação do problema](../specs/spec.md#formulação-do-problema) | 2022: CLASSI_FIN ∈ {0, 10, 11, 12, 8}; 2023: CLASSI_FIN ∈ {0, 10, 11, 12, 8}; 2024: CLASSI_FIN ∈ {10, 11, 12, 8} | sim | 10/11/12 presentes e 1/2 ausentes; D-02 vale. |
+| 2 | Fluxograma de exclusão | [spec › Formulação do problema](../specs/spec.md#formulação-do-problema), FR-02 | 2022: 1,405,095 → 1,148,299; 2023: 1,645,956 → 1,304,909; 2024: 6,564,924 → 5,331,745 | revisar | Conferir motivos de saída no detalhe. |
+| 3a | Prevalência de y por ano | [data-model › Dados](../specs/data-model.md#dados) | 2022: 0.16% (1,869 eventos); 2023: 0.16% (2,116 eventos); 2024: 0.21% (11,338 eventos) | revisar |  |
+| 3b | Eventos por região (2022–23) | [spec › Tamanho do teste](../specs/spec.md#tamanho-do-teste-e-das-dobras) | mín. 121 eventos | sim | Todas as regiões com ≥ 100 eventos. |
+| 3c | Eventos por subgrupo (2024) | [spec › Tamanho do teste](../specs/spec.md#tamanho-do-teste-e-das-dobras), [spec › Avaliação](../specs/spec.md#plano-de-avaliação) | 2 subgrupo(s) com < 100 eventos | não | sexo=<branco>, sexo=I |
+| 4a | Valores das comorbidades | [data-model › Dados](../specs/data-model.md#dados) | DIABETES: 0.0% ausente na população final | revisar | Valores fora de 1/2: 9 |
+| 4b | % ausente × y (vazamento) | [spec › Revisão de vazamento](../specs/spec.md#revisão-de-vazamento) | razão y0/y1 entre 0.28 e 0.59 | sim | Nenhuma comorbidade com razão > 2. |
+| 5 | Idade: decodificação e faixa | [data-model › Dados](../specs/data-model.md#dados), [plan › Features](../specs/plan.md#features-e-pré-processamento) | 100.0% concordam com ANO_NASC (±1 ano); 340 fora de [0, 120]; 11,673 códigos inválidos; 11,571 recuperadas por ANO_NASC; 442 sem idade | sim | Idade inválida usa ano dos sintomas − ANO_NASC (D-50). |
+| 6 | Demografia e inconsistências | [data-model › Dados](../specs/data-model.md#dados) | gestante com sexo M: 19; raça ignorada/branco: 2022 20%, 2023 17%, 2024 16% | revisar | Ver Q-05 (raça/escolaridade). |
+| 7a | Sinais clínicos: % ausente | [spec › Revisão de vazamento](../specs/spec.md#revisão-de-vazamento) | entre 1.7% e 4.0% | revisar |  |
+| 7b | ALRM_* preenchido por CLASSI_FIN | [spec › Formulação do problema](../specs/spec.md#formulação-do-problema) | algum ALRM_* preenchido: 3.3% em CLASSI_FIN=10, 99.8% em 11 | sim | Preenchimento revela a classe: restrição de M2 a 11/12 necessária. |
+| 8 | Atraso sintomas → notificação | [plan › Features](../specs/plan.md#features-e-pré-processamento) | 2022: mediana 3 d, p99 61 d, 14,377 > 60 d; 2023: mediana 3 d, p99 38 d, 8,474 > 60 d; 2024: mediana 3 d, p99 52 d, 52,045 > 60 d | revisar | Ver também ano da data × ano do arquivo. |
+| 9 | Duplicatas | [spec › Formulação do problema](../specs/spec.md#formulação-do-problema) | 2022: 17.28% em grupo duplicado; 2023: 21.06% em grupo duplicado; 2024: 42.40% em grupo duplicado | revisar | 25,079 linhas em grupos com desfecho conflitante → Q-04. Chave sem DT_NASC (mais fraca). |
+| 10 | Cobertura do ES | [data-model › Dados](../specs/data-model.md#dados) | 2022: ES 236 vs mediana vizinhos 132 /100 mil; 2023: ES 2855 vs mediana vizinhos 237 /100 mil; 2024: ES 3053 vs mediana vizinhos 1419 /100 mil | revisar | População: IBGE, Censo 2022 (SIDRA 4709). |
 | 11 | RAM e tamanho do DataFrame | NFR-01 | RAM 12.7 GiB; DataFrame 0.46 GiB (Colab) | sim |  |
 
 ## 0. Manifesto dos dados

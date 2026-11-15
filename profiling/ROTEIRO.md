@@ -34,7 +34,7 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
   - linhas lidas, linhas declaradas no cabeçalho do DBF, colunas e nomes das colunas;
   - **SHA-256 do Parquet** e versões de Python, `pyreaddbc`, `dbfread`, `pyarrow` e `pandas`.
 
-**Por que:** o DataSUS revisa os arquivos com o tempo, inclusive os "finais" (§3.7). Em 2026-11-02, os arquivos de 2022 e 2024 tinham sido revisados em março e fevereiro de 2026. Sem hash e data de revisão, ninguém reproduz o resultado (NFR-02).
+**Por que:** o DataSUS revisa os arquivos com o tempo, inclusive os "finais" ([data-model › Dados](../specs/data-model.md#dados)). Em 2026-11-02, os arquivos de 2022 e 2024 tinham sido revisados em março e fevereiro de 2026. Sem hash e data de revisão, ninguém reproduz o resultado (NFR-02).
 
 **Por que FTP e não PySUS:** o PySUS 2.11.7 não baixa do DataSUS. Ele consulta um catálogo próprio em S3, e nesse catálogo o SINAN não tem nenhum arquivo indexado (detalhes em D-05).
 
@@ -51,7 +51,7 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 
 **O que medir:** a contagem de cada valor, **incluindo nulos**, de `CLASSI_FIN`, `EVOLUCAO` e `CRITERIO`, separada por ano.
 
-**Por que:** os dois dicionários oficiais se contradizem (§3.6). O de 2015 diz 10/11/12 = dengue / com alarme / grave; o de 2024 diz 1/2/8 = confirmado / descartado / inconclusivo.
+**Por que:** os dois dicionários oficiais se contradizem ([spec › Formulação do problema](../specs/spec.md#formulação-do-problema)). O de 2015 diz 10/11/12 = dengue / com alarme / grave; o de 2024 diz 1/2/8 = confirmado / descartado / inconclusivo.
 
 **Regra de decisão**
 - Aparecem 10, 11 e 12 → a definição do alvo do spec vale. Sigam.
@@ -66,7 +66,7 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 
 ## Passo 2 — Fluxograma de exclusão (FR-02)
 
-**O que medir:** quantas linhas sobram, por ano, após cada filtro da população (§3.6), **nesta ordem**:
+**O que medir:** quantas linhas sobram, por ano, após cada filtro da população ([spec › Formulação do problema](../specs/spec.md#formulação-do-problema)), **nesta ordem**:
 1. Total baixado.
 2. `CLASSI_FIN` ∈ {10, 11, 12} (remove inconclusivos, código 0 e em branco; nos arquivos reais não há descartados nem chikungunya).
 3. Rótulo conhecido: `CLASSI_FIN` = 12 com qualquer evolução, ou 10/11 com `EVOLUCAO` ∈ {1, 2} (D-45).
@@ -85,7 +85,7 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 - Número de eventos (`y = 1`) por **região** em 2022–23 (as 5 dobras do leave-one-region-out).
 - Número de eventos em **2024** por subgrupo: faixa etária, sexo, gestantes, região.
 
-**Por que:** a literatura pede ≥ 100 eventos (idealmente ~200) para avaliar calibração com precisão (§3.8). Subgrupo abaixo disso tem IC largo demais para tirar conclusão.
+**Por que:** a literatura pede ≥ 100 eventos (idealmente ~200) para avaliar calibração com precisão ([spec › Tamanho do teste](../specs/spec.md#tamanho-do-teste-e-das-dobras)). Subgrupo abaixo disso tem IC largo demais para tirar conclusão.
 
 **Dicas**
 - A região sai da UF de residência (2 primeiros dígitos do código IBGE do município, ou a sigla). Usem a **residência**, não a notificação (é o que o portal do MS recomenda).
@@ -100,7 +100,7 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 - Para cada uma das 7 comorbidades: contagem de cada valor (1, 2, branco, outros) por ano.
 - **O check principal:** % de "Ausente" (branco ou ≠ 1/2) em cada comorbidade, **separado por `y = 0` e `y = 1`**.
 
-**Por que:** casos graves e óbitos são investigados e tendem a ter a ficha mais completa. Se "Ausente" for muito mais comum em `y = 0`, o modelo aprende "ficha incompleta = não grave". Isso é vazamento, não medicina (§3.8).
+**Por que:** casos graves e óbitos são investigados e tendem a ter a ficha mais completa. Se "Ausente" for muito mais comum em `y = 0`, o modelo aprende "ficha incompleta = não grave". Isso é vazamento, não medicina ([spec › Revisão de vazamento](../specs/spec.md#revisão-de-vazamento)).
 
 **Dicas**
 - `pd.crosstab(..., normalize="columns")` dá as porcentagens por grupo direto.
@@ -112,7 +112,7 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 ## Passo 5 — Idade
 
 **O que medir**
-- Decodificar `NU_IDADE_N` (1º dígito = unidade: 1 hora, 2 dia, 3 mês, 4 ano; §3.7) para anos.
+- Decodificar `NU_IDADE_N` (1º dígito = unidade: 1 hora, 2 dia, 3 mês, 4 ano; [data-model › Dados](../specs/data-model.md#dados)) para anos.
 - Distribuição, mínimo, máximo, quantos ficam fora de [0, 120], quantos são nulos.
 - A idade decodificada bate com ano de `DT_SIN_PRI` − `ANO_NASC`? Os microdados não trazem `DT_NASC` (anonimização), só o ano, então a tolerância é de ±1 ano.
 
@@ -137,7 +137,7 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 - Os 14 sinais do item 33 (`FEBRE` … `DOR_RETRO`, incluindo `LEUCOPENIA` e `LACO`): valores e % ausente por ano.
 - Campos `ALRM_*`: % preenchido **por valor de `CLASSI_FIN`**.
 
-**Por que:** pelo dicionário, `ALRM_*` só deveria estar preenchido quando `CLASSI_FIN` = 11 ou 12. Se isso se confirmar, a restrição de população do M2 (§3.6) está certa. Se `ALRM_*` aparecer preenchido em `CLASSI_FIN` = 10, anotem: muda a análise.
+**Por que:** pelo dicionário, `ALRM_*` só deveria estar preenchido quando `CLASSI_FIN` = 11 ou 12. Se isso se confirmar, a restrição de população do M2 ([spec › Formulação do problema](../specs/spec.md#formulação-do-problema)) está certa. Se `ALRM_*` aparecer preenchido em `CLASSI_FIN` = 10, anotem: muda a análise.
 
 ---
 
@@ -147,7 +147,7 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 - `DT_SIN_PRI` (primeiros sintomas) ≤ `DT_NOTIFIC` (notificação)? Quantos violam?
 - Distribuição de dias entre sintomas e notificação: mediana, p95, p99 e máximo.
 
-**Por que:** o spec trunca o atraso em 60 dias (`[ASSUMPTION]`, §3.9). Os dados dizem se 60 é razoável.
+**Por que:** o spec trunca o atraso em 60 dias (`[ASSUMPTION]`, [plan › Features](../specs/plan.md#features-e-pré-processamento)). Os dados dizem se 60 é razoável.
 
 ---
 
@@ -165,7 +165,7 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 
 **O que medir:** casos confirmados por UF e por ano. Comparem o ES com UFs vizinhas (MG, RJ, BA), de preferência por 100 mil habitantes.
 
-**Por que:** desde 2020 o ES usa outro sistema (e-SUS VS), e o portal do MS avisa que os dados do ES vêm só do Sinan Online (§3.7). É provável que o ES esteja sub-representado.
+**Por que:** desde 2020 o ES usa outro sistema (e-SUS VS), e o portal do MS avisa que os dados do ES vêm só do Sinan Online ([data-model › Dados](../specs/data-model.md#dados)). É provável que o ES esteja sub-representado.
 
 ---
 
@@ -173,7 +173,7 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 
 **O que medir:** RAM total da sessão e memória do DataFrame dos 3 anos já filtrados, só com as colunas usadas.
 
-**Por que:** define se RF e as 5 dobras cabem (NFR-01, risco em §3.17).
+**Por que:** define se RF e as 5 dobras cabem (NFR-01, risco em [spec › Riscos](../specs/spec.md#riscos)).
 
 **Dica:** `df.memory_usage(deep=True).sum()`. Converter colunas de código para `category` costuma reduzir muito.
 
@@ -183,23 +183,23 @@ Cada passo diz *o que medir*, *por que importa*, *dicas* e *o que anotar*. O có
 
 Uma linha por `[VERIFY]` do spec. Eu uso esta tabela para atualizar o spec e tirar os marcadores.
 
-| # | Item | Seção do spec | Resultado (número ou achado) | Dentro do esperado? | Observação |
+| # | Item | Onde nos specs | Resultado (número ou achado) | Dentro do esperado? | Observação |
 |---|---|---|---|---|---|
-| 0 | Hash, data e versão de cada Parquet | §3.14 | | | |
-| 1 | Valores de `CLASSI_FIN`/`EVOLUCAO`/`CRITERIO` por ano | §3.6 | | | |
-| 2 | Fluxograma de exclusão | §3.6, FR-02 | | | |
-| 3a | Prevalência de `y` por ano | §3.7 | | | |
-| 3b | Eventos por região (2022–23) | §3.8 | | | |
-| 3c | Eventos por subgrupo (2024) | §3.8, §3.12 | | | |
-| 4a | Valores das comorbidades | §3.7 | | | |
-| 4b | % ausente × `y` (vazamento) | §3.8 | | | |
-| 5 | Idade: decodificação e faixa | §3.7, §3.9 | | | |
-| 6 | Demografia e inconsistências | §3.7 | | | |
-| 7a | Sinais clínicos: % ausente | §3.8 | | | |
-| 7b | `ALRM_*` preenchido por `CLASSI_FIN` | §3.6 | | | |
-| 8 | Atraso sintomas → notificação | §3.9 | | | |
-| 9 | Duplicatas | §3.6 | | | |
-| 10 | Cobertura do ES | §3.7 | | | |
+| 0 | Hash, data e versão de cada Parquet | [plan › Reprodutibilidade](../specs/plan.md#reprodutibilidade) | | | |
+| 1 | Valores de `CLASSI_FIN`/`EVOLUCAO`/`CRITERIO` por ano | [spec › Formulação do problema](../specs/spec.md#formulação-do-problema) | | | |
+| 2 | Fluxograma de exclusão | [spec › Formulação do problema](../specs/spec.md#formulação-do-problema), FR-02 | | | |
+| 3a | Prevalência de `y` por ano | [data-model › Dados](../specs/data-model.md#dados) | | | |
+| 3b | Eventos por região (2022–23) | [spec › Tamanho do teste](../specs/spec.md#tamanho-do-teste-e-das-dobras) | | | |
+| 3c | Eventos por subgrupo (2024) | [spec › Tamanho do teste](../specs/spec.md#tamanho-do-teste-e-das-dobras), [spec › Avaliação](../specs/spec.md#plano-de-avaliação) | | | |
+| 4a | Valores das comorbidades | [data-model › Dados](../specs/data-model.md#dados) | | | |
+| 4b | % ausente × `y` (vazamento) | [spec › Revisão de vazamento](../specs/spec.md#revisão-de-vazamento) | | | |
+| 5 | Idade: decodificação e faixa | [data-model › Dados](../specs/data-model.md#dados), [plan › Features](../specs/plan.md#features-e-pré-processamento) | | | |
+| 6 | Demografia e inconsistências | [data-model › Dados](../specs/data-model.md#dados) | | | |
+| 7a | Sinais clínicos: % ausente | [spec › Revisão de vazamento](../specs/spec.md#revisão-de-vazamento) | | | |
+| 7b | `ALRM_*` preenchido por `CLASSI_FIN` | [spec › Formulação do problema](../specs/spec.md#formulação-do-problema) | | | |
+| 8 | Atraso sintomas → notificação | [plan › Features](../specs/plan.md#features-e-pré-processamento) | | | |
+| 9 | Duplicatas | [spec › Formulação do problema](../specs/spec.md#formulação-do-problema) | | | |
+| 10 | Cobertura do ES | [data-model › Dados](../specs/data-model.md#dados) | | | |
 | 11 | RAM do Colab e tamanho do DataFrame | NFR-01 | | | |
 
 ---

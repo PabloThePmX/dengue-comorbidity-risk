@@ -3,7 +3,8 @@
 import numpy as np
 import pandas as pd
 
-# NU_IDADE_N: 1º dígito = unidade, 3 dígitos seguintes = valor (dicionário NINDIN, §3.7 do spec).
+# NU_IDADE_N: 1º dígito = unidade, 3 dígitos seguintes = valor (dicionário NINDIN;
+# specs/data-model.md, "Demografia e idade").
 _AGE_UNIT_TO_YEARS = {
     1: 1 / 24 / 365.25,  # horas
     2: 1 / 365.25,  # dias

@@ -10,45 +10,40 @@ challenge, and write down what we agreed.
 
 > **Implementation mode.** If I ask you to implement, code, or "do the next task", skip the
 > interview workflow below and do this instead:
-> 1. Read `specs/goal.md` (why the project exists) and `specs/tasks/00-como-usar.md` before anything else: §0 (how to work, rules R1–R10,
->    decisions you can't take), §1 (quick reference), §7b (order). The **current phase** is the
->    first file in `specs/tasks/`, in numeric order (`01`…`06`), that still has a `[ ]` or `[~]`
->    task; read only that one.
+> 1. Read, before anything else: `specs/goal.md` (why the project exists, artifact map),
+>    `specs/constitution.md` (rules R1–R10, decisions you can't take) and
+>    `specs/tasks/00-como-usar.md` (how to work, order, quick reference). The **current
+>    milestone** is the first file in `specs/tasks/`, in numeric order (`02`…`07`; file `0N` =
+>    Marco N = tasks `T-N.x`), that still has a `[ ]` or `[~]` task; read only that one.
 > 2. If a task is marked `[~]` (pending a Colab check), first read its report in
->    `reports/verificacao/` (`<task>.json`, or `sessao-m1.json` for all of Phase 4; D-56, D-57). Never ask me to type results; if the file is
->    missing, ask me only to run the notebook and drop the file in that folder.
->    Otherwise take the **first task still marked `[ ]`**, in phase order. Read only the files and
->    sections that task cites.
+>    `reports/verificacao/` (`<task>.json`, or `sessao-m1.json` for all of Marco 4; D-56, D-57).
+>    Never ask me to type results; if the file is missing, ask me only to run the notebook and drop
+>    the file in that folder. Otherwise take the **first task still marked `[ ]`**, in file order.
+>    Read only the files and sections that task cites.
 > 3. Follow its steps and its "Pronto quando" exactly. Stop at every 🛑 and ask me.
 > 4. Run `uv run pytest -q` and `uv run ruff check .`, mark `[x]` only if every "Pronto quando"
->    item was verified, and log the result in `00-como-usar.md` §9 (or §10 if something went wrong). If an item can
->    only be checked in Colab, follow `tasks/00-como-usar.md` §0 item 2b: write the check as code that emits
->    the JSON report, mark `[~]`, tell me which notebook cell to run, and stop.
+>    item was verified, and log the result in "Registro de execução" of `00-como-usar.md` (or
+>    "Registro de problemas" if something went wrong). If an item can only be checked in Colab,
+>    follow "Verificação no Colab" in that file: write the check as code that emits the JSON
+>    report, mark `[~]`, tell me which notebook cell to run, and stop.
 > 5. Never change `constitution.md`, `spec.md`, or `plan.md` to make code fit; ask me.
 
 ---
 
 ## 1. Layout
 
-Flat `specs/` folder (one feature, so no `specs/NNN-feature/` and no `.specify/`):
+Flat `specs/` folder (one feature, so no `specs/NNN-feature/` and no `.specify/`). The single
+map of the artifacts (what each file holds and its Spec Kit role) is in `specs/goal.md`, section
+"Mapa dos artefatos" (D-60); do not copy it elsewhere.
 
-| File | Holds | Spec Kit role |
-|---|---|---|
-| `specs/goal.md` | Overall goal and specific objectives — the single source; everything else links here | goal (project addition) |
-| `specs/constitution.md` | Principles P1–P10, rules R1–R10, decisions reserved to me, governance | constitution |
-| `specs/spec.md` | What and why: user stories, requirements, entities, success criteria, assumptions, ML formulation, split and leakage, baselines, evaluation, risks, milestones | spec |
-| `specs/plan.md` | How: summary, technical context, Constitution Check, architecture, environment, modeling, reproducibility, complexity tracking | plan |
-| `specs/research.md` | Literature, evidence, and the **Decision Log** (§3.16) | research |
-| `specs/data-model.md` | Entities, data facts (§3.7), feature dictionary | data-model |
-| `specs/contracts/interfaces.md` | Input/output schemas: CLI, profile table, demo (§3.15) | contracts |
-| `specs/quickstart.md` | How to run and validate | quickstart |
-| `specs/tasks/` | `00-como-usar.md` (rules, quick reference, logs §9/§10) + one file per phase, `01`–`06` (Setup/Foundational → US1 → US2 → test → US3 → report) | tasks |
-| `specs/checklists/requirements.md` | Spec quality checklist | checklist |
-
-- Section numbers `§3.x` and all IDs are **global across `specs/`**: a section keeps its number in
-  whichever file it lives. The map is at the top of `spec.md`.
-- Precedence when files disagree: constitution > spec > plan, research, data-model, contracts > tasks.
-  The goal is not repeated anywhere: link to `specs/goal.md` instead (D-59).
+- **One source per fact** (D-60): the goal only in `goal.md`; rules R1–R10 and the precedence
+  order only in `constitution.md`; profiling numbers and the feature dictionary only in
+  `data-model.md`; how to run only in `quickstart.md`. Other files link; they don't copy.
+- **References:** cite sections by name with a link, e.g.
+  `[spec › Split e vazamento](spec.md#split-e-vazamento)`. Never use `§` numbers. IDs (`US`,
+  `FR`, `NFR`, `SC`, `D`, `Q`, `T`, `P`, `R`) are global across `specs/`.
+- **Tasks:** `specs/tasks/00-como-usar.md` + one file per milestone, `02`–`07`; file `0N` =
+  Marco N = tasks `T-N.x`.
 - Code goes in `src/` (`src/dengue_sinan/`, `src/app/`); tests in `tests/`; config in `config/`.
 
 ## 2. Workflow (Spec Kit order)
@@ -63,7 +58,7 @@ Flat `specs/` folder (one feature, so no `specs/NNN-feature/` and no `.specify/`
 4. **Plan** — technical context, Constitution Check, architecture; update research, data-model,
    contracts, and quickstart when the change touches them.
 5. **Checklist** — run `specs/checklists/requirements.md` and report each line pass/fail.
-6. **Tasks** — one file per phase in `specs/tasks/`, with `[P]` and `[USn]` labels, exact file paths, and a "done when" per task.
+6. **Tasks** — one file per milestone in `specs/tasks/`, with `[P]` and `[USn]` labels, exact file paths, and a "done when" per task.
 7. **Analyze** — before implementing, check consistency across all artifacts (IDs, numbers,
    references, contradictions) and report what is off.
 8. **Implement** — follow `specs/tasks/` in file order; tests and lint before calling a task done.
@@ -101,16 +96,17 @@ On top of the Spec Kit skeleton, an academic ML spec must state:
   risks are reported, confidence intervals, subgroups, error analysis.
 - **Interpretability limits:** association is not causation; SHAP explains the model, not the world.
 - **Reproducibility:** seeds, lock file, data hashes, config files, experiment tracking.
-- **Academic mapping:** each professor/rubric item mapped to a section (§3.19).
+- **Academic mapping:** each professor/rubric item mapped to a section (`spec.md`, "Mapeamento
+  acadêmico").
 
 ## 5. Writing rules
 
 - Be concrete: numbers, examples, schemas. "Good accuracy" is not a requirement.
 - One idea per bullet. Short sentences. No filler, no marketing tone.
-- IDs (`US`, `FR`, `NFR`, `SC`, `D`, `Q`, `T`, `P`, `R`, `§3.x`) are stable — never renumber;
+- IDs (`US`, `FR`, `NFR`, `SC`, `D`, `Q`, `T`, `P`, `R`) are stable — never renumber;
   deprecate with ~~strikethrough~~. We keep `FR-01`/`T-2.0` instead of the template's `FR-001`/`T001`.
-- Cross-reference by ID. Every significant decision gets a D- entry in `research.md` (§3.16), even
-  when the change lands in another file.
+- Cross-reference by ID or by section name with a link (no `§`). Every significant decision gets a
+  D- entry in the Decision Log of `research.md`, even when the change lands in another file.
 - Do not invent stakeholders, data statistics, or professor requirements. Ask or mark them.
 - Cite external sources with links when a claim depends on them.
 - The artifacts are an academic deliverable in **pt-BR**. Do not write my personal name in them;

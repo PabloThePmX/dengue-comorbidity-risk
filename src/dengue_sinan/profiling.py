@@ -135,7 +135,7 @@ def prevalence_by_year(pop: pd.DataFrame, year: str = "ANO") -> pd.DataFrame:
 
 
 def events_by(pop: pd.DataFrame, column: str) -> pd.DataFrame:
-    """Casos e eventos por categoria, com alerta para < 100 eventos (§3.8)."""
+    """Casos e eventos por categoria, com alerta para < 100 eventos (spec › Tamanho do teste)."""
     grouped = pop.groupby(pop[column].astype("string").fillna(BRANCO), observed=True)["y"]
     table = pd.DataFrame({"casos": grouped.size(), "eventos (y=1)": grouped.sum()})
     table["prevalência (%)"] = 100 * table["eventos (y=1)"] / table["casos"]
@@ -171,7 +171,7 @@ def other_values(df: pd.DataFrame, columns: list[str], valid: tuple[str, ...] = 
 
 
 def absent_by_target(pop: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
-    """% "Ausente" (branco ou ≠ 1/2) por campo, separado por y — check de vazamento (§3.8)."""
+    """% "Ausente" (branco ou ≠ 1/2) por campo, separado por y (spec › Revisão de vazamento)."""
     rows = []
     for column in columns:
         absent = ~code(pop[column]).isin({"1", "2"})
@@ -266,7 +266,7 @@ def absent_share(df: pd.DataFrame, columns: list[str], year: str = "ANO") -> pd.
 
 
 def alarm_filled_by_class(df: pd.DataFrame, alarm_columns: list[str]) -> pd.DataFrame:
-    """% de linhas com algum ALRM_* preenchido, por valor de CLASSI_FIN (§3.6, M2)."""
+    """% de linhas com algum ALRM_* preenchido, por valor de CLASSI_FIN (spec › Formulação, M2)."""
     filled = pd.concat([code(df[c]).notna() for c in alarm_columns], axis=1).any(axis=1)
     classi = code(df["CLASSI_FIN"]).fillna(BRANCO)
     table = pd.DataFrame({

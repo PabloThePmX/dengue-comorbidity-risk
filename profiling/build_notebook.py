@@ -89,6 +89,16 @@ import time
 import pandas as pd
 import pyarrow.parquet as pq
 
+# Onde cada item da tabela-resumo está nos specs (links relativos ao RESULTADOS.md)
+SPEC = {
+    "repro": "[plan › Reprodutibilidade](../specs/plan.md#reprodutibilidade)",
+    "formulacao": "[spec › Formulação do problema](../specs/spec.md#formulação-do-problema)",
+    "dados": "[data-model › Dados](../specs/data-model.md#dados)",
+    "tamanho": "[spec › Tamanho do teste](../specs/spec.md#tamanho-do-teste-e-das-dobras)",
+    "avaliacao": "[spec › Avaliação](../specs/spec.md#plano-de-avaliação)",
+    "vazamento": "[spec › Revisão de vazamento](../specs/spec.md#revisão-de-vazamento)",
+    "features": "[plan › Features](../specs/plan.md#features-e-pré-processamento)",
+}
 SECOES: dict[str, str] = {}   # seção do RESULTADOS.md → Markdown
 RESUMO: dict[str, dict] = {}  # linha da tabela-resumo → {resultado, esperado, obs}
 
@@ -128,7 +138,7 @@ SECOES["0. Manifesto dos dados"] += (
        if only else "Mesmo schema em todos os anos.")
 )
 RESUMO["0"] = {
-    "item": "Hash, data e versão de cada Parquet", "secao": "§3.14",
+    "item": "Hash, data e versão de cada Parquet", "secao": SPEC["repro"],
     "resultado": "; ".join(f"{a}: {e['linhas']:,} linhas, {e['status_datasus']}"
                            for a, e in manifest.items()),
     "esperado": "sim" if all(e["linhas"] == e["linhas_no_cabecalho_dbf"]
@@ -200,7 +210,7 @@ por_ano = {ano: sorted(set(code(df.loc[df.ANO == ano, "CLASSI_FIN"]).dropna().un
            for ano in ANOS}
 BLOQUEIO = (not tem_novo) or tem_esquema_2024
 RESUMO["1"] = {
-    "item": "Valores de CLASSI_FIN/EVOLUCAO/CRITERIO por ano", "secao": "§3.6",
+    "item": "Valores de CLASSI_FIN/EVOLUCAO/CRITERIO por ano", "secao": SPEC["formulacao"],
     "resultado": "; ".join(f"{a}: CLASSI_FIN ∈ {{{', '.join(v)}}}" for a, v in por_ano.items()),
     "esperado": "não — PARAR" if BLOQUEIO else "sim",
     "obs": ("Apareceram códigos 1/2 ou faltam 10/11/12: D-02 precisa ser redecidido."
@@ -223,7 +233,7 @@ SECOES["2. Fluxograma de exclusão"] = markdown_table(flow) + "".join(
     f"\\n\\n**{nome}**\\n\\n" + markdown_table(t) for nome, t in reasons.items())
 final = flow.iloc[-1]
 RESUMO["2"] = {
-    "item": "Fluxograma de exclusão", "secao": "§3.6, FR-02",
+    "item": "Fluxograma de exclusão", "secao": SPEC["formulacao"] + ", FR-02",
     "resultado": "; ".join(f"{a}: {flow.loc[flow.index[0], a]:,} → {final[a]:,}" for a in ANOS),
     "esperado": "revisar", "obs": "Conferir motivos de saída no detalhe.",
 }
@@ -252,17 +262,18 @@ SECOES["3. Prevalência e eventos"] = (
 )
 alertas = [f"{k}={i}" for k, v in sub_2024.items() for i in v.index[v["< 100 eventos"] != ""]]
 alertas_dev = list(por_regiao_dev.index[por_regiao_dev["< 100 eventos"] != ""])
-RESUMO["3a"] = {"item": "Prevalência de y por ano", "secao": "§3.7",
+RESUMO["3a"] = {"item": "Prevalência de y por ano", "secao": SPEC["dados"],
                 "resultado": "; ".join(f"{a}: {r['prevalência (%)']:.2f}% "
                                        f"({int(r['eventos (y=1)']):,} eventos)"
                                        for a, r in prev.iterrows()),
                 "esperado": "revisar", "obs": ""}
-RESUMO["3b"] = {"item": "Eventos por região (2022–23)", "secao": "§3.8",
+RESUMO["3b"] = {"item": "Eventos por região (2022–23)", "secao": SPEC["tamanho"],
                 "resultado": "mín. " + f"{int(por_regiao_dev['eventos (y=1)'].min()):,} eventos",
                 "esperado": "não" if alertas_dev else "sim",
                 "obs": ("< 100 eventos: " + ", ".join(map(str, alertas_dev))) if alertas_dev
                 else "Todas as regiões com ≥ 100 eventos."}
-RESUMO["3c"] = {"item": "Eventos por subgrupo (2024)", "secao": "§3.8, §3.12",
+RESUMO["3c"] = {"item": "Eventos por subgrupo (2024)",
+                "secao": SPEC["tamanho"] + ", " + SPEC["avaliacao"],
                 "resultado": f"{len(alertas)} subgrupo(s) com < 100 eventos",
                 "esperado": "não" if alertas else "sim",
                 "obs": ", ".join(alertas)}
@@ -282,13 +293,13 @@ SECOES["4. Comorbidades"] = (
     + "\\n\\n**% Ausente × alvo (população final)**\\n\\n" + markdown_table(leak, 2)
 )
 pct_ausente = 100 * (~code(pop[COMORBIDADES[0]]).isin({"1", "2"})).mean()
-RESUMO["4a"] = {"item": "Valores das comorbidades", "secao": "§3.7",
+RESUMO["4a"] = {"item": "Valores das comorbidades", "secao": SPEC["dados"],
                 "resultado": f"{COMORBIDADES[0]}: {pct_ausente:.1f}% ausente na população final",
                 "esperado": "revisar",
                 "obs": "Valores fora de 1/2: " + (", ".join(sorted(set(comorb_outros['valor'])))
                                                   if len(comorb_outros) else "nenhum")}
 flagged = list(leak.index[leak["alerta (razão > 2)"] != ""])
-RESUMO["4b"] = {"item": "% ausente × y (vazamento)", "secao": "§3.8",
+RESUMO["4b"] = {"item": "% ausente × y (vazamento)", "secao": SPEC["vazamento"],
                 "resultado": f"razão y0/y1 entre {leak['razão y0/y1'].min():.2f} e "
                              f"{leak['razão y0/y1'].max():.2f}",
                 "esperado": "não" if flagged else "sim",
@@ -309,7 +320,8 @@ SECOES["5. Idade"] = (
     + "\\n\\n" + markdown_table(concord, 2)
 )
 fora = int(age["fora de [0, 120]"].sum())
-RESUMO["5"] = {"item": "Idade: decodificação e faixa", "secao": "§3.7, §3.9",
+RESUMO["5"] = {"item": "Idade: decodificação e faixa",
+               "secao": SPEC["dados"] + ", " + SPEC["features"],
                "resultado": f"{concord['% concordância'].iloc[0]:.1f}% concordam com "
                             "ANO_NASC (±1 ano); "
                             f"{fora} fora de [0, 120]; "
@@ -329,7 +341,7 @@ SECOES["6. Demografia"] = "".join(f"**{c}**\\n\\n" + markdown_table(t) + "\\n\\n
                                   for c, t in demo.items()) + (
     "**Inconsistências**\\n\\n" + markdown_table(incons)
     + "\\n\\n**% ignorado (9) + branco — Q-05**\\n\\n" + markdown_table(ign, 1))
-RESUMO["6"] = {"item": "Demografia e inconsistências", "secao": "§3.7",
+RESUMO["6"] = {"item": "Demografia e inconsistências", "secao": SPEC["dados"],
                "resultado": f"gestante com sexo M: {int(incons['gestante com sexo M'].sum()):,}; "
                             f"raça ignorada/branco: "
                             + ", ".join(f"{a} {ign.loc['CS_RACA', a]:.0f}%" for a in ANOS),
@@ -346,19 +358,20 @@ SECOES["7. Sinais clínicos e de alarme"] = (
     "**% ausente (branco ou ≠ 1/2) por ano**\\n\\n" + markdown_table(sinais, 1)
     + "\\n\\n**Algum `ALRM_*` preenchido, por `CLASSI_FIN`** (todos os anos)\\n\\n"
     + markdown_table(alarm, 1))
-RESUMO["7a"] = {"item": "Sinais clínicos: % ausente", "secao": "§3.8",
+RESUMO["7a"] = {"item": "Sinais clínicos: % ausente", "secao": SPEC["vazamento"],
                 "resultado": f"entre {sinais.min().min():.1f}% e {sinais.max().max():.1f}%",
                 "esperado": "revisar", "obs": ""}
 pct10 = alarm.loc["10", "%"] if "10" in alarm.index else float("nan")
 pct11 = alarm.loc["11", "%"] if "11" in alarm.index else float("nan")
 # A restrição de M2 vale enquanto o preenchimento separar as classes (revela a classificação).
 revela_classe = pct11 - pct10 > 50
-RESUMO["7b"] = {"item": "ALRM_* preenchido por CLASSI_FIN", "secao": "§3.6",
+RESUMO["7b"] = {"item": "ALRM_* preenchido por CLASSI_FIN", "secao": SPEC["formulacao"],
                 "resultado": f"algum ALRM_* preenchido: {pct10:.1f}% em CLASSI_FIN=10, "
                              f"{pct11:.1f}% em 11",
                 "esperado": "sim" if revela_classe else "revisar",
                 "obs": "Preenchimento revela a classe: restrição de M2 a 11/12 necessária."
-                if revela_classe else "Preenchimento parecido entre classes: rever M2 (§3.6)."}
+                if revela_classe
+                else "Preenchimento parecido entre classes: rever M2 (spec › Formulação)."}
 display(sinais); display(alarm)
 """),
     md("## Passo 8 — Datas"),
@@ -370,7 +383,7 @@ SECOES["8. Datas"] = (
     "**Atraso sintomas → notificação (dias)**\\n\\n" + markdown_table(delay, 1)
     + "\\n\\n**Ano de DT_SIN_PRI × ano do arquivo**\\n\\n" + markdown_table(ano_sint)
     + "\\n\\n**Ano de DT_NOTIFIC × ano do arquivo**\\n\\n" + markdown_table(ano_notif))
-RESUMO["8"] = {"item": "Atraso sintomas → notificação", "secao": "§3.9",
+RESUMO["8"] = {"item": "Atraso sintomas → notificação", "secao": SPEC["features"],
                "resultado": "; ".join(f"{a}: mediana {r['mediana']:.0f} d, p99 {r['p99']:.0f} d, "
                                       f"{int(r['> 60 dias']):,} > 60 d"
                                       for a, r in delay.iterrows()),
@@ -387,7 +400,7 @@ SECOES["9. Duplicatas"] = (
     "e tende a superestimar duplicatas.\\n\\n" + markdown_table(dups, 2)
     + ("\\n\\n**NDUPLIC_N (marcação de duplicidade do próprio SINAN), população final**\\n\\n"
        + markdown_table(nduplic) if nduplic is not None else ""))
-RESUMO["9"] = {"item": "Duplicatas", "secao": "§3.6",
+RESUMO["9"] = {"item": "Duplicatas", "secao": SPEC["formulacao"],
                "resultado": "; ".join(f"{a}: {r['% em grupo duplicado']:.2f}% em grupo duplicado"
                                       for a, r in dups.iterrows()),
                "esperado": "revisar",
@@ -440,7 +453,7 @@ if populacao is not None:
                       for c in taxa.columns)
 else:
     res10 = "sem população; ver contagens"
-RESUMO["10"] = {"item": "Cobertura do ES", "secao": "§3.7", "resultado": res10,
+RESUMO["10"] = {"item": "Cobertura do ES", "secao": SPEC["dados"], "resultado": res10,
                 "esperado": "revisar", "obs": f"População: {fonte_pop}."}
 foco
 """),
@@ -472,7 +485,7 @@ RESUMO["11"] = {"item": "RAM e tamanho do DataFrame", "secao": "NFR-01",
 from datetime import datetime, timezone
 
 ordem = ["0", "1", "2", "3a", "3b", "3c", "4a", "4b", "5", "6", "7a", "7b", "8", "9", "10", "11"]
-linhas = ["| # | Item | Seção do spec | Resultado (número ou achado) | Dentro do esperado? "
+linhas = ["| # | Item | Onde nos specs | Resultado (número ou achado) | Dentro do esperado? "
           "| Observação |", "|---|---|---|---|---|---|"]
 for k in ordem:
     r = RESUMO.get(k)

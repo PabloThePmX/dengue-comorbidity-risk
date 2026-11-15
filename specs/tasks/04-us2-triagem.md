@@ -1,20 +1,16 @@
-# Tarefas — Fase 4 — US2: triagem (Marco 4)
+# Marco 4 — Modelos preditivos M1: triagem (US2, P2)
 
-> **Leia antes:** [00-como-usar.md](00-como-usar.md) — regras (§0, R1–R10), referência rápida (§1),
-> dependências (§7b) e os registros §9 e §10, que ficam **lá**, não neste arquivo. Os §0, §1, §7b,
-> §9 e §10 citados abaixo são daquele arquivo.
+> **Leia antes:** [00-como-usar.md](00-como-usar.md) (como executar, Verificação no Colab, Erros
+> inesperados). Os registros de execução e de problemas ficam **lá**.
 
----
-
-## 4. Fase 4 — US2: triagem (Marco 4, P2)
-
-Spec: FR-07, FR-08, FR-12, FR-13, FR-17, FR-22, NFR-01, §3.11, D-32, D-36, D-37, D-42, D-43.
-Tudo em 2022–23 (R1). **Uma sessão única do Colab para os 6 modelos** (NFR-01, D-53): mesmos dados,
+Spec: FR-07, FR-08, FR-12, FR-13, FR-17, FR-22, NFR-01, D-32, D-36, D-37, D-42, D-43;
+[plan › Modelagem](../plan.md#modelagem) e [plan › Ambiente](../plan.md#ambiente-de-execução-e-orçamento).
+Critério de saída: [spec › Marcos](../spec.md#marcos). Tudo em 2022–23 (R1). **Uma sessão única do Colab para os 6 modelos** (NFR-01, D-53): mesmos dados,
 mesmas dobras (arquivo de T-2.3 com hash), mesma semente; comparação pareada no fim (T-4.9).
 VM com GPU (L4 de preferência; T4 serve) e High RAM no Pro. No gratuito, o mesmo notebook roda,
 mais devagar, retomando de onde parou.
 
-**Como esta fase é verificada (D-57):** T-4.0 a T-4.10 são implementadas e testadas **localmente**
+**Como este marco é verificado (D-57):** T-4.0 a T-4.10 são implementadas e testadas **localmente**
 (dados sintéticos). Só depois que todas estiverem prontas o Programador roda **uma** sessão do
 Colab (`notebooks/04_modelos.ipynb`), que executa tudo e grava **um** relatório:
 `reports/verificacao/sessao-m1.json`, com um bloco por etapa (checagem inicial, cada modelo,
@@ -128,7 +124,7 @@ só**, pela T-4.3b, na ordem do config. Tetos de tempo e de tentativas: `config/
 - [ ] **T-4.5 XGBoost** (teto 30 min, `device="cuda"` se houver GPU). Sem `scale_pos_weight` (R3).
 - [ ] **T-4.6 CatBoost** (teto 40 min, `task_type="GPU"` se houver GPU). Sem `auto_class_weights`
   (R3). Se o CatBoost em GPU não aceitar `eval_metric="PRAUC"` no early stopping, use CPU e anote
-  no §10 (spec `[VERIFY]`).
+  no Registro de problemas (plan `[VERIFY]`).
 - [ ] **T-4.6b Elastic net** (teto 20 min, CPU) e **MLP** (teto 40 min, GPU).
   - MLP em `src/dengue_sinan/mlp.py`: classe compatível com sklearn (`fit`, `predict_proba`) que
     envolve a rede PyTorch, para entrar no mesmo `Pipeline` (R5) e no mesmo `run_loro`.
@@ -137,7 +133,8 @@ só**, pela T-4.3b, na ordem do config. Tetos de tempo e de tentativas: `config/
   - Teste unitário rápido em CPU com dados sintéticos: treina, para no early stopping e devolve
     probabilidades entre 0 e 1.
 - [ ] **T-4.7 TabFM** (teto 30 min, GPU).
-  - **Antes de codar, 🛑 PARE E PERGUNTE** com estas informações do model card (spec `[VERIFY]`):
+  - **Antes de codar, 🛑 PARE E PERGUNTE** com estas informações do model card
+    ([plan › Restrições do TabFM](../plan.md#restrições-do-tabfm)):
     licença dos pesos cobre uso acadêmico?; limite de linhas de contexto e de features; velocidade
     de predição; nome e versão do pacote.
   - Contexto = subamostra **estratificada** do treino de cada dobra, no tamanho do limite verificado.
@@ -153,7 +150,7 @@ registrada nas 5 dobras; melhores pontos por dobra (modelos iterativos); alias `
 no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podadas. Para a T-4.8
 (SHAP, SHOULD), o bloco `shap` confere que os gráficos de `reports/shap/` foram gerados.
 
-### [ ] T-4.9 [US2] — Calibração, limiar e seleção (FR-08, FR-17, §3.11)
+### [ ] T-4.9 [US2] — Calibração, limiar e seleção (FR-08, FR-17)
 
 - Para cada modelo: ajustar **isotônica** e **Platt** nas predições OOF (2022–23); escolher a de
   menor Brier OOF. Guardar o calibrador.
@@ -164,8 +161,9 @@ no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podad
 - **Comparação pareada (D-53)** `reports/m1/comparacao_pareada.md`: para cada par de modelos
   (incluindo B1), diferença de PR-AUC por dobra (5 valores) e `paired_bootstrap_diff` com IC 95%.
   Use `bootstrap_pareado` e a semente do config; os mesmos sorteios para todos os pares.
-- Aplicar a **regra de seleção** da §1.4, com empate por "diferença < 0,005 ou ICs sobrepostos"
-  (mantida em D-53). A comparação pareada **não** entra na seleção: ela só é reportada. Registrar o vencedor e o motivo no §9 e no MLflow.
+- Aplicar a [regra de seleção](../plan.md#regra-de-seleção), com empate por "diferença < 0,005 ou
+  ICs sobrepostos" (mantida em D-53). A comparação pareada **não** entra na seleção: ela só é
+  reportada. Registrar o vencedor e o motivo no Registro de execução e no MLflow.
 - **Pronto quando:** testes locais passam e o bloco `selecao` do `sessao-m1.json` tem `"passou": true`
   para: um único modelo escolhido, com calibrador e limiar gravados; `comparacao_oof.md` e
   `comparacao_pareada.md` gerados; nenhum arquivo de 2024 aberto na sessão (`guard`).
@@ -181,4 +179,4 @@ no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podad
   (NFR-06): **🛑 PARE E PERGUNTE** (Q-14).
 - **Pronto quando:** o bloco `retreino` do `sessao-m1.json` tem `"passou": true` para: o artefato
   `models/m1_final.*` (no Drive) carrega e prediz; o hash do arquivo está no relatório (copie para o
-  §9).
+  Registro de execução).
