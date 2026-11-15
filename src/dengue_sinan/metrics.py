@@ -157,6 +157,107 @@ def net_benefit(
     return pd.DataFrame(rows)
 
 
+def _is_pr_auc_fn(fn: Callable[[np.ndarray, np.ndarray], float]) -> bool:
+    """Verifica se a métrica passada ao bootstrap é `pr_auc` (`average_precision_score`)."""
+    return fn is pr_auc or getattr(fn, "__name__", "") == "pr_auc"
+
+
+def _fast_pr_auc_bootstrap_samples(
+    y_arr: np.ndarray,
+    p_arr: np.ndarray,
+    n: int,
+    seed: int,
+) -> np.ndarray:
+    """Calcula `n` reamostras bootstrap estratificadas de `pr_auc` sem reordenar `N` linhas.
+
+    Usa a identidade exata da Average Precision não-interpolada: `ΔRecall` só é não-nulo nos
+    limiares distintos dos casos positivos (`K <= n_pos`), reduzindo a complexidade de
+    `O(n * N log N)` para `O(N log K + n * K)`.
+    """
+    n_boot = int(n)
+    if n_boot <= 0:
+        return np.empty(0, dtype=np.float64)
+
+    n_total = len(y_arr)
+    if n_total == 0:
+        return np.zeros(n_boot, dtype=np.float64)
+
+    pos_idx = np.flatnonzero(y_arr == 1)
+    neg_idx = np.flatnonzero(y_arr == 0)
+    n_pos = len(pos_idx)
+    n_neg = len(neg_idx)
+
+    if n_pos == 0 or n_neg == 0 or np.all(p_arr == p_arr[0]):
+        return np.full(n_boot, float(np.mean(y_arr)), dtype=np.float64)
+
+    p_pos = p_arr[pos_idx]
+    p_neg = p_arr[neg_idx]
+
+    # Limiares distintos dos positivos em ordem decrescente (via -p_pos crescente)
+    neg_uniq_t, pos_bucket = np.unique(-p_pos, return_inverse=True)
+    k_bins = len(neg_uniq_t)
+
+    # Cada negativo cai no 1º limiar k tal que p_neg >= t_k (isto é, -p_neg <= -t_k)
+    neg_bucket = np.searchsorted(neg_uniq_t, -p_neg, side="left")
+    neg_counts = np.bincount(neg_bucket, minlength=k_bins + 1)
+    neg_probs = neg_counts / float(n_neg)
+
+    rng_pos = np.random.default_rng(int(seed))
+    rng_neg = np.random.default_rng(int(seed) + 1_000_003)
+
+    samples = np.empty(n_boot, dtype=np.float64)
+    chunk_size = 250
+    for start in range(0, n_boot, chunk_size):
+        end = min(n_boot, start + chunk_size)
+        m_chunk = end - start
+
+        tp_bins = np.empty((m_chunk, k_bins), dtype=np.float64)
+        for i in range(m_chunk):
+            b_pos = rng_pos.integers(0, n_pos, size=n_pos)
+            tp_bins[i] = np.bincount(pos_bucket[b_pos], minlength=k_bins)
+
+        fp_bins = rng_neg.multinomial(n_neg, neg_probs, size=m_chunk)[:, :k_bins].astype(
+            np.float64
+        )
+        tp_cum = np.cumsum(tp_bins, axis=1)
+        fp_cum = np.cumsum(fp_bins, axis=1)
+
+        prec = tp_cum / np.maximum(1.0, tp_cum + fp_cum)
+        rec = tp_cum / float(n_pos)
+        d_rec = np.diff(rec, axis=1, prepend=0.0)
+        samples[start:end] = np.sum(d_rec * prec, axis=1)
+
+    return samples
+
+
+def fast_pr_auc_fold_bootstrap_means(
+    y: pd.Series | np.ndarray,
+    p: pd.Series | np.ndarray,
+    dobra: pd.Series | np.ndarray,
+    n: int = 1000,
+    seed: int = 20261103,
+) -> tuple[dict[str, float], np.ndarray]:
+    """Devolve `(pr_auc_por_dobra, medias_bootstrap)` com sorteios pareados por `seed`."""
+    y_arr = _as_1d_float(y).astype(np.int8)
+    p_arr = _as_1d_float(p)
+    fold_arr = np.asarray(dobra).astype(str)
+    unique_folds = list(dict.fromkeys(fold_arr))
+
+    fold_obs: dict[str, float] = {}
+    boot_sum = np.zeros(int(n), dtype=np.float64)
+
+    for f_idx, f_name in enumerate(unique_folds):
+        in_fold = fold_arr == f_name
+        y_f = y_arr[in_fold]
+        p_f = p_arr[in_fold]
+        fold_obs[f_name] = pr_auc(y_f, p_f)
+        fold_seed = int(seed) + f_idx * 10_007
+        boot_sum += _fast_pr_auc_bootstrap_samples(y_f, p_f, int(n), fold_seed)
+
+    n_folds = max(1, len(unique_folds))
+    return fold_obs, boot_sum / float(n_folds)
+
+
 def bootstrap_ci(
     fn: Callable[[np.ndarray, np.ndarray], float],
     y: pd.Series | np.ndarray,
@@ -168,6 +269,11 @@ def bootstrap_ci(
     y_arr = _as_1d_float(y).astype(np.int8)
     p_arr = _as_1d_float(p)
     estimate = float(fn(y_arr, p_arr))
+
+    if _is_pr_auc_fn(fn):
+        samples = _fast_pr_auc_bootstrap_samples(y_arr, p_arr, int(n), int(seed))
+        ic_inf, ic_sup = np.percentile(samples, [2.5, 97.5])
+        return estimate, float(ic_inf), float(ic_sup)
 
     idx_pos = np.flatnonzero(y_arr == 1)
     idx_neg = np.flatnonzero(y_arr == 0)
@@ -199,6 +305,20 @@ def paired_bootstrap_diff(
     pb_arr = _as_1d_float(p_b)
     fold_arr = np.asarray(dobra).astype(str)
     unique_folds = list(dict.fromkeys(fold_arr))
+
+    if _is_pr_auc_fn(fn):
+        obs_a, boot_a = fast_pr_auc_fold_bootstrap_means(
+            y_arr, pa_arr, fold_arr, n=int(n), seed=seed
+        )
+        obs_b, boot_b = fast_pr_auc_fold_bootstrap_means(
+            y_arr, pb_arr, fold_arr, n=int(n), seed=seed
+        )
+        point_diff = float(np.mean([obs_a[f] - obs_b[f] for f in unique_folds]))
+        if np.array_equal(pa_arr, pb_arr):
+            return 0.0, 0.0, 0.0
+        boot_diffs = boot_a - boot_b
+        ic_inf, ic_sup = np.percentile(boot_diffs, [2.5, 97.5])
+        return point_diff, float(ic_inf), float(ic_sup)
 
     # Estimativa pontual observada: média nas dobras de A menos média nas dobras de B
     fold_diffs_obs: list[float] = []

@@ -214,8 +214,7 @@ def update_session_report(
         }
 
     existing["gerado_em"] = dt.datetime.now(dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-    if commit is not None:
-        existing["commit"] = commit
+    existing["commit"] = commit if commit is not None else _git_commit()
     if ambiente is not None:
         existing["ambiente"] = ambiente
     if hash_dados is not None:

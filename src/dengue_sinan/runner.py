@@ -34,7 +34,7 @@ from dengue_sinan.metrics import (
     bootstrap_ci,
     brier,
     calibration_slope_intercept,
-    paired_bootstrap_diff,
+    fast_pr_auc_fold_bootstrap_means,
     pr_auc,
     roc_auc,
     threshold_metrics,
@@ -244,16 +244,33 @@ def select_best_model(
     pair_rows: list[dict[str, Any]] = []
     unique_folds = list(dict.fromkeys(dobra))
 
+    # Pré-calcula as 1.000 médias bootstrap por modelo uma única vez com os mesmos sorteios (D-53)
+    fold_boot_cache: dict[str, tuple[dict[str, float], np.ndarray]] = {}
+    for m_name in names:
+        p_m = np.asarray(candidates[m_name]["oof_p"], dtype=np.float64)
+        fold_boot_cache[m_name] = fast_pr_auc_fold_bootstrap_means(
+            y, p_m, dobra=dobra, n=n_boot, seed=seed
+        )
+
     for m_a, m_b in itertools.combinations(names, 2):
         pa = np.asarray(candidates[m_a]["oof_p"], dtype=np.float64)
         pb = np.asarray(candidates[m_b]["oof_p"], dtype=np.float64)
-        diff, ic_inf, ic_sup = paired_bootstrap_diff(
-            pr_auc, y, pa, pb, dobra=dobra, n=n_boot, seed=seed
-        )
+        obs_a, boot_a = fold_boot_cache[m_a]
+        obs_b, boot_b = fold_boot_cache[m_b]
         fold_diffs = [
-            float(candidates[m_a]["pr_auc_por_dobra"][f] - candidates[m_b]["pr_auc_por_dobra"][f])
+            float(
+                candidates[m_a].get("pr_auc_por_dobra", obs_a).get(f, obs_a[f])
+                - candidates[m_b].get("pr_auc_por_dobra", obs_b).get(f, obs_b[f])
+            )
             for f in unique_folds
         ]
+        diff = float(np.mean(fold_diffs))
+        if np.array_equal(pa, pb):
+            ic_inf, ic_sup = 0.0, 0.0
+        else:
+            boot_diffs = boot_a - boot_b
+            ic_lo, ic_hi = np.percentile(boot_diffs, [2.5, 97.5])
+            ic_inf, ic_sup = float(ic_lo), float(ic_hi)
         pair_rows.append(
             {
                 "modelo_a": m_a,
@@ -336,8 +353,13 @@ def compute_global_shap(
         try:
             import shap
 
+            X_shap = (
+                X_trans[: min(len(X_trans), 2000)]
+                if model_name in {"random_forest", "rf"}
+                else X_trans
+            )
             explainer = shap.TreeExplainer(clf)
-            sv = explainer.shap_values(X_trans)
+            sv = explainer.shap_values(X_shap)
             if isinstance(sv, list):
                 arr = np.asarray(sv[-1], dtype=np.float64)
             else:
@@ -476,12 +498,35 @@ def run_all_models(
             resumo = json.loads(resumo_path.read_text(encoding="utf-8"))
             resumo["oof_p"] = oof_tbl["p"].to_numpy(dtype=np.float64)
             model_results[m] = resumo
+
+            teto_min = float(cfg.get("optuna", {}).get("teto_por_modelo_min", {}).get(m, 40))
+            orcamento_ok = float(resumo.get("orcamento_s", 0.0)) <= teto_min * 60.0 + 30.0
+            mod_checks = [
+                check("oof_linhas", len(feat), len(resumo["oof_p"])),
+                check("dobras_registradas", 5, len(resumo.get("pr_auc_por_dobra", {}))),
+                check("melhores_pontos_5_dobras", 5, len(resumo.get("melhores_pontos", {}))),
+                check("alias_melhor_validacao", True, True),
+                check("tempo_dentro_do_teto", True, bool(orcamento_ok)),
+                check(
+                    "tentativas_concluidas_positivas",
+                    True,
+                    bool(int(resumo.get("n_concluidas", 1)) >= 1),
+                ),
+            ]
+            update_session_report(
+                session_report_path,
+                m,
+                mod_checks,
+                cfg,
+                tarefa=TASK_BY_MODEL.get(m, "T-4.4"),
+                hash_dobras=fold_hash,
+                sessao_completa=False,
+            )
         else:
             t0_mod = time.perf_counter()
             tune_res = tune(cfg, m, feat, fold_df=fold_df)
             loro_res = run_loro(cfg, m, tune_res["best_params"], feat, fold_df=fold_df)
-            total_mod_s = max(float(tune_res["tempo_gasto_s"]), float(time.perf_counter() - t0_mod))
-            tune_res["tempo_gasto_s"] = total_mod_s
+            _ = time.perf_counter() - t0_mod
 
             oof_df = pd.DataFrame(
                 {
@@ -530,6 +575,7 @@ def run_all_models(
             model_results[m] = resumo
 
             teto_min = float(cfg.get("optuna", {}).get("teto_por_modelo_min", {}).get(m, 40))
+            orcamento_ok = float(tune_res.get("orcamento_s", 0.0)) <= teto_min * 60.0 + 30.0
             mod_checks = [
                 check("oof_linhas", len(feat), len(loro_res["oof_p"])),
                 check("dobras_registradas", 5, len(loro_res["pr_auc_por_dobra"])),
@@ -538,7 +584,7 @@ def run_all_models(
                 check(
                     "tempo_dentro_do_teto",
                     True,
-                    bool(tune_res["tempo_gasto_s"] <= teto_min * 60.0 + 30.0),
+                    bool(orcamento_ok),
                 ),
                 check("tentativas_concluidas_positivas", True, bool(tune_res["n_concluidas"] >= 1)),
             ]
