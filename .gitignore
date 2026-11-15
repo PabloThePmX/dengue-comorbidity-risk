@@ -23,6 +23,8 @@ mlruns/
 mlartifacts/
 *.db
 *.sqlite
+/m1/
+/models/
 
 # Relatórios do Consensus: uso pessoal, redistribuição exige consentimento
 research/consensus-*.md

@@ -34,6 +34,7 @@ uv run ruff check .
    (após T-2.0).
 5. Rodar os notebooks, que só chamam funções de `src/` (NFR-05):
    - dados e profiling: `profiling/01_profiling.ipynb` (Marco 1, concluído);
+   - baselines e persistência das dobras: `notebooks/02_baselines_colab.ipynb`;
    - modelos M1 em sessão única: `notebooks/04_modelos.ipynb` (após T-4.3b, D-53).
 6. Se a tarefa gerou um relatório de verificação (D-56), baixe `reports/verificacao/T-x.y.json`
    (na sessão dos modelos, um arquivo só: `sessao-m1.json`, D-57)

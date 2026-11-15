@@ -1,0 +1,16 @@
+populacao:
+  "2022":
+    casos: 1148299
+    eventos: 1869
+  "2023":
+    casos: 1304909
+    eventos: 2116
+desenvolvimento:
+  casos: 2453208
+  eventos: 3985
+eventos_por_regiao:
+  Centro-Oeste: 736
+  Nordeste: 582
+  Norte: 121
+  Sudeste: 1736
+  Sul: 810

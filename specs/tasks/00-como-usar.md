@@ -212,6 +212,7 @@ Uma linha por tarefa concluída: data, tarefa, resultado principal (números), o
 | Data | Tarefa | Resultado | Artefato / run MLflow |
 |---|---|---|---|
 | 2026-11-03 | Marco 1 | Profiling concluído: 7.784.953 casos, 15.323 eventos (2022–24) | `profiling/RESULTADOS.md` |
+| 2026-11-14 | Fase 4 — validação local | 109 testes passaram; Ruff e sintaxe dos notebooks passaram; alias do Registry testado localmente. Execução real no Colab aguarda publicação do branch `ricardo`; T-4.2/T-4.3 e T-4.7 seguem pendentes. | `notebooks/02_baselines_colab.ipynb`, `notebooks/04_modelos.ipynb`, `reports/verificacao/sessao-m1.json` (a gerar no Colab) |
 
 ---
 
@@ -222,3 +223,6 @@ se houver várias tentativas, uma linha por tentativa.
 
 | Data | Tarefa | O que aconteceu (mensagem de erro ou número estranho) | O que foi tentado | Resultado | Precisou perguntar? |
 |---|---|---|---|---|---|
+| 2026-11-14 | T-3.1 | A suíte local terminou com 84 testes aprovados e 3 erros em `tests/test_explain.py`: `fit_e1` não convergiu após 200 iterações; a matriz sintética é rank-deficiente (`SingularMatrixWarning`). | Diagnóstico confirmado: matriz original 5.000×50 com posto 47; solicitado ao Programador escolher como resolver sem remover termos. | Bloqueio aguardou decisão D-60; ver tentativa de correção na linha seguinte. | Sim |
+| 2026-11-14 | T-3.1 | A matriz de desenho original tinha 50 colunas, posto 47 e nulidade 3 no fixture de 5.000 linhas. | Aplicada a decisão D-60: bases QR em subespaço centrado, mantendo os três termos spline e mapeando coeficientes/covariância para a base original. | Posto QR completo preserva o posto/espaço original; `tests/test_explain.py`: 6 passaram, incluindo equivalência do preditor e simetria/validez da covariância mapeada. | Não |
+| 2026-11-14 | T-4.10 | Ao inicializar o Registry SQLite dentro da raiz `mlruns/`, o diretório era criado antes do file store e o MLflow não encontrava o experimento padrão (`Could not find experiment with ID 0`). | Movido o banco do Registry para `mlruns_registry.db`, ao lado de `mlruns/`, preservando o file store existente. | Teste de integração registra, carrega e reutiliza a versão pelo alias; 109 testes e Ruff passaram. | Não |

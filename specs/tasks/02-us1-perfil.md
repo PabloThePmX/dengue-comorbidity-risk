@@ -18,6 +18,8 @@ desenvolvimento, sem dobras — é inferência, não predição).
 - Fórmula: `y ~ cr(idade_anos, df=5) + sexo + gestante + <7 comorbidades Sim/Não> +
   <interações 2 a 2 entre comorbidades> + HIPERTENSA:cr(idade_anos, df=3) +
   DIABETES:cr(idade_anos, df=3)`. Graus de liberdade dos splines `[ASSUMPTION]`.
+- Use a reparametrização QR com restrição de centragem e mapeamento de coeficientes/covariância
+  definida em D-60; a base ajustada deve preservar o espaço de predição da fórmula acima.
 - **Interações:** inclua só os pares com **≥ 10 eventos** (T-2.7). Os demais pares não entram
   no modelo e são listados como "eventos insuficientes".
 - Comorbidade "Ausente": é ~0% na população. Trate como categoria de referência à parte ou
