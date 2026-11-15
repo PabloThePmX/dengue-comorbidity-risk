@@ -11,7 +11,7 @@
 Spec: FR-05, FR-06, FR-19, §3.11, §3.13, D-40, D-41. Ajustado em 2022–23 (todos os dados de
 desenvolvimento, sem dobras — é inferência, não predição).
 
-### [~] T-3.1 [US1] — Ajustar o E1 (`explain.py`)
+### [x] T-3.1 [US1] — Ajustar o E1 (`explain.py`)
 
 - Arquivo: `src/dengue_sinan/explain.py`. Use `statsmodels` (`smf.logit` ou `sm.GLM` binomial)
   para ter matriz de covariância (R9: sem penalização).
@@ -27,7 +27,7 @@ desenvolvimento, sem dobras — é inferência, não predição).
   por conta própria.
 - **Pronto quando:** modelo converge; resumo salvo em `reports/e1/coeficientes.md`; tempo de ajuste anotado no §9.
 
-### [~] T-3.2 [US1] — OR, IC e correção múltipla
+### [x] T-3.2 [US1] — OR, IC e correção múltipla
 
 - Para cada comorbidade: OR do efeito principal com IC 95%.
 - Para cada par incluído: OR da interação com IC 95% e p-valor; **Benjamini-Hochberg** (FDR 5%)
@@ -35,7 +35,7 @@ desenvolvimento, sem dobras — é inferência, não predição).
 - No relatório, interpretar **tamanho do efeito e IC**, não p-valor (spec §3.11).
 - **Pronto quando:** `reports/e1/or_interacoes.md` existe com OR, IC, p e p ajustado.
 
-### [~] T-3.3 [US1] — Interação aditiva: RERI e AP (FR-05, D-40)
+### [x] T-3.3 [US1] — Interação aditiva: RERI e AP (FR-05, D-40)
 
 - Para cada par incluído (A, B): calcule, a partir do E1 (mesma idade/sexo de referência),
   `OR_A`, `OR_B`, `OR_AB` contra "nenhuma das duas";
@@ -44,14 +44,14 @@ desenvolvimento, sem dobras — é inferência, não predição).
 - Teste unitário com coeficientes inventados: RERI e AP batem com a conta à mão.
 - **Pronto quando:** `reports/e1/reri_ap.md` com RERI, AP e IC de cada par.
 
-### [~] T-3.4 [US1] — Ranking de comorbidades (FR-19)
+### [x] T-3.4 [US1] — Ranking de comorbidades (FR-19)
 
 - Ordenar as 7 comorbidades pelo OR do efeito principal.
 - Duas comorbidades com IC sobrepostos ficam marcadas **"sem ordem definida"** entre si.
 - Fonte: só E1 (R10).
 - **Pronto quando:** `reports/e1/ranking.md` existe e teste unitário da lógica de sobreposição passa.
 
-### [~] T-3.5 [US1] — Tabela de perfis (FR-06)
+### [x] T-3.5 [US1] — Tabela de perfis (FR-06)
 
 - Perfis (D-52) — **todas as comorbidades**, gerados automaticamente (não escreva a lista à mão):
   1. sem comorbidades (referência);

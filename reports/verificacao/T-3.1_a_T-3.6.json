@@ -1,0 +1,67 @@
+{
+  "tarefa": "T-3.1_a_T-3.6",
+  "gerado_em": "2026-11-15T02:15:43Z",
+  "commit": "a4e0c5567d09d764208060a5677e8f3247626a1e",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 53.0,
+    "vcpus": 12,
+    "gpu": "NVIDIA L4"
+  },
+  "hash_dados": {
+    "2022": "95e860f78a9d3b75e114a45ad179ebe657990b17c9a53d6cba75d58b5c8559cf",
+    "2023": "5cb9928289d5b0e12cdc6fccf463d300b98763b405819df6f1ada8980beb6bc0"
+  },
+  "checks": [
+    {
+      "nome": "e1_convergiu",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "coeficientes_md_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "or_interacoes_md_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "reri_ap_md_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "ranking_md_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "perfis_completo_md_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "bundle_reproduz_risco_precisao_1e9",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

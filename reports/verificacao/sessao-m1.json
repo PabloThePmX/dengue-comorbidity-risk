@@ -1,0 +1,426 @@
+{
+  "sessao": "sessao-m1",
+  "gerado_em": "2026-11-15T17:26:44Z",
+  "commit": "4e41ea684b8965f42cad0bd06b0234622036f3ca",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 53.0,
+    "vcpus": 12,
+    "gpu": "NVIDIA L4"
+  },
+  "hash_dados": {
+    "2022": "95e860f78a9d3b75e114a45ad179ebe657990b17c9a53d6cba75d58b5c8559cf",
+    "2023": "5cb9928289d5b0e12cdc6fccf463d300b98763b405819df6f1ada8980beb6bc0"
+  },
+  "hash_dobras": "c5289b35579f3eef5013f068738deebbee22aa48ce1c2489f805a845780253cc",
+  "blocos": [
+    {
+      "bloco": "checagem_inicial",
+      "tarefa": "T-4.3b",
+      "checks": [
+        {
+          "nome": "drive_gravavel",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "sqlite_optuna_abre",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "hash_dobras_igual_t2_3",
+          "esperado": "c5289b35579f3eef5013f068738deebbee22aa48ce1c2489f805a845780253cc",
+          "obtido": "c5289b35579f3eef5013f068738deebbee22aa48ce1c2489f805a845780253cc",
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "elastic_net",
+      "tarefa": "T-4.6b",
+      "checks": [
+        {
+          "nome": "oof_linhas",
+          "esperado": 2453208,
+          "obtido": 2453208,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "dobras_registradas",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "melhores_pontos_5_dobras",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "alias_melhor_validacao",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tempo_dentro_do_teto",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tentativas_concluidas_positivas",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "xgboost",
+      "tarefa": "T-4.5",
+      "checks": [
+        {
+          "nome": "oof_linhas",
+          "esperado": 2453208,
+          "obtido": 2453208,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "dobras_registradas",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "melhores_pontos_5_dobras",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "alias_melhor_validacao",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tempo_dentro_do_teto",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tentativas_concluidas_positivas",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "catboost",
+      "tarefa": "T-4.6",
+      "checks": [
+        {
+          "nome": "oof_linhas",
+          "esperado": 2453208,
+          "obtido": 2453208,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "dobras_registradas",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "melhores_pontos_5_dobras",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "alias_melhor_validacao",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tempo_dentro_do_teto",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tentativas_concluidas_positivas",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "mlp",
+      "tarefa": "T-4.6b",
+      "checks": [
+        {
+          "nome": "oof_linhas",
+          "esperado": 2453208,
+          "obtido": 2453208,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "dobras_registradas",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "melhores_pontos_5_dobras",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "alias_melhor_validacao",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tempo_dentro_do_teto",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tentativas_concluidas_positivas",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "random_forest",
+      "tarefa": "T-4.4",
+      "checks": [
+        {
+          "nome": "oof_linhas",
+          "esperado": 2453208,
+          "obtido": 2453208,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "dobras_registradas",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "melhores_pontos_5_dobras",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "alias_melhor_validacao",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tempo_dentro_do_teto",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tentativas_concluidas_positivas",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "tabfm",
+      "tarefa": "T-4.7",
+      "checks": [
+        {
+          "nome": "oof_linhas",
+          "esperado": 2453208,
+          "obtido": 2453208,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "dobras_registradas",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "melhores_pontos_5_dobras",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "alias_melhor_validacao",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tempo_dentro_do_teto",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tentativas_concluidas_positivas",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "selecao",
+      "tarefa": "T-4.9",
+      "checks": [
+        {
+          "nome": "unico_modelo_escolhido",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "comparacao_oof_existe",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "comparacao_pareada_existe",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "shap",
+      "tarefa": "T-4.8",
+      "checks": [
+        {
+          "nome": "shap_png_existe",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "retreino",
+      "tarefa": "T-4.10",
+      "checks": [
+        {
+          "nome": "artefato_carrega_e_prediz",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tempo_predicao_1caso_s_menor_1s",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tempo_shap_local_s_menor_1s",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "tamanho_artefato_mb_registrado",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "sha256_artefato_m1",
+          "esperado": "2f65a1ccf183d5f79bbac5eab6062906033f502c044562bd5c3be9bcc6371ce2",
+          "obtido": "2f65a1ccf183d5f79bbac5eab6062906033f502c044562bd5c3be9bcc6371ce2",
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    }
+  ],
+  "sessao_completa": true,
+  "passou": true
+}

@@ -1,0 +1,46 @@
+{
+  "tarefa": "T-2.8",
+  "gerado_em": "2026-11-15T02:13:56Z",
+  "commit": "a4e0c5567d09d764208060a5677e8f3247626a1e",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 53.0,
+    "vcpus": 12,
+    "gpu": "NVIDIA L4"
+  },
+  "hash_dados": {
+    "2022": "95e860f78a9d3b75e114a45ad179ebe657990b17c9a53d6cba75d58b5c8559cf",
+    "2023": "5cb9928289d5b0e12cdc6fccf463d300b98763b405819df6f1ada8980beb6bc0"
+  },
+  "checks": [
+    {
+      "nome": "b0_pr_auc_aprox_prevalencia",
+      "esperado": 0.0016,
+      "obtido": 0.0015,
+      "tolerancia": 0.0005,
+      "passou": true
+    },
+    {
+      "nome": "b1_supera_b0_em_pr_auc",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "b2_f2_calculado",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "baselines_md_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

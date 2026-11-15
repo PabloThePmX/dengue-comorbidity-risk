@@ -1,0 +1,116 @@
+{
+  "tarefa": "T-2.1",
+  "gerado_em": "2026-11-15T02:09:04Z",
+  "commit": "a4e0c5567d09d764208060a5677e8f3247626a1e",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 53.0,
+    "vcpus": 12,
+    "gpu": "NVIDIA L4"
+  },
+  "hash_dados": {
+    "2022": "95e860f78a9d3b75e114a45ad179ebe657990b17c9a53d6cba75d58b5c8559cf",
+    "2023": "5cb9928289d5b0e12cdc6fccf463d300b98763b405819df6f1ada8980beb6bc0"
+  },
+  "checks": [
+    {
+      "nome": "casos_dev",
+      "esperado": 2453208,
+      "obtido": 2453208,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_dev",
+      "esperado": 3985,
+      "obtido": 3985,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "populacao_2022",
+      "esperado": 1148299,
+      "obtido": 1148299,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2022",
+      "esperado": 1869,
+      "obtido": 1869,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2022_1. Total baixado",
+      "esperado": 1405095,
+      "obtido": 1405095,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2022_2. CLASSI_FIN ∈ {10, 11, 12}",
+      "esperado": 1254238,
+      "obtido": 1254238,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2022_3. Rótulo conhecido (12, ou 10/11 com EVOLUCAO ∈ {1, 2})",
+      "esperado": 1148338,
+      "obtido": 1148338,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2022_4. Idade válida (0–120 anos)",
+      "esperado": 1148299,
+      "obtido": 1148299,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "populacao_2023",
+      "esperado": 1304909,
+      "obtido": 1304909,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2023",
+      "esperado": 2116,
+      "obtido": 2116,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2023_1. Total baixado",
+      "esperado": 1645956,
+      "obtido": 1645956,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2023_2. CLASSI_FIN ∈ {10, 11, 12}",
+      "esperado": 1426773,
+      "obtido": 1426773,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2023_3. Rótulo conhecido (12, ou 10/11 com EVOLUCAO ∈ {1, 2})",
+      "esperado": 1304949,
+      "obtido": 1304949,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2023_4. Idade válida (0–120 anos)",
+      "esperado": 1304909,
+      "obtido": 1304909,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}
