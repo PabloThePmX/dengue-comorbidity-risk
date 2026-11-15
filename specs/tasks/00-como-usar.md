@@ -33,7 +33,7 @@ suas tarefas são `T-N.x` (D-60). O critério de saída do marco no spec é o ch
 
 `### [ ] T-N.x [P] [USn] — título`
 
-- Estado: `[ ]` a fazer; `[~]` feita, aguardando o relatório do Colab
+- Estado: `[ ]` a fazer; `[~]` feita, aguardando o relatório do Colab pelo caminho manual
   ([Verificação no Colab](#verificação-no-colab)); `[x]` pronta.
 - `[P]`: pode rodar em paralelo com outras `[P]` do mesmo arquivo.
 - `[USn]`: história do spec que a tarefa entrega (US1 perfil, US2 triagem, US3 demo).
@@ -58,7 +58,10 @@ suas tarefas são `T-N.x` (D-60). O critério de saída do marco no spec é o ch
 ## Verificação no Colab
 
 Para critérios que dependem de dados reais, GPU ou queda de sessão. Os dados ficam no Drive
-(NFR-03), e **ninguém digita resultado à mão** (D-56).
+(NFR-03), e **ninguém digita resultado à mão** (D-56). O caminho padrão é o MCP do Colab (D-64);
+sem ele, vale o caminho manual.
+
+**Preparar (sempre):**
 
 1. Escreva a verificação **como código**: uma função em `src/` que calcula cada item do "Pronto
    quando" e chama `verify.write_report` (T-2.0), comparando com `config/esperado.yaml`. Nunca
@@ -66,22 +69,41 @@ Para critérios que dependem de dados reais, GPU ou queda de sessão. Os dados f
 2. Acrescente ao notebook da tarefa a célula que chama essa função.
 3. Faça e verifique localmente tudo o que der: código, testes com dados sintéticos (inclusive da
    própria verificação), ruff.
-4. Marque a tarefa `[~]`, anote no Registro de execução "pendente no Colab: rodar <notebook>,
-   célula <nome>; gera `reports/verificacao/T-N.x.json`" e **pare**. Avise que o código precisa
-   estar commitado e no GitHub antes de rodar ([quickstart › Google Colab](../quickstart.md#google-colab)).
-5. Na sessão seguinte, leia o JSON:
-   - arquivo ausente → peça ao Programador só para rodar o notebook e colocar o arquivo na pasta
-     (não peça números);
-   - `"commit"` diferente do commit que contém o código da tarefa → peça para rodar de novo;
+4. O código precisa estar commitado e no GitHub, porque o Colab clona o repositório. Commit e push
+   só com o "ok" do Programador.
+
+**Pelo MCP (padrão):** passos do lado do Programador em
+[quickstart › Colab pelo MCP](../quickstart.md#colab-pelo-mcp).
+
+5. Conecte com `open_colab_browser_connection` e rode, com `run_code_cell`, as células do notebook
+   da tarefa (só chamadas de função). Antes, confira o ambiente com `verify.environment(cfg)`; se a GPU
+   ou a RAM não forem as do config, peça ao Programador para trocar e salvar de novo.
+6. Rode `verify.show_report(<caminho do JSON>)`, que imprime o JSON e o SHA-256 dos bytes. Salve o
+   JSON em `reports/verificacao/`, calcule o SHA-256 localmente e confira que é igual. Se não for,
+   não use o arquivo: registre em [Erros inesperados](#erros-inesperados).
+7. Leia o JSON:
+   - `"commit"` diferente do commit que contém o código da tarefa → rode de novo depois do push;
    - `"passou": true` → marque `[x]` e copie o resumo dos `checks` para o Registro de execução;
    - `"passou": false` → registre os checks que falharam em [Erros inesperados](#erros-inesperados)
      e não marque `[x]`.
-6. Nunca passe para o marco seguinte com uma tarefa `[~]` aberta.
+8. Células rodadas pelo MCP **só imprimem agregados** (R7): tudo o que aparece na saída passa pela
+   conversa. Nunca mostre um `DataFrame` linha a linha.
 
-**Exceção do Marco 4 (D-57):** T-4.3b a T-4.10 compartilham um único relatório,
-`reports/verificacao/sessao-m1.json`. Marque cada uma `[~]` e siga para a próxima do mesmo marco;
-pare só depois da T-4.10, pedindo a sessão do Colab. Ao ler o relatório, marque `[x]` cada tarefa
-cujo bloco tem `"passou": true`.
+**Manual (reserva, sem o MCP):** marque a tarefa `[~]`, anote no Registro de execução "pendente no
+Colab: rodar <notebook>, célula <nome>; gera `reports/verificacao/T-N.x.json`" e **pare**. Na
+sessão seguinte, se o arquivo estiver na pasta, siga o passo 7; se não estiver, peça ao Programador
+só para rodar o notebook e colocar o arquivo lá (não peça números).
+
+Nunca passe para o marco seguinte com uma tarefa `[~]` aberta.
+
+**Sessão dos modelos (Marco 4, D-57):** T-4.3b a T-4.10 compartilham um único relatório,
+`reports/verificacao/sessao-m1.json`, e a execução real é uma só, depois que todas estiverem
+prontas localmente. Pelo MCP, dispare `run_all_models` **em segundo plano** (processo separado, com
+log no Drive), acompanhe com células curtas que leem o relatório da sessão e avise o Programador a
+cada bloco concluído. Se a sessão reiniciar, o job morre: confira o que ficou no Drive e dispare de
+novo, porque a execução retoma de onde parou (D-53). No fim, faça os passos 6 e 7 com o
+`sessao-m1.json` e marque `[x]` cada tarefa cujo bloco tem `"passou": true`. Sem o MCP, marque
+cada uma `[~]` e pare depois da T-4.10, pedindo a sessão do Colab.
 
 ## Erros inesperados
 

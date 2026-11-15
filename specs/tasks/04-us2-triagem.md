@@ -7,12 +7,13 @@ Spec: FR-07, FR-08, FR-12, FR-13, FR-17, FR-22, NFR-01, D-32, D-36, D-37, D-42, 
 [plan › Modelagem](../plan.md#modelagem) e [plan › Ambiente](../plan.md#ambiente-de-execução-e-orçamento).
 Critério de saída: [spec › Marcos](../spec.md#marcos). Tudo em 2022–23 (R1). **Uma sessão única do Colab para os 6 modelos** (NFR-01, D-53): mesmos dados,
 mesmas dobras (arquivo de T-2.3 com hash), mesma semente; comparação pareada no fim (T-4.9).
-VM com GPU (L4 de preferência; T4 serve) e High RAM no Pro. No gratuito, o mesmo notebook roda,
-mais devagar, retomando de onde parou.
+VM com GPU T4 e "RAM alta" no Pro (medida em 2026-11-15: 50,99 GiB, 8 vCPUs; L4 também serve).
+No gratuito, o mesmo notebook roda, mais devagar, retomando de onde parou.
 
-**Como este marco é verificado (D-57):** T-4.0 a T-4.10 são implementadas e testadas **localmente**
-(dados sintéticos). Só depois que todas estiverem prontas o Programador roda **uma** sessão do
-Colab (`notebooks/04_modelos.ipynb`), que executa tudo e grava **um** relatório:
+**Como este marco é verificado (D-57, D-64):** T-4.0 a T-4.10 são implementadas e testadas
+**localmente** (dados sintéticos). Só depois que todas estiverem prontas roda **uma** sessão do
+Colab (`notebooks/04_modelos.ipynb`), disparada pelo agente via MCP em segundo plano
+([Verificação no Colab](00-como-usar.md#verificação-no-colab)), que executa tudo e grava **um** relatório:
 `reports/verificacao/sessao-m1.json`, com um bloco por etapa (checagem inicial, cada modelo,
 seleção, SHAP, retreino), cada um com seu `"passou"`. O arquivo é reescrito ao fim de cada etapa;
 se a sessão cair, o que terminou fica registrado e a reexecução continua de onde parou.
@@ -83,9 +84,17 @@ Nenhum parâmetro de peso de classe (R3).
 - Registre no MLflow: tempo gasto, tentativas concluídas e podadas, hardware.
 - A melhor tentativa vai para o registro de modelos com alias **`melhor-validacao`** (FR-22).
   Tentativas piores nunca sobrescrevem.
+- **Tentativa interrompida:** um reinício da sessão mata o processo no meio de uma tentativa, que
+  fica marcada como "rodando" no estudo (D-64). Ao retomar, marque essas tentativas como falhas
+  antes de continuar, para não travar a busca nem contá-las no orçamento.
+- **SQLite no Drive** `[VERIFY]`: a pasta do Drive no Colab não garante o travamento de arquivo de
+  que o SQLite precisa. Na checagem inicial (T-4.3b), crie, grave e reabra um estudo no Drive; se
+  falhar, **🛑 PARE E PERGUNTE** (alternativa: SQLite em `/content` copiado para o Drive ao fim de
+  cada tentativa).
 - Teste local com dados sintéticos e SQLite numa pasta temporária: rodar `tune` com `n_trials=2`,
   chamar de novo com o mesmo `study_name` e conferir que o nº de tentativas cresceu e que nenhuma
-  tentativa anterior se perdeu (interrupção simulada).
+  tentativa anterior se perdeu (interrupção simulada); uma tentativa deixada como "rodando" é
+  marcada como falha na retomada.
 - **Pronto quando:** testes passam. A busca real é verificada no `sessao-m1.json` (T-4.3b).
 
 ### [ ] T-4.3b [US2] — Execução em sessão única (`runner.py`) (D-53)
@@ -99,17 +108,29 @@ Nenhum parâmetro de peso de classe (R3).
   4. libera memória entre modelos (`del`, `gc.collect()`, `torch.cuda.empty_cache()`);
   5. no fim, chama a seleção (T-4.9), o SHAP global (T-4.8) e o retreino final (T-4.10), nessa ordem;
   6. **relatório da sessão (D-57):** antes do 1º modelo, grava o bloco `checagem_inicial` (Drive
-     gravável, SQLite do Optuna abre no Drive, GPU detectada, hash das dobras igual ao de T-2.3); ao
-     fim de cada etapa, chama `verify.update_session_report` com o bloco daquela etapa (checks em
-     cada tarefa abaixo). Bloco de modelo pulado por `CONCLUIDO.json` é mantido como estava.
-- Notebook `notebooks/04_modelos.ipynb`: só monta o Drive, carrega o config e chama `run_all_models`
-  (sem lógica no notebook). No fim, copia o `sessao-m1.json` do Drive para download.
+     gravável, SQLite do Optuna abre no Drive, hash das dobras igual ao de T-2.3, e
+     `verify.environment()` com GPU e RAM iguais ou acima de `cfg.ambiente`); ao fim de cada
+     etapa, chama `verify.update_session_report` com o bloco daquela etapa (checks em cada tarefa
+     abaixo). Bloco de modelo pulado por `CONCLUIDO.json` é mantido como estava.
+  7. **Gravações no Drive** (relatório, `CONCLUIDO.json`, OOF): grave num arquivo temporário e troque
+     pelo definitivo com `os.replace` (troca atômica: quem lê nunca pega um arquivo pela metade), com
+     até 3 novas tentativas em caso de erro de E/S. O teste de 2026-11-15 teve uma falha passageira
+     ao criar arquivo no Drive.
+- Entrada em segundo plano (D-64): `python -m dengue_sinan.runner --config <caminho>` roda
+  `run_all_models` num processo separado, com stdout e stderr num log no Drive. O código de saída
+  diferente de 0 indica falha.
+- Notebook `notebooks/04_modelos.ipynb`: só monta o Drive, carrega o config, confere o ambiente e
+  dispara a entrada acima em segundo plano (sem lógica no notebook); uma célula curta lê o
+  `sessao-m1.json` para acompanhar.
 - Registre no MLflow o hardware (GPU, nº de vCPUs, RAM) uma vez por sessão.
 - Teste com dados sintéticos e 2 modelos baratos: interromper depois do 1º e rodar de novo pula o 1º
   e termina o 2º; hash de dobras diferente faz o modelo rodar de novo.
 - Teste local da queda simulada: `run_all_models` com uma opção de teste que levanta erro depois do
   1º modelo; na reexecução, o 1º é pulado (`CONCLUIDO.json`), o 2º termina e o relatório tem os dois
   blocos com `"passou": true`.
+- Teste local da gravação: uma falha de E/S simulada na 1ª tentativa é repetida e o arquivo final
+  fica íntegro; a entrada `python -m dengue_sinan.runner` devolve código de saída 1 quando
+  `run_all_models` levanta erro.
 - **Pronto quando:** testes passam e o bloco `checagem_inicial` do `sessao-m1.json` tem
   `"passou": true`.
 

@@ -47,6 +47,8 @@ contados; **2024 intocado**.
     poda_tentativas_iniciais: 5   # MedianPruner(n_startup_trials)
     poda_dobras_aquecimento: 2    # MedianPruner(n_warmup_steps): só poda depois da 2ª dobra
   bootstrap_pareado: 1000
+  # D-64: ambiente mínimo conferido antes da sessão dos modelos (Pro, T4 + RAM alta)
+  ambiente: {gpu: "T4", ram_min_gib: 50}   # no Colab gratuito: {gpu: null, ram_min_gib: 12}
   ```
 - Crie `src/dengue_sinan/config.py` com `load_config(path) -> dict` (ou dataclass) e um teste
   que carrega `config/base.yaml`.
@@ -65,8 +67,14 @@ contados; **2024 intocado**.
   - `update_session_report(path, bloco, checks, cfg) -> Path` (D-57): cria ou reescreve o bloco
     `bloco` do relatório de sessão sem apagar os outros, e recalcula o `"passou"` geral (todos os
     blocos passaram e a sessão terminou);
+  - `show_report(path) -> str` (D-64): imprime o conteúdo do JSON e o SHA-256 dos bytes do arquivo,
+    e devolve o hash. É o que o agente lê pelo MCP do Colab para salvar a cópia local e conferir;
+  - `environment(cfg) -> list[dict]` (D-64): checks de GPU (nome) e RAM total contra
+    `cfg["ambiente"]`, mais o nº de vCPUs só como registro;
   - testes: um check que passa e um que falha; o JSON lido de volta tem o mesmo conteúdo; uma
-    lista ou DataFrame como `obtido` levanta erro; atualizar um bloco preserva os demais.
+    lista ou DataFrame como `obtido` levanta erro; atualizar um bloco preserva os demais;
+    `show_report` devolve o mesmo SHA-256 que `hashlib` calcula sobre o arquivo; `environment`
+    reprova RAM abaixo do mínimo (com valores simulados).
 - `reports/` (incluindo `reports/verificacao/`) **fica versionado**, só com agregados. Antes de
   cada commit, confira R7: nenhuma tabela com linhas individuais e nenhuma célula com < 10 casos.
 - Como rodar no Colab: [quickstart › Google Colab](../quickstart.md#google-colab). Não crie outro

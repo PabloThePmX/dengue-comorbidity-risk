@@ -36,13 +36,13 @@
 - [ ] **Todo `[VERIFY]` conferido ou listado como pendente.** Pendentes:
   - dados: significado de `NDUPLIC_N` e `TP_SISTEMA` no dicionário; valores de `ALRM_*` nos casos
     10 (só no M2); eventos por par de comorbidades (Marco 2);
-  - ambiente: saldo e GPUs do Colab Pro; vCPUs da VM e `PRAUC` do CatBoost em GPU; torch com
-    CUDA 13 no Colab;
+  - ambiente: saldo do Colab Pro; `PRAUC` do CatBoost em GPU; torch com CUDA 13 no Colab; SQLite
+    do Optuna no Drive (vCPUs e RAM alta conferidos em 2026-11-15: 8 vCPUs, 50,99 GiB);
   - TabFM: licença para uso acadêmico, limite de contexto e de features, velocidade;
   - literatura: ler no texto completo Sangkaew et al., Steyerberg & Harrell e Collins (parte 1);
     conferir no PDF a validação de Huang et al.
 - [x] [Registro de decisões](../research.md#registro-de-decisões) com uma entrada por escolha
-  significativa (D-01 a D-63).
+  significativa (D-01 a D-64).
 - [ ] **Perguntas em aberto respondidas.** Restam Q-08 (espaço de busca), Q-13 (profissional de
   saúde) e Q-14 (modelo da demo).
 

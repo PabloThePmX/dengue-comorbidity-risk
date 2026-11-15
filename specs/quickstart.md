@@ -42,11 +42,37 @@ Dados, treino e avaliação.
 5. Rodar os notebooks, que só chamam funções de `src/` (NFR-05):
    - dados e profiling: `profiling/01_profiling.ipynb`;
    - modelos M1 em sessão única: `notebooks/04_modelos.ipynb` (após T-4.3b, D-53).
-6. Se a tarefa gera relatório de verificação (D-56), baixe o JSON (`reports/verificacao/T-x.y.json`;
+6. Relatório de verificação (D-56): pelo MCP, o agente traz o JSON
+   ([Colab pelo MCP](#colab-pelo-mcp)). Sem o MCP, baixe o JSON (`reports/verificacao/T-x.y.json`;
    na sessão dos modelos, só `sessao-m1.json`, D-57) para a mesma pasta no repositório local e faça
-   commit. O notebook também grava uma cópia no Drive. Não digite nenhum número: o agente lê o
-   arquivo.
+   commit. O notebook também grava uma cópia no Drive. Não digite nenhum número.
 7. Ao terminar, desconectar o ambiente, para não gastar unidades com GPU ociosa.
+
+## Colab pelo MCP
+
+Caminho padrão das verificações (D-64): o agente cria e executa as células num notebook aberto no
+seu navegador, pelo [MCP oficial do Colab](https://github.com/googlecolab/colab-mcp). As ferramentas
+só mexem em células; o ambiente e as autorizações continuam com você.
+
+**Instalação (uma vez por máquina):** com o `uv` instalado,
+`claude mcp add --scope local colab -- uvx git+https://github.com/googlecolab/colab-mcp`. As
+ferramentas aparecem na sessão seguinte do Claude Code.
+
+**O que fica com você:**
+1. Estar logado no Google no navegador padrão. Quando o agente chamar
+   `open_colab_browser_connection`, abre uma aba do Colab; ela tem 60 s para conectar.
+2. Escolher o ambiente em *Ambiente de execução → Alterar o tipo de ambiente de execução*. Para a
+   sessão dos modelos: GPU T4 + "RAM alta". **Salve e confira:** no teste de 2026-11-15, a RAM alta
+   só foi aplicada na segunda vez. O agente confere GPU e RAM por código antes de rodar; a troca
+   reinicia o ambiente, mas não derruba a conexão do MCP.
+3. Autorizar o acesso ao Drive quando o Google pedir.
+4. Dar o "ok" para commit e push antes de cada execução.
+5. Deixar a aba aberta até o agente terminar, e desconectar o ambiente no fim.
+
+**Comportamento observado (2026-11-15):** `run_code_cell` só volta quando a célula termina
+(testado até 2 min); um processo em segundo plano volta na hora e pode ser acompanhado por células
+curtas; reiniciar a sessão mata o processo, mas o que já estava no Drive fica; o Drive pode falhar
+ao criar um arquivo na primeira tentativa.
 
 ## Dados
 

@@ -95,6 +95,8 @@ D-56. `reports/verificacao/<tarefa>.json`, gerado por `verify.write_report` no C
 - `passou` (nível de cima) = todos os `checks` passaram.
 - `esperado` vem sempre de `config/esperado.yaml`; nunca é digitado no notebook.
 - `obtido` só aceita número, texto ou booleano.
+- Pelo MCP do Colab (D-64), `verify.show_report` imprime o arquivo e o SHA-256 dos seus bytes; a
+  cópia salva em `reports/verificacao/` precisa ter o mesmo SHA-256. O formato do JSON não muda.
 
 ## Relatório da sessão dos modelos
 

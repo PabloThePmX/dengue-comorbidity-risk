@@ -80,7 +80,7 @@ Módulos de `src/dengue_sinan/`:
 | `features.py` | Decodificação da idade com fallback por `ANO_NASC`; região pelo IBGE | D-50 | Existe (Marco 1) |
 | `profiling.py` | População, alvo, faixas e tabelas do profiling | FR-02 | Existe (Marco 1) |
 | `config.py` | Carrega `config/base.yaml` | NFR-02 | T-2.0 |
-| `verify.py` | Relatório de verificação do Colab (`reports/verificacao/*.json`) contra `config/esperado.yaml` | P10, D-56, D-57 | T-2.0 |
+| `verify.py` | Relatório de verificação do Colab (`reports/verificacao/*.json`) contra `config/esperado.yaml`; impressão com SHA-256 e conferência do ambiente para o MCP | P10, D-56, D-57, D-64 | T-2.0 |
 | `dataset.py` | Carrega a população e monta o frame de features | FR-02 | T-2.1 |
 | `checks.py` | Checks bloqueantes de qualidade | FR-03 | T-2.1 |
 | `guard.py` | `assert_dev_only`: bloqueia 2024 antes da avaliação final | FR-09, R1 | T-2.2 |
@@ -94,7 +94,7 @@ Módulos de `src/dengue_sinan/`:
 | `preprocess.py` | `ColumnTransformer` por família de modelo | R5 | T-4.1 |
 | `cv.py` | `run_loro`: dobras, early stopping, predições fora da dobra | FR-17, FR-22 | T-4.2 |
 | `tuning.py` | Optuna: cronometragem, poda, estudo retomável | NFR-01, D-43, D-53 | T-4.3 |
-| `runner.py` | `run_all_models`: sessão única com retomada; grava `sessao-m1.json` | D-53, D-57 | T-4.3b |
+| `runner.py` | `run_all_models`: sessão única com retomada; grava `sessao-m1.json`; entrada `python -m` para rodar em segundo plano | D-53, D-57, D-64 | T-4.3b |
 | `mlp.py` | MLP em PyTorch com interface do scikit-learn | D-51 | T-4.6b |
 | `evaluate.py` | `evaluate_test_once` + lacre | FR-09, R2 | T-5.1 |
 
@@ -130,9 +130,9 @@ Como cumprir a NFR-01. Pesquisa de planos, preços e fontes do Colab:
 - **Plano usado pelo Programador:** Google AI Pro para estudantes (assinatura paga), com **200 unidades de computação por mês** no Colab, aceleradores mais potentes e sessões mais longas (confirmado na página da oferta em 2026-11-03).
   - `[VERIFY]` Depois de assinar: conferir no Colab (*Ambiente de execução → Ver recursos*) se o saldo aparece como 200, quais GPUs ficam disponíveis e se as unidades não usadas acumulam.
 - **Consumo e custo da sessão de modelos (≈ 4 h, D-53):** T4 ≈ 1,2 unidade/h, L4 ≈ 1,7/h, A100 40 GB ≈ 5,4/h (medição de março de 2026). A sessão custa ~5 unidades em T4, ~7 em L4 e ~22 em A100; 200 unidades/mês cobrem cerca de 9 sessões em A100 e mais de 25 em T4/L4. GPU ociosa continua consumindo unidades.
-- **RAM:** a opção "High RAM" dá bem mais memória (até ~53 GB em uma fonte). Com ela, Random Forest e as 5 dobras com todos os dados devem caber sem subamostra.
+- **RAM alta (medida em 2026-11-15):** a VM com GPU T4 e "RAM alta" tem **50,99 GiB e 8 vCPUs** (a padrão, 12,67 GiB e 2 vCPUs). Com ela, Random Forest e as 5 dobras com todos os dados devem caber sem subamostra. A opção pode não ser aplicada na primeira vez que é salva, por isso a checagem inicial confere a RAM por código (`cfg.ambiente`, D-64).
 - **Como usar `[ASSUMPTION]`:** o Pro é um **acelerador**, não muda os orçamentos de tempo da tabela abaixo (mantém a comparação justa entre modelos). Sessão única (D-53) numa VM com GPU (L4 de preferência, T4 serve) e High RAM: XGBoost (`device="cuda"`), CatBoost (`task_type="GPU"`), MLP e TabFM na GPU; elastic net e Random Forest na CPU da mesma VM. A100 só se o TabFM exigir. Desconectar o ambiente ao fim da sessão.
-  - `[VERIFY]` Na VM escolhida: nº de vCPUs (afeta o Random Forest) e se o CatBoost em GPU aceita `PRAUC` como métrica de early stopping; se não aceitar, CatBoost volta para a CPU.
+  - `[VERIFY]` Se o CatBoost em GPU aceita `PRAUC` como métrica de early stopping; se não aceitar, CatBoost volta para a CPU.
   - `[VERIFY]` **torch com CUDA 13 no Colab.** O `uv.lock` (2026-11-03) resolve o `torch` 2.15.0 para Linux com wheels de CUDA 13 (pacotes `nvidia-*-cu13`); no Windows local, a mesma versão vem só com CPU (`2.15.0+cpu`). Depois de instalar o projeto no Colab, conferir se o driver suporta CUDA 13 (`nvidia-smi`) e se `torch.cuda.is_available()` dá `True`. Se não der, as alternativas são: usar o torch que já vem no Colab, baixando o piso de versão no `pyproject.toml`, ou instalar o torch do índice da PyTorch para a versão de CUDA do Colab. A escolha fica com o Programador, e a versão usada vai para o MLflow.
 - **Reprodutibilidade (D-44):** mesmo executado no Pro, o pipeline MUST continuar executável no Colab gratuito, ainda que mais devagar ou com subamostra na busca. Assim o professor ou outra pessoa consegue reproduzir sem assinatura.
 - **Orçamento por modelo** `[ASSUMPTION]` (relógio de parede da busca com as 5 dobras; revisto em D-53). É um **teto**: o orçamento real sai da cronometragem abaixo.
@@ -149,6 +149,7 @@ Como cumprir a NFR-01. Pesquisa de planos, preços e fontes do Colab:
   Total dos tetos ≈ 3 h 20; com carga dos dados, calibração, comparação e retreino do vencedor, **≈ 4 h numa sessão única** (D-53), antes ≈ 8 h. Cabe no limite de ~12 h do Colab gratuito.
 - **Cronometragem antes da busca (D-53):** para cada modelo, a 1ª tentativa usa os **hiperparâmetros padrão** da biblioteca nas 5 dobras e mede o tempo `t`. Orçamento = mín(teto, `t` × máx. de tentativas), com piso de 10 min. Se 3 tentativas (`3t`) não couberem no teto, a busca usa a subamostra estratificada (regra abaixo). A tentativa padrão também é a referência: a busca nunca entrega algo pior que o padrão.
 - **Sessão única e retomada (D-53):** dados, dobras e validações internas são montados uma vez e salvos no Drive com hash; todos os modelos usam exatamente essas linhas. Cada modelo concluído grava um marcador no Drive; se a sessão cair, a reexecução pula os concluídos e o Optuna retoma o estudo do modelo em andamento. Ordem: elastic net → XGBoost → CatBoost → MLP → Random Forest → TabFM (os baratos primeiro; o de maior risco de memória e o que depende do model card por último).
+- **Execução pelo MCP do Colab (D-64):** o agente dispara a sessão em segundo plano (`python -m dengue_sinan.runner`, log no Drive) e a acompanha com células curtas que leem o `sessao-m1.json`. Reiniciar a sessão do Colab mata o processo (testado em 2026-11-15); a retomada acima cobre isso. Toda gravação no Drive é atômica (`os.replace`) e tem novas tentativas, porque o Drive falhou uma vez ao criar arquivo no teste. `[VERIFY]` SQLite do Optuna no Drive (travamento de arquivo), na checagem inicial da T-4.3b.
 - **Regras do orçamento:**
   - A busca para no que vier primeiro: o tempo do orçamento ou o máx. de tentativas do modelo (tabela acima) `[ASSUMPTION]`.
   - Poda: uma tentativa claramente pior que a mediana depois das 2 primeiras dobras é interrompida, para gastar o tempo nas promissoras. As dobras rodam em ordem fixa, da região com mais eventos para a com menos (Sudeste, Sul, Centro-Oeste, Nordeste, Norte), para a poda decidir com as dobras de menor variância `[ASSUMPTION]`.

@@ -17,15 +17,18 @@ challenge, and write down what we agreed.
 >    Marco N = tasks `T-N.x`), that still has a `[ ]` or `[~]` task; read only that one.
 > 2. If a task is marked `[~]` (pending a Colab check), first read its report in
 >    `reports/verificacao/` (`<task>.json`, or `sessao-m1.json` for all of Marco 4; D-56, D-57).
->    Never ask me to type results; if the file is missing, ask me only to run the notebook and drop
->    the file in that folder. Otherwise take the **first task still marked `[ ]`**, in file order.
+>    If it is missing and the Colab MCP (`mcp__colab__*`) is available, run the check yourself
+>    (step 4); otherwise ask me only to run the notebook and drop the file in that folder. Never ask
+>    me to type results. Otherwise take the **first task still marked `[ ]`**, in file order.
 >    Read only the files and sections that task cites.
 > 3. Follow its steps and its "Pronto quando" exactly. Stop at every 🛑 and ask me.
 > 4. Run `uv run pytest -q` and `uv run ruff check .`, mark `[x]` only if every "Pronto quando"
 >    item was verified, and log the result in "Registro de execução" of `00-como-usar.md` (or
 >    "Registro de problemas" if something went wrong). If an item can only be checked in Colab,
->    follow "Verificação no Colab" in that file: write the check as code that emits the JSON
->    report, mark `[~]`, tell me which notebook cell to run, and stop.
+>    follow "Verificação no Colab" in that file (D-64): write the check as code that emits the JSON
+>    report; then, with the Colab MCP, run it, save the printed JSON and confirm its SHA-256 before
+>    marking `[x]`; without the MCP, mark `[~]`, tell me which notebook cell to run, and stop.
+>    Cells you run through the MCP print aggregates only (R7): their output enters this chat.
 > 5. Never change `constitution.md`, `spec.md`, or `plan.md` to make code fit; ask me.
 
 ---
