@@ -151,3 +151,16 @@ def test_optional_missing_column_is_blank():
 def test_markdown_table_formats_numbers():
     md = pf.markdown_table(pd.DataFrame({"a": [1234], "b": [0.5]}))
     assert "| 1 234 | 0.5 |" in md
+
+
+def test_gestante_derivada_so_marca_cs_gestant_1_a_4():
+    # CS_GESTANT: 1–4 = gestante (1º a 3º trimestre, idade gestacional ignorada); 5 = não;
+    # 6 = não se aplica; 9 = ignorado; em branco = sem informação. Só 1–4 viram True.
+    df = pd.DataFrame({
+        "CS_GESTANT": ["1", "2", "3", "4", "5", "6", "9", None],
+        "CLASSI_FIN": ["12"] * 8,
+        "EVOLUCAO": ["1"] * 8,
+        "NU_IDADE_N": ["4030"] * 8,
+    })
+    out = pf.add_derived(df)
+    assert out["gestante"].tolist() == [True, True, True, True, False, False, False, False]

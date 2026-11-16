@@ -32,6 +32,13 @@ RACA_ROTULOS = {"1": "Branca", "2": "Preta", "3": "Amarela", "4": "Parda", "5": 
 NIVEIS_RACA = [*RACA_ROTULOS.values(), "Ignorado/em branco"]
 PARES = list(itertools.combinations(COMORBIDADES, 2))  # 21 pares (D-52)
 NOTA_RISCOS = "riscos brutos, descritivos; não substituem o E1"
+# Limitação conhecida e aceita (decisão do Programador, Marco 2): sem números aqui (R7).
+NOTA_SEXO = (
+    "Sexo, no desfecho grave ou óbito: o “I” tem menos de 10 eventos e essa célula é suprimida; "
+    "o “M” é suprimido como complemento; a soma M + I continua dedutível pelo total publicado "
+    "(o total de eventos menos o de F), limitação conhecida e aceita para agregados de dados "
+    "abertos. A análise de sexo de verdade vem do E1."
+)
 
 
 # --- Carga -----------------------------------------------------------------------------------
@@ -405,8 +412,8 @@ def gerar(cfg: dict) -> dict:
     )
     fusao = (
         "Exibição: nas comorbidades, “Não ou ausente” reúne “Não” e “Ausente” (o E1 mantém os 3 "
-        "níveis, D-07); em raça/cor, “Amarela ou indígena” reúne as duas categorias. Sexo "
-        "mantém “I” (decisão pendente do Programador)."
+        "níveis, D-07); em raça/cor, “Amarela ou indígena” reúne as duas categorias. "
+        f"{NOTA_SEXO}"
     )
 
     caracteristicas = tabela_caracteristicas(df)

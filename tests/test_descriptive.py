@@ -201,8 +201,11 @@ def test_gerar_publica_arquivos_sem_numeros_pequenos_e_guarda_contagens_fora_de_
     linhas_tabela = [ln for ln in tabela_md.splitlines() if ln.startswith("|")]
     assert any("Não ou ausente" in ln for ln in linhas_tabela)
     assert not any("| Ausente |" in ln for ln in linhas_tabela)
+    for texto in (riscos_md, tabela_md):
+        assert d.NOTA_SEXO in texto  # nota de limitação do Sexo I (decisão do Programador)
+        assert "decisão pendente" not in texto
 
-    interno = Path(cfg["caminhos"]["dados"]) / "descritiva"
+    interno =Path(cfg["caminhos"]["dados"]) / "descritiva"
     assert (interno / "pares_comorbidades.csv").exists()
     assert (interno / "combinacoes_3_ou_mais.csv").exists()
     assert not list(Path(cfg["caminhos"]["relatorios"]).rglob("*.csv"))  # nada interno em reports/
@@ -210,6 +213,14 @@ def test_gerar_publica_arquivos_sem_numeros_pequenos_e_guarda_contagens_fora_de_
     assert resumo["casos_total"] == 5
     assert resumo["pares_com_10_eventos"] == 0
     assert resumo["combinacoes_3_ou_mais_com_10_casos"] == 0
+
+
+def test_nota_do_sexo_explica_supressao_e_deducao_sem_numero_de_1_a_9():
+    assert "suprimida" in d.NOTA_SEXO
+    assert "M + I" in d.NOTA_SEXO and "dedutível" in d.NOTA_SEXO
+    assert "E1" in d.NOTA_SEXO
+    sem_nome_do_experimento = d.NOTA_SEXO.replace("E1", "")  # "E1" é o nome do experimento
+    assert not re.search(r"(?<!\d)[1-9](?!\d)", sem_nome_do_experimento)  # "10" é só o limiar
 
 
 def test_formatos_publicados_nunca_mostram_contagem_de_1_a_9():
