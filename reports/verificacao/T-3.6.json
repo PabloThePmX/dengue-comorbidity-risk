@@ -1,0 +1,129 @@
+{
+  "tarefa": "T-3.6",
+  "gerado_em": "2026-11-16T20:11:59Z",
+  "commit": "c644d4364392d2d3bc37f87e528b9302d452900c",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 15.9,
+    "gpu": "sem GPU"
+  },
+  "hash_dados": {
+    "2022": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+    "2023": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90"
+  },
+  "checks": [
+    {
+      "nome": "bloqueio_statsmodels_ativo",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "carga_sem_statsmodels_no_processo",
+      "esperado": false,
+      "obtido": false,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "perfis_comparados",
+      "esperado": 10,
+      "obtido": 10,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "diferenca_max_risco_e_ic",
+      "esperado": 0.0,
+      "obtido": 0.0,
+      "tolerancia": 1e-09,
+      "passou": true
+    },
+    {
+      "nome": "diferenca_max_razao_de_risco_e_ic",
+      "esperado": 0.0,
+      "obtido": 0.0,
+      "tolerancia": 1e-09,
+      "passou": true
+    },
+    {
+      "nome": "metadata_fr12_completo",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tipo_payload_e1",
+      "esperado": "e1",
+      "obtido": "e1",
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "payload_sem_pickle",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "sha256_e1_json",
+      "esperado": "d001ec87470cb8b583aba1aa18d0de49bb201d79a2ef079c7971f594c2ce8a68",
+      "obtido": "d001ec87470cb8b583aba1aa18d0de49bb201d79a2ef079c7971f594c2ce8a68",
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "sha256_e1_npz",
+      "esperado": "7d669a7f2faba9d28c5974c0095d6ae8ef790400a3af6fa29c8c5b142c289ebc",
+      "obtido": "7d669a7f2faba9d28c5974c0095d6ae8ef790400a3af6fa29c8c5b142c289ebc",
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "bundle_menor_que_1_MB",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "matrizes_sem_ordem_de_linhas",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "sem_contagem_de_1_a_9",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "sem_eventos_por_termo",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "nos_e_colunas_do_bundle_iguais_ao_ajuste",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "carga_mais_um_perfil_abaixo_de_1s_NFR06",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

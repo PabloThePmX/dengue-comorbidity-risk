@@ -8,6 +8,7 @@ caminhos:
   dados: "data"            # no Colab: /content/drive/MyDrive/dengue-comorbidity-risk/data
   mlruns: "mlruns"
   relatorios: "reports"
+  modelos: "models"        # artefatos serializados (T-3.6): pequenos, versionados no git (sem dados)
 dias_notificacao_max: 60
 faixas: [0, 5, 15, 40, 60, 80]
 validacao_interna_frac: 0.10

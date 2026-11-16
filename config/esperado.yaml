@@ -25,3 +25,22 @@ fluxograma:
     classi_fin_10_11_12: 1426773
     rotulo_conhecido: 1304949
     idade_valida: 1304909
+# E1 (Marco 3) ajustado em 2022–23 (T-3.1, T-3.2, T-3.5 e T-3.6). Fonte: Registro de execução de
+# specs/tasks/00-como-usar.md e reports/e1/. Os checks da T-3.5 e da T-3.6 comparam o obtido com
+# estes valores (R: nada de número esperado no código da verificação).
+e1:
+  casos: 2453208
+  eventos: 3985
+  parametros: 44
+  pares_incluidos: 15
+  pares_excluidos: 6
+  perfis_grupo_1: 1
+  perfis_grupo_2: 7
+  perfis_grupo_3: 21
+  perfis_grupo_4: 75
+  perfis_grupo_4_com_estimativa: 53
+  perfis_grupo_4_dados_insuficientes: 22
+  linhas_tabela_perfis: 940
+  celulas_publicadas: 359
+  combinacoes_3_ou_mais: 99
+  combinacoes_3_ou_mais_com_minimo: 75

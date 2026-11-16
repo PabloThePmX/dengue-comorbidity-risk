@@ -1,0 +1,169 @@
+{
+  "colunas": [
+    "Intercepto",
+    "Idade (spline) 1",
+    "Idade (spline) 2",
+    "Idade (spline) 3",
+    "Idade (spline) 4",
+    "Idade (spline) 5",
+    "Sexo: M (ref. F)",
+    "Sexo: I (ref. F)",
+    "Gestante: Sim",
+    "DIABETES: Ausente",
+    "DIABETES: Sim",
+    "HEMATOLOG: Ausente",
+    "HEMATOLOG: Sim",
+    "HEPATOPAT: Ausente",
+    "HEPATOPAT: Sim",
+    "RENAL: Ausente",
+    "RENAL: Sim",
+    "HIPERTENSA: Ausente",
+    "HIPERTENSA: Sim",
+    "ACIDO_PEPT: Ausente",
+    "ACIDO_PEPT: Sim",
+    "AUTO_IMUNE: Ausente",
+    "AUTO_IMUNE: Sim",
+    "DIABETES x HEMATOLOG",
+    "DIABETES x HEPATOPAT",
+    "DIABETES x RENAL",
+    "DIABETES x HIPERTENSA",
+    "DIABETES x AUTO_IMUNE",
+    "HEMATOLOG x HEPATOPAT",
+    "HEMATOLOG x RENAL",
+    "HEMATOLOG x HIPERTENSA",
+    "HEMATOLOG x AUTO_IMUNE",
+    "HEPATOPAT x RENAL",
+    "HEPATOPAT x HIPERTENSA",
+    "RENAL x HIPERTENSA",
+    "RENAL x AUTO_IMUNE",
+    "HIPERTENSA x ACIDO_PEPT",
+    "HIPERTENSA x AUTO_IMUNE",
+    "HIPERTENSA x Idade (spline) 1",
+    "HIPERTENSA x Idade (spline) 2",
+    "HIPERTENSA x Idade (spline) 3",
+    "DIABETES x Idade (spline) 1",
+    "DIABETES x Idade (spline) 2",
+    "DIABETES x Idade (spline) 3"
+  ],
+  "features": [
+    "idade_anos",
+    "sexo",
+    "gestante",
+    "DIABETES",
+    "HEMATOLOG",
+    "HEPATOPAT",
+    "RENAL",
+    "HIPERTENSA",
+    "ACIDO_PEPT",
+    "AUTO_IMUNE"
+  ],
+  "graus_de_liberdade": {
+    "idade": 5,
+    "idade_interacao": 3
+  },
+  "idade_referencia": 40,
+  "nos": {
+    "idade": [
+      0.0,
+      17.0,
+      27.0,
+      39.0,
+      53.0,
+      120.0
+    ],
+    "idade_interacao": [
+      0.0,
+      24.0,
+      43.0,
+      120.0
+    ]
+  },
+  "pares_excluidos": [
+    [
+      "DIABETES",
+      "ACIDO_PEPT"
+    ],
+    [
+      "HEMATOLOG",
+      "ACIDO_PEPT"
+    ],
+    [
+      "HEPATOPAT",
+      "ACIDO_PEPT"
+    ],
+    [
+      "HEPATOPAT",
+      "AUTO_IMUNE"
+    ],
+    [
+      "RENAL",
+      "ACIDO_PEPT"
+    ],
+    [
+      "ACIDO_PEPT",
+      "AUTO_IMUNE"
+    ]
+  ],
+  "pares_incluidos": [
+    [
+      "DIABETES",
+      "HEMATOLOG"
+    ],
+    [
+      "DIABETES",
+      "HEPATOPAT"
+    ],
+    [
+      "DIABETES",
+      "RENAL"
+    ],
+    [
+      "DIABETES",
+      "HIPERTENSA"
+    ],
+    [
+      "DIABETES",
+      "AUTO_IMUNE"
+    ],
+    [
+      "HEMATOLOG",
+      "HEPATOPAT"
+    ],
+    [
+      "HEMATOLOG",
+      "RENAL"
+    ],
+    [
+      "HEMATOLOG",
+      "HIPERTENSA"
+    ],
+    [
+      "HEMATOLOG",
+      "AUTO_IMUNE"
+    ],
+    [
+      "HEPATOPAT",
+      "RENAL"
+    ],
+    [
+      "HEPATOPAT",
+      "HIPERTENSA"
+    ],
+    [
+      "RENAL",
+      "HIPERTENSA"
+    ],
+    [
+      "RENAL",
+      "AUTO_IMUNE"
+    ],
+    [
+      "HIPERTENSA",
+      "ACIDO_PEPT"
+    ],
+    [
+      "HIPERTENSA",
+      "AUTO_IMUNE"
+    ]
+  ]
+}

@@ -45,15 +45,36 @@ Saída (`riscos.csv`):
 
 FR-06. Formato:
 
-| Perfil | Faixa etária | Risco estimado | IC 95% | Razão vs. "saudável" mesma faixa |
-|---|---|---|---|---|
-| Sem comorbidades | 60–79 | … | … | 1,0 |
-| Só hipertensão | 60–79 | … | … | … |
-| Diabetes + renal crônica | 60–79 | … | … | … |
-| 3+ comorbidades | 60–79 | … | … | … |
+| Perfil | Faixa etária | Sexo | Risco estimado | IC 95% | Razão vs. "saudável" mesma faixa e sexo | Aviso |
+|---|---|---|---|---|---|---|
+| Sem comorbidades | 60–79 | F | … | … | 1,0 | — |
+| Só hipertensão | 60–79 | F | … | … | … | — |
+| Diabetes + renal crônica | 60–79 | F | … | … | … | — |
+| 3 ou 4 comorbidades | 60–79 | F | … | … | … | — |
+
+Sexo F e M em linhas separadas `[ASSUMPTION]`. Célula com menos de 10 casos observados: "—" (R7). Combinações de 5 ou mais comorbidades: "dados insuficientes", sem número (D-78). Perfis que usam pares que dependem do padrão suspeito levam o aviso (D-77).
 
 **Fonte da tabela de perfis e da aba Perfil (D-20):** o modelo explicativo **E1** (só perfil: idade, sexo, gestação, comorbidades). A pergunta original ("se um hipertenso pegar dengue, qual o risco?") é feita antes dos sintomas, e E1 responde exatamente isso. M1 é o modelo preditivo de triagem, exposto na aba Triagem (D-27).
 - `[ASSUMPTION]` E1 é ajustado em 2022–23 e tem calibração checada em 2024, como os demais modelos. ICs dos perfis vêm da matriz de covariância da logística (método delta).
+
+## Artefato do modelo
+
+FR-12, D-81. Cada modelo serializado é uma **pasta**, criada por `artifacts.save_bundle(obj, caminho,
+metadados)` e lida por `artifacts.load_bundle(caminho)`:
+
+```
+models/<modelo>/
+  metadata.json     schema_version, tipo_payload, criado_em_utc, versao_codigo.commit,
+                    bibliotecas, config, dados (sha256_dbc e sha256_parquet por ano), data_treino,
+                    metricas_validacao, features, payload (SHA-256 de cada arquivo)
+  payload/          E1: e1.npz (coeficientes, covariância, nós) + e1.json (colunas, pares, features)
+                    M1 (T-4.10): joblib do Pipeline, com hash e versões no metadata
+```
+
+- Sem dados e sem contagens por termo ou nível (R7, NFR-03); sem pickle no E1.
+- `load_bundle` recusa o artefato se algum SHA-256 do payload não bater, se o `schema_version` for de
+  uma versão futura ou se o tipo for desconhecido (`ArtefatoInvalido`).
+- O E1 carregado calcula risco, IC e razão de risco só com NumPy (sem `statsmodels`).
 
 ## Demo
 

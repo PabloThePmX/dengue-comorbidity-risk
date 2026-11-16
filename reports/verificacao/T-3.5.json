@@ -1,0 +1,94 @@
+{
+  "tarefa": "T-3.5",
+  "gerado_em": "2026-11-16T19:38:14Z",
+  "commit": "c644d4364392d2d3bc37f87e528b9302d452900c",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 15.9,
+    "gpu": "sem GPU"
+  },
+  "hash_dados": {
+    "2022": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+    "2023": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90"
+  },
+  "checks": [
+    {
+      "nome": "perfis_grupo_1",
+      "esperado": 1,
+      "obtido": 1,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "perfis_grupo_2",
+      "esperado": 7,
+      "obtido": 7,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "perfis_grupo_3",
+      "esperado": 21,
+      "obtido": 21,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "pares_dados_insuficientes",
+      "esperado": 6,
+      "obtido": 6,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "combinacoes_3_ou_mais_no_arquivo",
+      "esperado": 99,
+      "obtido": 99,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "perfis_grupo_4_com_minimo",
+      "esperado": 75,
+      "obtido": 75,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "perfis_grupo_4_com_estimativa",
+      "esperado": 53,
+      "obtido": 53,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "perfis_grupo_4_dados_insuficientes",
+      "esperado": 22,
+      "obtido": 22,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "celulas_publicadas_com_minimo",
+      "esperado": 359,
+      "obtido": 359,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "numeros_1_a_9_nas_tabelas",
+      "esperado": 0,
+      "obtido": 0,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "linhas_completa",
+      "esperado": 940,
+      "obtido": 940,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

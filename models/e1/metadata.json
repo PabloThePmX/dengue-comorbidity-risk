@@ -1,0 +1,127 @@
+{
+  "bibliotecas": {
+    "numpy": "2.5.4",
+    "pandas": "2.3.3",
+    "python": "3.13.16",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "statsmodels": "0.15.0"
+  },
+  "config": {
+    "ambiente": {
+      "gpu": "T4",
+      "ram_min_gib": 50
+    },
+    "ano_teste": 2024,
+    "anos_dev": [
+      2022,
+      2023
+    ],
+    "bootstrap": {
+      "calibracao": 2000,
+      "metricas": 1000
+    },
+    "bootstrap_pareado": 1000,
+    "caminhos": {
+      "dados": "data",
+      "mlruns": "mlruns",
+      "modelos": "models",
+      "relatorios": "reports"
+    },
+    "dca_limiares": {
+      "max": 0.05,
+      "min": 0.001,
+      "passos": 50
+    },
+    "dias_notificacao_max": 60,
+    "faixas": [
+      0,
+      5,
+      15,
+      40,
+      60,
+      80
+    ],
+    "optuna": {
+      "max_tentativas": {
+        "catboost": 25,
+        "elastic_net": 15,
+        "mlp": 25,
+        "random_forest": 25,
+        "tabfm": 1,
+        "xgboost": 30
+      },
+      "poda_dobras_aquecimento": 2,
+      "poda_tentativas_iniciais": 5
+    },
+    "orcamento_piso_min": 10,
+    "orcamento_teto_min": {
+      "catboost": 40,
+      "elastic_net": 20,
+      "mlp": 40,
+      "random_forest": 40,
+      "tabfm": 30,
+      "xgboost": 30
+    },
+    "ordem_dobras": [
+      "Sudeste",
+      "Sul",
+      "Centro-Oeste",
+      "Nordeste",
+      "Norte"
+    ],
+    "ordem_modelos": [
+      "elastic_net",
+      "xgboost",
+      "catboost",
+      "mlp",
+      "random_forest",
+      "tabfm"
+    ],
+    "seed": 20261103,
+    "supressao_min_celula": 10,
+    "validacao_interna_frac": 0.1
+  },
+  "criado_em_utc": "2026-11-16T20:11:54+00:00",
+  "dados": {
+    "2022": {
+      "sha256_dbc": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+      "sha256_parquet": "b07be7492f7e22a474626929dd00f2f3e5fc0f4610820aedebd6c5f82e4586bb"
+    },
+    "2023": {
+      "sha256_dbc": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90",
+      "sha256_parquet": "78ea484d689bbe4e2beb8b463f44229e6d0aff20f24e95b317eb4c4eb3f8c1f0"
+    }
+  },
+  "data_treino": "2026-11-16T16:42:25+00:00",
+  "features": [
+    "idade_anos",
+    "sexo",
+    "gestante",
+    "DIABETES",
+    "HEMATOLOG",
+    "HEPATOPAT",
+    "RENAL",
+    "HIPERTENSA",
+    "ACIDO_PEPT",
+    "AUTO_IMUNE"
+  ],
+  "metricas_validacao": {
+    "aviso": "sem validação externa: E1 é inferência (explicativo, sem dobras); calibração em 2024 só na T-5",
+    "convergiu": true,
+    "log_verossimilhanca": -26755.25226794293,
+    "n_casos": 2453208,
+    "n_eventos": 3985,
+    "n_padroes_covariaveis": 9316,
+    "tempo_ajuste_s": 1.2161971998866647
+  },
+  "payload": {
+    "e1.json": "d001ec87470cb8b583aba1aa18d0de49bb201d79a2ef079c7971f594c2ce8a68",
+    "e1.npz": "7d669a7f2faba9d28c5974c0095d6ae8ef790400a3af6fa29c8c5b142c289ebc"
+  },
+  "schema_version": 1,
+  "tipo_payload": "e1",
+  "versao_codigo": {
+    "commit": "c644d4364392d2d3bc37f87e528b9302d452900c"
+  }
+}

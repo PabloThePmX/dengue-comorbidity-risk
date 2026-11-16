@@ -14,6 +14,7 @@ def test_carrega_config_base_com_valores_do_plano():
     assert cfg["ano_teste"] == 2024
     assert cfg["ordem_dobras"] == ["Sudeste", "Sul", "Centro-Oeste", "Nordeste", "Norte"]
     assert cfg["ambiente"] == {"gpu": "T4", "ram_min_gib": 50}
+    assert cfg["caminhos"]["modelos"] == "models"
 
 
 def test_caminho_padrao_aponta_para_o_base_yaml():

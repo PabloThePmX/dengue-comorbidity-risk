@@ -34,20 +34,20 @@ abas (US3) e um relatório TRIPOD+AI.
 ## Constitution Check
 
 O plano precisa cumprir a [constituição](constitution.md) antes de implementar e de novo depois do
-Marco 4. Situação em 2026-11-16 (Marcos 1 e 2 implementados e auditados; 214 testes passando; os
+Marco 4. Situação em 2026-11-16 (Marcos 1 a 3 implementados e auditados; 317 testes passando; os
 demais marcos ainda são só desenho).
 
 | Princípio | Como o plano cumpre | Situação |
 |---|---|---|
 | P1 Spec antes do código | Toda tarefa de `tasks/` cita os IDs do spec; decisões no [Registro de decisões](research.md#registro-de-decisões) | Cumpre |
-| P2 Teste congelado | `guard.assert_dev_only` (T-2.2) e lacre da T-5.1 (R1, R2) | Guarda implementada e testada (T-2.2) e chamada nas funções que recebem dados de casos (Marco 2); falta o lacre da T-5.1 |
+| P2 Teste congelado | `guard.assert_dev_only` (T-2.2) e lacre da T-5.1 (R1, R2) | Guarda implementada e testada (T-2.2) e chamada nas funções que recebem dados de casos (Marcos 2 e 3); falta o lacre da T-5.1 |
 | P3 Sem vazamento | Lista fechada de features (R4); `Pipeline` dentro da dobra (R5); validação interna para early stopping (R6) | Cumpre no desenho |
 | P4 Baselines e comparação justa | B0–B2 antes dos modelos (T-2.8); mesmas dobras, semente e orçamento (D-53) | Cumpre no desenho |
 | P5 Prevalência natural | Sem pesos de classe nem reamostragem (R3); exceção do RF documentada ([Features](#features-e-pré-processamento)) | Cumpre no desenho |
-| P6 Associação ≠ causa | Ranking só pelo E1 (R10); legendas do SHAP ([spec › Interpretabilidade](spec.md#interpretabilidade-e-equidade)) | Cumpre no desenho |
+| P6 Associação ≠ causa | Ranking só pelo E1 (R10); legendas do SHAP ([spec › Interpretabilidade](spec.md#interpretabilidade-e-equidade)) | Ranking implementado só com os OR do E1 (Marco 3); falta o SHAP, no Marco 4 |
 | P7 Reprodutível | `uv.lock`, semente única, config YAML, hashes, MLflow ([Reprodutibilidade](#reprodutibilidade)) | Cumpre no desenho; NFR-02 sem método de verificação definido (T-7.3) |
 | P8 Privacidade | Só agregados, células < 10 suprimidas; demo sem microdados (NFR-03) | Cumpre no desenho |
-| P9 Código testável | Um módulo por responsabilidade com testes ([Módulos](#módulos)); 214 testes passando nos Marcos 1 e 2 | Cumpre |
+| P9 Código testável | Um módulo por responsabilidade com testes ([Módulos](#módulos)); 317 testes passando nos Marcos 1 a 3 | Cumpre |
 | P10 Honestidade | [Registro de problemas](tasks/00-como-usar.md#registro-de-problemas); resultado negativo é válido (SC-04) | Cumpre |
 
 ## Arquitetura do código
@@ -174,7 +174,7 @@ Como cumprir a NFR-01. Pesquisa de planos, preços e fontes do Colab:
 - **Escalonamento:** só para logística/MLP (variáveis contínuas). Árvores não precisam.
 - **Outliers:** idade inválida ou fora de [0, 120] → fallback por `ANO_NASC` (D-50); sem `ANO_NASC` utilizável, o caso é excluído e contado no fluxograma (D-49). Atraso de notificação > 60 dias truncado em 60: confirmado pelo profiling, com mediana de 3 dias, p99 de 61 / 38 / 52 dias e 1,0% / 0,5% / 0,8% dos casos acima de 60 dias.
 - **Desbalanceamento (D-12, revisado em D-38):** **sem correção.** Os modelos treinam com a prevalência natural, sem pesos de classe, subamostragem ou SMOTE. O recall é controlado pelo limiar (F2, [spec › Plano de avaliação](spec.md#plano-de-avaliação)), e a calibração posterior (isotônica ou Platt) continua nas predições fora da dobra. Motivo: corrigir o desbalanceamento não melhora AUROC nem AUPRC e piora a calibração, às vezes de forma que a recalibração não conserta (van den Goorbergh et al., JAMIA 2022; Carriero et al., Stat Med 2024 — síntese em `research/consensus-boas-praticas.md`, cópia local fora do repositório: termos do Consensus). Exceção: a subamostra de negativos do Random Forest, só por memória, com correção de probabilidade e verificada pela calibração (R3, T-4.4).
-- **Implementação:** um único `sklearn.Pipeline` / `ColumnTransformer` por modelo, salvo inteiro no artefato (FR-12). Nada de transformação ad hoc fora do pipeline.
+- **Implementação:** um único `sklearn.Pipeline` / `ColumnTransformer` por modelo, salvo inteiro no artefato (FR-12; formato em D-81: pasta com `metadata.json` e payload; o E1 é NPZ + JSON, sem pickle, e o Pipeline do M1 vai em joblib). Nada de transformação ad hoc fora do pipeline.
 
 ## Modelagem
 
@@ -182,7 +182,7 @@ Como cumprir a NFR-01. Pesquisa de planos, preços e fontes do Colab:
 
 Objetivo principal (D-01).
 
-- **E1 — logística com interações**, sem penalização (R9): os mesmos efeitos principais de B1 (idade em spline, sexo, gestação e as 7 comorbidades; sem `n_comorbidades`, D-62) + interações 2 a 2 entre as 7 comorbidades (21 termos) + interação comorbidade × idade (spline) para hipertensão e diabetes `[ASSUMPTION]`. A idade entra contínua também na interação; as faixas servem só para relatório e subgrupos (D-41), porque categorizar preditores contínuos piora o modelo ([Collins et al., Stat Med 2016](https://consensus.app/papers/details/2bfae82d18cf5de2b57622aed743abc3/)).
+- **E1 — logística com interações**, sem penalização (R9): os mesmos efeitos principais de B1 (idade em spline, sexo, gestação e as 7 comorbidades; sem `n_comorbidades`, D-62) + interações 2 a 2 entre as 7 comorbidades (21 pares possíveis; só entram os que têm >= 10 eventos: 15 no ajuste de 2022–23, e os outros 6 ficam como "eventos insuficientes") + interação comorbidade × idade (spline) para hipertensão e diabetes `[ASSUMPTION]`. A idade entra contínua também na interação; as faixas servem só para relatório e subgrupos (D-41), porque categorizar preditores contínuos piora o modelo ([Collins et al., Stat Med 2016](https://consensus.app/papers/details/2bfae82d18cf5de2b57622aed743abc3/)).
 - **Interação aditiva (D-40):** para cada par de comorbidades, além do OR da interação (escala multiplicativa), reportar o **RERI** (excesso de risco relativo devido à interação) e o **AP** (proporção atribuível à interação), com IC 95% por método delta ou bootstrap.
   - Por quê: a escala aditiva responde à pergunta de saúde pública ("essa combinação acrescenta casos além da soma das duas condições?"), e uma interação pode ser significativa numa escala e não na outra. Síntese das referências (Knol & VanderWeele; Li & Chambless) em `research/consensus-boas-praticas.md` (cópia local, fora do repositório: termos do Consensus).
   - RERI e AP saem do mesmo modelo E1 (ajustado por idade e sexo), comparando "só A", "só B" e "A e B" contra "nenhuma das duas".

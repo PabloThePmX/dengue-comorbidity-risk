@@ -12,10 +12,13 @@ Critério de saída ([spec › Marcos](../spec.md#marcos)): OR com IC 95% e Benj
 interações só com ≥ 10 eventos; ranking com empates marcados; tabela de perfis com células < 10
 suprimidas.
 
-### [ ] T-3.1 [US1] — Ajustar o E1 (`explain.py`)
+### [x] T-3.1 [US1] — Ajustar o E1 (`explain.py`)
 
 - Arquivo: `src/dengue_sinan/explain.py`. Use `statsmodels` (`smf.logit` ou `sm.GLM` binomial)
   para ter matriz de covariância (R9: sem penalização).
+- **Implementado (D-73):** a spline é uma base natural cúbica própria (nós nos quantis, sem constante;
+  `cr` do patsy colide com o intercepto), com os mesmos graus de liberdade, e as interações com a
+  idade são recentradas em 40 anos. Os efeitos principais de DIABETES e HIPERTENSA valem aos 40.
 - Fórmula: `y ~ cr(idade_anos, df=5) + sexo + gestante + <7 comorbidades Sim/Não> +
   <interações 2 a 2 entre comorbidades> + HIPERTENSA:cr(idade_anos, df=3) +
   DIABETES:cr(idade_anos, df=3)`. Graus de liberdade dos splines `[ASSUMPTION]`.
@@ -29,7 +32,7 @@ suprimidas.
 - **Pronto quando:** modelo converge; resumo salvo em `reports/e1/coeficientes.md`; tempo de ajuste
   anotado no Registro de execução.
 
-### [ ] T-3.2 [US1] — OR, interações aditivas e ranking (`explain.py`)
+### [x] T-3.2 [US1] — OR, interações aditivas e ranking (`explain.py`)
 
 FR-05, FR-19, D-40. Inclui as antigas T-3.3 e T-3.4 (D-60).
 
@@ -56,7 +59,7 @@ Fundida na T-3.2 (D-60).
 
 Fundida na T-3.2 (D-60).
 
-### [ ] T-3.5 [US1] — Tabela de perfis (FR-06)
+### [x] T-3.5 [US1] — Tabela de perfis (FR-06)
 
 - Perfis (D-52) — **todas as comorbidades**, gerados automaticamente (não escreva a lista à mão):
   1. sem comorbidades (referência);
@@ -64,7 +67,11 @@ Fundida na T-3.2 (D-60).
   3. cada **par** de comorbidades que entrou no E1 (os pares com ≥ 10 eventos, T-2.6); os pares
      que não entraram aparecem na tabela como "dados insuficientes";
   4. **3 ou mais:** **todas** as combinações de 3+ comorbidades que tenham ≥ 10 casos em 2022–23
-     (sem limite fixo; a contagem vem da T-2.6), cada uma nomeada pelas doenças que contém. Cada
+     (sem limite fixo; a contagem vem da T-2.6), cada uma nomeada pelas doenças que contém.
+     **D-78:** só as de 3 e 4 comorbidades (53) recebem estimativa; as de 5 ou mais (22) aparecem
+     como "dados insuficientes", sem número (menos de 10 eventos no total; o E1 extrapola de forma
+     instável). Perfis que usam os pares HEMATOLOG × HEPATOPAT ou HEMATOLOG × RENAL levam o aviso
+     "depende do padrão suspeito" (D-77). Cada
      linha leva a nota: "risco estimado pela soma dos efeitos individuais e dos pares; o E1 não tem
      termo próprio para o trio".
 - Para cada perfil × faixa etária (idade no meio da faixa) × sexo (F e M separados `[ASSUMPTION]`):
@@ -78,7 +85,7 @@ Fundida na T-3.2 (D-60).
   [contracts › Tabela de perfis](../contracts/interfaces.md#tabela-de-perfis), com os 4 grupos de
   perfis acima; teste unitário confirma que a lista de perfis é gerada a partir dos pares do E1.
 
-### [ ] T-3.6 [US1] — Serializar o E1 (FR-12)
+### [x] T-3.6 [US1] — Serializar o E1 (FR-12)
 
 - Arquivo: `src/dengue_sinan/artifacts.py`. `save_bundle(obj, caminho, metadados)` e
   `load_bundle(caminho)`.
