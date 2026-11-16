@@ -1,0 +1,80 @@
+{
+  "tarefa": "T-2.3",
+  "gerado_em": "2026-11-16T13:00:40Z",
+  "commit": "c1e60c22fe70082d7adc8e669a59e13cfb87ff46",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 15.9,
+    "gpu": "sem GPU"
+  },
+  "hash_dados": {
+    "2022": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+    "2023": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90"
+  },
+  "checks": [
+    {
+      "nome": "casos_em_validacao",
+      "esperado": 2453208,
+      "obtido": 2453208,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_em_validacao",
+      "esperado": 3985,
+      "obtido": 3985,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_validacao_Centro-Oeste",
+      "esperado": 736,
+      "obtido": 736,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_validacao_Nordeste",
+      "esperado": 582,
+      "obtido": 582,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_validacao_Norte",
+      "esperado": 121,
+      "obtido": 121,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_validacao_Sudeste",
+      "esperado": 1736,
+      "obtido": 1736,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_validacao_Sul",
+      "esperado": 810,
+      "obtido": 810,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "hash_conteudo_dobras",
+      "esperado": "09e29252e4ed3b44e49569962fbf8e42a5be00f82a77b673ca8830a03c44a0ea",
+      "obtido": "09e29252e4ed3b44e49569962fbf8e42a5be00f82a77b673ca8830a03c44a0ea",
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "releitura_confere_hash",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

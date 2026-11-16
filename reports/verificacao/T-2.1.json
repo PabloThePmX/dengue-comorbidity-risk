@@ -1,0 +1,150 @@
+{
+  "tarefa": "T-2.1",
+  "gerado_em": "2026-11-16T12:41:31Z",
+  "commit": "c1e60c22fe70082d7adc8e669a59e13cfb87ff46",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 15.9,
+    "gpu": "sem GPU"
+  },
+  "hash_dados": {
+    "2022": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+    "2023": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90"
+  },
+  "checks": [
+    {
+      "nome": "casos_desenvolvimento",
+      "esperado": 2453208,
+      "obtido": 2453208,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_desenvolvimento",
+      "esperado": 3985,
+      "obtido": 3985,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "casos_2022",
+      "esperado": 1148299,
+      "obtido": 1148299,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2022",
+      "esperado": 1869,
+      "obtido": 1869,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "casos_2023",
+      "esperado": 1304909,
+      "obtido": 1304909,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2023",
+      "esperado": 2116,
+      "obtido": 2116,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_regiao_Centro-Oeste",
+      "esperado": 736,
+      "obtido": 736,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_regiao_Nordeste",
+      "esperado": 582,
+      "obtido": 582,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_regiao_Norte",
+      "esperado": 121,
+      "obtido": 121,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_regiao_Sudeste",
+      "esperado": 1736,
+      "obtido": 1736,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_regiao_Sul",
+      "esperado": 810,
+      "obtido": 810,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2022_total_baixado",
+      "esperado": 1405095,
+      "obtido": 1405095,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2022_classi_fin_10_11_12",
+      "esperado": 1254238,
+      "obtido": 1254238,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2022_rotulo_conhecido",
+      "esperado": 1148338,
+      "obtido": 1148338,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2022_idade_valida",
+      "esperado": 1148299,
+      "obtido": 1148299,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2023_total_baixado",
+      "esperado": 1645956,
+      "obtido": 1645956,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2023_classi_fin_10_11_12",
+      "esperado": 1426773,
+      "obtido": 1426773,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2023_rotulo_conhecido",
+      "esperado": 1304949,
+      "obtido": 1304949,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "fluxo_2023_idade_valida",
+      "esperado": 1304909,
+      "obtido": 1304909,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

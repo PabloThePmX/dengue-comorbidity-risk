@@ -1,0 +1,143 @@
+{
+  "tarefa": "T-2.8",
+  "gerado_em": "2026-11-16T15:03:42Z",
+  "commit": "c1e60c22fe70082d7adc8e669a59e13cfb87ff46",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 15.9,
+    "gpu": "sem GPU"
+  },
+  "hash_dados": {
+    "2022": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+    "2023": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90"
+  },
+  "checks": [
+    {
+      "nome": "pr_auc_oof_B0_aprox_prevalencia",
+      "esperado": 0.0016244036380119418,
+      "obtido": 0.0015116328094075325,
+      "tolerancia": 0.0002,
+      "passou": true
+    },
+    {
+      "nome": "pr_auc_oof_B1_maior_que_B0",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "metricas_b2_finitas",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_publicados_r7",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "relatorio_baselines_gerado",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_runs_de_baseline",
+      "esperado": 3,
+      "obtido": 3,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B0_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B0_oof_pr_auc_relido",
+      "esperado": 0.0015116328094075325,
+      "obtido": 0.0015116328094075325,
+      "tolerancia": 1e-12,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B0_finalizado",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B0_run_id_gravado",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B1_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B1_oof_pr_auc_relido",
+      "esperado": 0.012836730366473611,
+      "obtido": 0.012836730366473611,
+      "tolerancia": 1e-12,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B1_finalizado",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B1_run_id_gravado",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B2_existe",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B2_oof_f2_relido",
+      "esperado": 0.020604831519423095,
+      "obtido": 0.020604831519423095,
+      "tolerancia": 1e-12,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B2_finalizado",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "mlflow_B2_run_id_gravado",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

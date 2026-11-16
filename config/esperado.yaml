@@ -1,0 +1,27 @@
+# Valores que as verificações do Colab e do PC conferem (T-2.0).
+# Fonte: specs/data-model.md › Tamanho e prevalência e Eventos por região e subgrupo;
+# fluxograma de profiling/RESULTADOS.md, seção 2. Só 2022–23: números de 2024 entram na T-5.1 (R1).
+desenvolvimento:
+  anos: [2022, 2023]
+  populacao_por_ano: {2022: 1148299, 2023: 1304909}
+  eventos_por_ano: {2022: 1869, 2023: 2116}
+  populacao_total: 2453208
+  eventos_total: 3985
+  eventos_por_regiao:
+    Centro-Oeste: 736
+    Nordeste: 582
+    Norte: 121
+    Sudeste: 1736
+    Sul: 810
+fluxograma:
+  # Contagens após cada filtro, por ano (profiling/RESULTADOS.md, seção 2)
+  2022:
+    total_baixado: 1405095
+    classi_fin_10_11_12: 1254238
+    rotulo_conhecido: 1148338
+    idade_valida: 1148299
+  2023:
+    total_baixado: 1645956
+    classi_fin_10_11_12: 1426773
+    rotulo_conhecido: 1304949
+    idade_valida: 1304909

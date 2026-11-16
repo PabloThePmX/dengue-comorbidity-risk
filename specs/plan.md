@@ -34,19 +34,20 @@ abas (US3) e um relatório TRIPOD+AI.
 ## Constitution Check
 
 O plano precisa cumprir a [constituição](constitution.md) antes de implementar e de novo depois do
-Marco 4. Situação em 2026-11-15 (só o desenho; nada foi implementado além do Marco 1).
+Marco 4. Situação em 2026-11-16 (Marcos 1 e 2 implementados e auditados; 214 testes passando; os
+demais marcos ainda são só desenho).
 
 | Princípio | Como o plano cumpre | Situação |
 |---|---|---|
 | P1 Spec antes do código | Toda tarefa de `tasks/` cita os IDs do spec; decisões no [Registro de decisões](research.md#registro-de-decisões) | Cumpre |
-| P2 Teste congelado | `guard.assert_dev_only` (T-2.2) e lacre da T-5.1 (R1, R2) | Cumpre no desenho; verificar na T-2.2 e na T-5.1 |
+| P2 Teste congelado | `guard.assert_dev_only` (T-2.2) e lacre da T-5.1 (R1, R2) | Guarda implementada e testada (T-2.2) e chamada nas funções que recebem dados de casos (Marco 2); falta o lacre da T-5.1 |
 | P3 Sem vazamento | Lista fechada de features (R4); `Pipeline` dentro da dobra (R5); validação interna para early stopping (R6) | Cumpre no desenho |
 | P4 Baselines e comparação justa | B0–B2 antes dos modelos (T-2.8); mesmas dobras, semente e orçamento (D-53) | Cumpre no desenho |
 | P5 Prevalência natural | Sem pesos de classe nem reamostragem (R3); exceção do RF documentada ([Features](#features-e-pré-processamento)) | Cumpre no desenho |
 | P6 Associação ≠ causa | Ranking só pelo E1 (R10); legendas do SHAP ([spec › Interpretabilidade](spec.md#interpretabilidade-e-equidade)) | Cumpre no desenho |
 | P7 Reprodutível | `uv.lock`, semente única, config YAML, hashes, MLflow ([Reprodutibilidade](#reprodutibilidade)) | Cumpre no desenho; NFR-02 sem método de verificação definido (T-7.3) |
 | P8 Privacidade | Só agregados, células < 10 suprimidas; demo sem microdados (NFR-03) | Cumpre no desenho |
-| P9 Código testável | Um módulo por responsabilidade com testes ([Módulos](#módulos)); 48 testes passando no código do Marco 1 | Cumpre |
+| P9 Código testável | Um módulo por responsabilidade com testes ([Módulos](#módulos)); 214 testes passando nos Marcos 1 e 2 | Cumpre |
 | P10 Honestidade | [Registro de problemas](tasks/00-como-usar.md#registro-de-problemas); resultado negativo é válido (SC-04) | Cumpre |
 
 ## Arquitetura do código

@@ -11,7 +11,7 @@ Critério de saída ([spec › Marcos](../spec.md#marcos)): análise descritiva 
 construídas; métricas fora da dobra de B0, B1 e B2 no MLflow; eventos por par de comorbidades
 contados; **2024 intocado**.
 
-### [ ] T-2.0 — Dependências e configuração
+### [x] T-2.0 — Dependências e configuração
 
 - **Dependências aprovadas (D-67)**, sem precisar perguntar de novo:
   - runtime: `scikit-learn`, `statsmodels` (E1 com IC), `xgboost`, `catboost`, `optuna`, `mlflow`,
@@ -20,7 +20,8 @@ contados; **2024 intocado**.
     senão `"cpu"`), para continuar executável no Colab gratuito (D-44);
   - TabFM: só na T-4.7 (D-69).
 - `uv add <pacotes>`; rode `uv run pytest -q` (os 48 testes atuais devem passar).
-  Esperado: o `mlflow` exige `pyarrow<26`, então o `uv add` rebaixa o pyarrow para 25.x. Não é erro
+  Observado na execução (2026-11-16): com `mlflow` 3.18.0 o lock manteve o `pyarrow` 26.0.0, sem
+  rebaixar para 25.x, e os testes passam. Se um `uv add` futuro rebaixar o pyarrow, não é erro
   e não precisa ir para o Registro de problemas.
 - Crie `config/base.yaml` com, no mínimo:
   ```yaml
@@ -89,7 +90,7 @@ contados; **2024 intocado**.
 - **Pronto quando:** dependências instaladas; 2022 e 2023 em `data/`, com o `sha256_dbc` igual ao do
   profiling; `load_config` e `verify` testados; testes e ruff passam.
 
-### [ ] T-2.1 — Carregar a população em memória (`dataset.py`)
+### [x] T-2.1 — Carregar a população em memória (`dataset.py`)
 
 - Arquivo: `src/dengue_sinan/dataset.py`.
 - Função: `load_population(cfg, anos: list[int]) -> pd.DataFrame`.
@@ -121,7 +122,7 @@ contados; **2024 intocado**.
   **2.453.208** casos e **3.985** eventos com `anos=[2022, 2023]` e cada etapa do fluxograma igual
   à de `profiling/RESULTADOS.md`.
 
-### [ ] T-2.2 [P] — Guarda contra uso do teste (`guard.py`)
+### [x] T-2.2 [P] — Guarda contra uso do teste (`guard.py`)
 
 - Arquivo: `src/dengue_sinan/guard.py`.
 - `assert_dev_only(df)`: levanta `RuntimeError("2024 é teste congelado (R1)")` se `df["ANO"]`
@@ -132,10 +133,11 @@ contados; **2024 intocado**.
 - **Pronto quando:** teste passa e `grep -rn "assert_dev_only" src/` mostra a chamada em cada
   função de treino criada até aqui.
 
-### [ ] T-2.3 — Dobras leave-one-region-out e validação interna (`folds.py`)
+### [x] T-2.3 — Dobras leave-one-region-out e validação interna (`folds.py`)
 
 - Arquivo: `src/dengue_sinan/folds.py`.
-- `loro_folds(df) -> list[tuple[str, np.ndarray, np.ndarray]]`: para cada região
+- `loro_folds(cfg, df) -> list[tuple[str, np.ndarray, np.ndarray]]` (`cfg` para ler `ordem_dobras`;
+  `load_population` devolve também `LINHA`, o nº da linha no Parquet do ano, para o id): para cada região
   (Norte, Nordeste, Centro-Oeste, Sudeste, Sul), devolve `(regiao, idx_treino, idx_validacao)`.
   Linhas com `regiao` nula: **🛑 PARE E PERGUNTE** se existirem (o profiling não mostrou nenhuma).
 - `inner_split(idx_treino, y, frac, seed) -> (idx_ajuste, idx_parada)`: 10% estratificado pelo alvo
@@ -160,7 +162,7 @@ contados; **2024 intocado**.
   hash do conteúdo das dobras e o `sha256_dbc` de 2022 e 2023 do `data/manifest.json`. São os
   valores que a sessão do Colab confere (T-4.3b).
 
-### [ ] T-2.4 [P] — Métricas (`metrics.py`)
+### [x] T-2.4 [P] — Métricas (`metrics.py`)
 
 - Arquivo: `src/dengue_sinan/metrics.py`. Funções puras, testadas com casos pequenos calculados à mão:
   - `pr_auc(y, p)`, `roc_auc(y, p)`, `brier(y, p)`;
@@ -180,7 +182,7 @@ contados; **2024 intocado**.
   `p_a == p_b` dá diferença 0 e IC [0, 0].
 - **Pronto quando:** testes passam.
 
-### [ ] T-2.5 [P] — Rastreamento (`tracking.py`)
+### [x] T-2.5 [P] — Rastreamento (`tracking.py`)
 
 - Arquivo: `src/dengue_sinan/tracking.py`.
 - `start_run(cfg, nome, tags)`: abre run no MLflow (`tracking_uri` = pasta `mlruns` do config),
@@ -190,7 +192,7 @@ contados; **2024 intocado**.
   salvas como artefato Parquet **no Drive, nunca no git** (R7).
 - **Pronto quando:** um run de teste aparece em `mlflow ui` com config, hashes e commit.
 
-### [ ] T-2.6 — Análise descritiva e contagem de combinações (`descriptive.py`)
+### [x] T-2.6 — Análise descritiva e contagem de combinações (`descriptive.py`)
 
 FR-18, D-52. Só 2022–23 (chame `assert_dev_only`). Inclui a antiga T-2.7 (D-60).
 
@@ -216,7 +218,7 @@ FR-18, D-52. Só 2022–23 (chame `assert_dev_only`). Inclui a antiga T-2.7 (D-6
 
 Fundida na T-2.6 (D-60).
 
-### [ ] T-2.8 — Baselines B0, B1, B2 (FR-04) (`baselines.py`)
+### [x] T-2.8 — Baselines B0, B1, B2 (FR-04) (`baselines.py`)
 
 - Arquivo: `src/dengue_sinan/baselines.py`.
 - **B0:** prevê a prevalência do treino de cada dobra para todos.

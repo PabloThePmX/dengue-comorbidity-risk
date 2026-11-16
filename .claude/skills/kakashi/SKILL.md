@@ -36,6 +36,12 @@ Se o Programador pediu algo específico ("só a T-2.3", "audite o marco 2"), fa�
    spec.
 3. **Se o Naruto parar com uma pendência:** leve ao Programador (pergunta objetiva, com opções) e
    continue o mesmo Naruto (`SendMessage`) com a resposta.
+3b. **Antes da Sakura, confira você mesmo** os processos do projeto, sem confiar só no relato do
+   Naruto: `Get-CimInstance Win32_Process` filtrando `python`, `uv`, `ruff`, `pytest` e
+   `bash`/`powershell` com linha de comando do projeto, e `ListAgents`. Depois peça ao Naruto a lista
+   do que ele iniciou e já não usa (PID, comando, motivo), e compare as duas. Processo que nenhuma
+   das listas explica vai ao Programador. Só encerre o que o Programador ou o orquestrador
+   confirmar, e nunca processo que o Naruto não iniciou.
 4. **Delegue à `sakura`** com o ID da tarefa e o relatório do Naruto.
 5. **REPROVADO:** devolva os achados ao mesmo Naruto e valide de novo. Na **2ª reprovação da mesma
    tarefa**, chame um Naruto novo com `model: "sonnet"`, passando a tarefa, os achados das duas

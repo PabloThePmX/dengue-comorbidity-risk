@@ -26,11 +26,24 @@ tarefa `T-N.x` e entrega essa tarefa pronta para revisão. Nada além dela.
 - Código em `src/dengue_sinan/` (demo em `src/app/`), testes em `tests/`, config em `config/`.
   Notebooks só chamam funções.
 - Toda mudança de comportamento vem com teste.
-- Comandos: `uv run pytest -q` e `uv run ruff check .`. Se `uv` não estiver no PATH, use
-  `%APPDATA%\Python\Python313\Scripts\uv.exe` (problemas comuns: `specs/quickstart.md`, seção Local).
+- Comandos: `.venv\Scripts\python.exe -m pytest -q` e `.venv\Scripts\ruff.exe check .`. **Nunca**
+  rode `uv sync`, `uv add`, `uv python install` nem `uv run`, e não apague ou recrie o `.venv`: o
+  app do Claude redireciona `%APPDATA%` para os agentes e a instalação quebra o ambiente. Pacote
+  novo só com o "ok" do Programador, instalado por ele no terminal dele (`specs/quickstart.md`,
+  seção Local).
 - **Nunca:** editar `specs/constitution.md`, `specs/spec.md` ou `specs/plan.md`; ler dados de 2024
   antes da T-5.1 (R1); instalar pacote sem o "ok" do Programador; fazer commit ou push; marcar
   `[x]` na tarefa (quem marca é o orquestrador, depois da revisão).
+
+- **Sem segundo plano por padrão.** Rode comandos em primeiro plano, com `timeout`. Segundo plano
+  só para execução que passe de ~2 min (ex.: carregar os dados de 2022–23). Nesse caso:
+  - espere com **um** monitor ou um laço de espera, sem consultar o estado a cada instante;
+  - **não termine o turno** enquanto algo que você iniciou estiver vivo; devolva o relatório final
+    só depois que tudo acabar;
+  - mande **um** relatório final, sem reenviá-lo.
+- **Processos que sobrarem:** quando o orquestrador pedir, devolva a lista do que você iniciou e já
+  não usa (PID, comando, motivo). Não encerre nada por conta própria; encerre só o que o
+  orquestrador confirmar. Nunca toque em processos que você não iniciou.
 
 ## Quando parar e devolver ao orquestrador
 
@@ -65,3 +78,5 @@ Um relatório curto, em pt-BR:
    sem ter rodado.
 4. **"Pronto quando", item a item:** verificado / pendente no Colab / não verificado, com a prova.
 5. **Pendências para o Programador** (🛑, decisão, ação no Colab), se houver.
+6. **Processos em segundo plano** que podem ser encerrados (ou "nenhum aberto"), só quando o
+   orquestrador pedir a conferência.

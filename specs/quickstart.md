@@ -19,7 +19,16 @@ uv run ruff check .
 ```
 
 - Se `uv` não estiver no PATH: `python -m uv ...` ou o caminho completo
-  `%APPDATA%\Python\Python313\Scripts\uv.exe` (instalado com `pip install --user uv` em 2026-11-15).
+  `%APPDATA%\Python\Python314\Scripts\uv.exe` (instalado com `pip install --user uv` em 2026-11-15;
+  o `uv` roda no Python 3.14 do sistema, e o `.venv` do projeto usa o 3.13 que o `uv` instala).
+- **`uv sync`, `uv add` e `uv python install` só no terminal do Programador**, nunca por agentes do
+  app do Claude (Windows): o app é um pacote da Microsoft Store e redireciona `%APPDATA%` para os
+  processos dele. A instalação gravava no caminho virtual, ficava muito lenta e deixou no registro
+  uma chave `CPython3.13.18` apontando para um caminho que só o app enxerga (Registro de problemas,
+  T-2.0). Os agentes só rodam `.venv\Scripts\python.exe -m pytest -q` e `.venv\Scripts\ruff.exe check .`.
+- Se `uv sync` reclamar de interpretador não encontrado: `uv python install 3.13` (com `--force` se
+  houver atalho antigo em `%USERPROFILE%\.local\bin`) e apague a chave de registro obsoleta
+  (`HKCU:\Software\Python\Astral\CPython<versão>`) que aponta para um Python que não existe.
 - Se `uv run pytest` falhar com "trampoline failed to canonicalize script path":
   `uv run python -m pytest -q` (o launcher do `.venv` ficou com um caminho antigo;
   `uv sync --reinstall-package pytest` regenera).
