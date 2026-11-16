@@ -1,7 +1,7 @@
 {
   "tarefa": "T-3.5",
-  "gerado_em": "2026-11-16T19:38:14Z",
-  "commit": "c644d4364392d2d3bc37f87e528b9302d452900c",
+  "gerado_em": "2026-11-16T22:54:18Z",
+  "commit": "a59c46d1eb363ae66182b42ac68c5aa06b07fbb7",
   "ambiente": {
     "python": "3.13.16",
     "ram_gib": 15.9,
@@ -41,9 +41,23 @@
       "passou": true
     },
     {
+      "nome": "pares_incluidos",
+      "esperado": 15,
+      "obtido": 15,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
       "nome": "combinacoes_3_ou_mais_no_arquivo",
       "esperado": 99,
       "obtido": 99,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "combinacoes_3_ou_mais_com_minimo",
+      "esperado": 75,
+      "obtido": 75,
       "tolerancia": 0,
       "passou": true
     },

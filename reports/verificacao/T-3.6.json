@@ -1,7 +1,7 @@
 {
   "tarefa": "T-3.6",
-  "gerado_em": "2026-11-16T20:11:59Z",
-  "commit": "c644d4364392d2d3bc37f87e528b9302d452900c",
+  "gerado_em": "2026-11-16T22:54:24Z",
+  "commit": "a59c46d1eb363ae66182b42ac68c5aa06b07fbb7",
   "ambiente": {
     "python": "3.13.16",
     "ram_gib": 15.9,
@@ -121,6 +121,20 @@
       "nome": "carga_mais_um_perfil_abaixo_de_1s_NFR06",
       "esperado": true,
       "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "parametros_no_bundle",
+      "esperado": 44,
+      "obtido": 44,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "pares_incluidos_no_bundle",
+      "esperado": 15,
+      "obtido": 15,
       "tolerancia": 0,
       "passou": true
     }
