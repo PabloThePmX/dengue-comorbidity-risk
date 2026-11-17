@@ -68,13 +68,14 @@ models/<modelo>/
                     bibliotecas, config, dados (sha256_dbc e sha256_parquet por ano), data_treino,
                     metricas_validacao, features, payload (SHA-256 de cada arquivo)
   payload/          E1: e1.npz (coeficientes, covariância, nós) + e1.json (colunas, pares, features)
-                    M1 (T-4.10): joblib do Pipeline, com hash e versões no metadata
+                    M1 (T-4.10): joblib do `ModeloFinal` (wrapper + Pipeline, D-85), com hash e versões no metadata
 ```
 
 - Sem dados e sem contagens por termo ou nível (R7, NFR-03); sem pickle no E1.
 - `load_bundle` recusa o artefato se algum SHA-256 do payload não bater, se o `schema_version` for de
   uma versão futura ou se o tipo for desconhecido (`ArtefatoInvalido`).
 - O E1 carregado calcula risco, IC e razão de risco só com NumPy (sem `statsmodels`).
+- M1 (D-85): quem carrega precisa importar `dengue_sinan.retreino` antes de `load_bundle` (é ali que o tipo `m1` é registrado). `models/m1_final*` e `models/m1_demo*` não vão ao git até o conteúdo do payload ser inspecionado (R7, D-85).
 
 ## Demo
 
@@ -123,8 +124,9 @@ D-56. `reports/verificacao/<tarefa>.json`, gerado por `verify.write_report` no P
 
 ## Relatório da sessão dos modelos
 
-D-57. `reports/verificacao/sessao-m1.json`, gravado por `verify.update_session_report` ao fim de
-cada etapa de `run_all_models`.
+D-57, D-86. `<caminhos.dados>/m1/sessao-m1.json` no Drive (o clone do Colab some numa queda), gravado por
+`verify.update_session_report` ao fim de cada etapa de `run_all_models` e copiado para
+`reports/verificacao/sessao-m1.json` com `verify.show_report` (SHA-256 conferido, D-64).
 
 ```json
 {
@@ -147,6 +149,6 @@ cada etapa de `run_all_models`.
 ```
 
 - Cada `checks` tem o mesmo formato do [Relatório de verificação](#relatório-de-verificação).
-- Blocos na ordem em que rodaram: `checagem_inicial`, os modelos na ordem do config, `selecao`,
+- Blocos na ordem de gravação (um bloco regravado vai para o fim): `checagem_inicial`, os modelos na ordem do config, `selecao`,
   `shap`, `retreino`.
 - `passou` (nível de cima) = `sessao_completa` e todos os blocos passaram.

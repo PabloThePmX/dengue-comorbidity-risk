@@ -199,7 +199,7 @@ no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podad
 ### [~] T-4.9 [US2] — Calibração, limiar e seleção (FR-08, FR-17)
 
 - Para cada modelo: ajustar **isotônica** e **Platt** nas predições OOF (2022–23); escolher a de
-  menor Brier OOF. Guardar o calibrador.
+  menor Brier **fora da dobra** (D-87). Guardar o calibrador.
 - Limiar = `best_f2_threshold` nas predições OOF **calibradas**.
 - Tabela comparativa `reports/m1/comparacao_oof.md`: por modelo, PR-AUC média (e por dobra),
   Brier, slope/intercept, ROC-AUC, métricas no limiar; com B0, B1 e B2 ao lado; e, por modelo, tempo

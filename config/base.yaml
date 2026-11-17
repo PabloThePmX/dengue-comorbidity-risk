@@ -96,7 +96,12 @@ busca:
 tabfm:
   versao_pacote: "1.0.1"              # [VERIFY] última no PyPI (upload 2026-07-21). Conferir na sessão do Colab que é a que traz o alias abaixo; se não for, trocar aqui.
   alias_pesos: "tabfm_v1_1_0_pytorch" # [VERIFY] alias do model card 1.1.0 (google/tabfm-1.1.0-pytorch); o README do repositório mostra tabfm_v1_0_0_pytorch.
-  max_num_rows: 100                   # padrão verificado (FAQ: "defaults are 500 features and 100 context rows"). Decisão de tamanho pendente: ver Registro da T-4.7.
+  # max_num_rows: 10000 é ponto de partida a MEDIR no Colab (tempo, memória de pico, T4 sem bfloat16 nativo).
+  # O padrão verificado do FAQ é 100 ("defaults are 500 features and 100 context rows"). Com prevalência
+  # natural de ~0,16%, 100 linhas trazem ~0,16 positivo por contexto; 10000 trazem ~16. A subamostra é
+  # estratificada à prevalência natural (R3: nada de enriquecer positivos).
+  # [VERIFY] se tabfm_v1_1_0 existe no pacote 1.0.1 (teste: `from tabfm import tabfm_v1_1_0`).
+  max_num_rows: 10000
   n_estimators: null                  # [VERIFY] ensembling de contextos; padrão não documentado. null = não passar o argumento (padrão do pacote).
 
 # T-4.8 (FR-13, SHOULD): SHAP global do melhor modelo de árvore, em subamostra estratificada pelo

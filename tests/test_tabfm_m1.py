@@ -126,7 +126,7 @@ def test_registrado_no_registro_e_sem_busca_nem_parada():
 
 def test_config_real_tem_versao_limite_e_alias():
     tab = load_config()["tabfm"]
-    assert tab["max_num_rows"] == 100  # padrão verificado no README/FAQ do repositório
+    assert isinstance(tab["max_num_rows"], int) and tab["max_num_rows"] >= 1  # valor: base.yaml
     assert tab["versao_pacote"] == VERSAO
     assert "n_estimators" in tab
 
@@ -348,18 +348,20 @@ def test_versao_contexto_e_dispositivo_ficam_no_mlflow(tmp_path, pacote_falso):
            "caminhos": {**base["caminhos"], "dados": str(tmp_path / "data"),
                         "mlruns": str(tmp_path / "mlruns")}}
     df = frame()
+    # config próprio: o contexto de 100 linhas cabe no frame de teste (600 linhas)
+    bloco = cfg_teste(max_num_rows=100)["tabfm"]
     with tracking.start_run(cfg, "teste-tabfm") as run:
         # Duas dobras no mesmo run: os valores são os mesmos, sem erro de parâmetro repetido.
-        TabFMM1({}, base["tabfm"], seed=7).ajustar(df.iloc[:1000], df["y"].iloc[:1000])
-        TabFMM1({}, base["tabfm"], seed=7).ajustar(df.iloc[:1000], df["y"].iloc[:1000])
+        TabFMM1({}, bloco, seed=7).ajustar(df.iloc[:1000], df["y"].iloc[:1000])
+        TabFMM1({}, bloco, seed=7).ajustar(df.iloc[:1000], df["y"].iloc[:1000])
         id_run = run.info.run_id
     client = MlflowClient(tracking_uri=str(tmp_path / "mlruns"))
     dados = client.get_run(id_run).data
     assert dados.params[tabfm_m1.PARAM_MLFLOW_VERSAO] == VERSAO
-    assert dados.params[tabfm_m1.PARAM_MLFLOW_MAX_LINHAS] == "100"
+    assert dados.params[tabfm_m1.PARAM_MLFLOW_MAX_LINHAS] == str(bloco["max_num_rows"])
     assert dados.params[tabfm_m1.PARAM_MLFLOW_N_ESTIMATORS] == "padrao_do_pacote"
     assert dados.params[tabfm_m1.PARAM_MLFLOW_DISPOSITIVO] in ("cpu", "cuda")
-    assert dados.metrics[tabfm_m1.METRICA_MLFLOW_CONTEXTO] == 100
+    assert dados.metrics[tabfm_m1.METRICA_MLFLOW_CONTEXTO] == bloco["max_num_rows"]
     assert dados.metrics[tabfm_m1.METRICA_MLFLOW_POSITIVOS] == 30
 
 
