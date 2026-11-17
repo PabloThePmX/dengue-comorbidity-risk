@@ -31,3 +31,8 @@ research/consensus-*.md
 .env
 .DS_Store
 Thumbs.db
+
+# Artefatos do M1 (T-4.10): guardam estatísticas do treino (contagens por nó no RF e CatBoost, CTR).
+# Ficam fora do git até o Programador decidir (R7). O E1 (models/e1) continua versionado.
+models/m1_final*
+models/m1_demo*

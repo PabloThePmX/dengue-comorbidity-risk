@@ -44,3 +44,16 @@ e1:
   celulas_publicadas: 359
   combinacoes_3_ou_mais: 99
   combinacoes_3_ou_mais_com_minimo: 75
+# T-4.2 (laço cv.run_loro com o modelo b1): deve reproduzir o B1 da T-2.8. Fonte: reports/baselines.md
+# (PR-AUC com 5 casas: a tolerância por dobra é meia unidade da última casa). OOF: T-2.8 no MLflow.
+cv:
+  b1:
+    pr_auc_oof: 0.0128367
+    tolerancia_oof: 0.000001
+    pr_auc_por_dobra:
+      Sudeste: 0.01345
+      Sul: 0.01763
+      Centro-Oeste: 0.01554
+      Nordeste: 0.00724
+      Norte: 0.01026
+    tolerancia_dobra: 0.000005

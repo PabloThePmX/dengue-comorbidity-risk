@@ -63,6 +63,37 @@ def check(nome: str, esperado, obtido, tolerancia=0) -> dict:
     }
 
 
+def maximo(nome: str, limite, obtido) -> dict:
+    """Check de teto: passa se `obtido` ≤ `limite`. O `esperado` do relatório é o limite.
+
+    Usado para medidas com limite de requisito (ex.: NFR-06, 1 s por consulta): o limite vem
+    de config ou de uma constante citada, nunca de um número digitado na verificação.
+    """
+    limite = _valor(f"{nome} (limite)", limite)
+    obtido = _valor(nome, obtido)
+    if not _numero(limite) or not _numero(obtido):
+        raise TypeError(f"{nome}: limite e valor obtido devem ser números")
+    return {
+        "nome": nome,
+        "esperado": limite,
+        "obtido": obtido,
+        "tolerancia": 0,
+        "criterio": "obtido <= esperado",
+        "passou": bool(obtido <= limite),
+    }
+
+
+def registro(nome: str, obtido) -> dict:
+    """Medida que só fica registrada: nunca reprova o bloco (como `vcpus` em `environment`)."""
+    return {
+        "nome": nome,
+        "esperado": None,
+        "obtido": _valor(nome, obtido),
+        "tolerancia": 0,
+        "passou": True,
+    }
+
+
 def commit_atual() -> str:
     """Commit do checkout (`git rev-parse HEAD`); "desconhecido" se não houver git (T-2.5)."""
     try:

@@ -27,3 +27,80 @@ optuna:
 bootstrap_pareado: 1000
 # D-64: ambiente mínimo conferido antes da sessão dos modelos (Pro, T4 + RAM alta)
 ambiente: {gpu: "T4", ram_min_gib: 50}   # no Colab gratuito: {gpu: null, ram_min_gib: 12}
+
+# T-4.0 (Q-08, definido pelo agente, D-68). Lido por dengue_sinan.search_space; faixas só aqui.
+# tipo: float | int | categorico. escala (float/int): linear | log (log exige min > 0).
+# fixos: passados ao estimador sem busca. sem_busca: true só no TabFM (D-69).
+# Nenhum parâmetro de peso de classe (R3). Justificativas: Registro de execução, T-4.0.
+busca:
+  elastic_net:
+    fixos: {solver: saga, max_iter: 500}   # sem penalty: deprecado no sklearn 1.9; l1_ratio define o elastic net
+    parametros:
+      C: {tipo: float, escala: log, min: 0.0001, max: 10.0}
+      l1_ratio: {tipo: float, escala: linear, min: 0.0, max: 0.99}   # < 1: n_comorbidades é a soma das 7 indicadoras (T-4.1); com lasso puro a solução não seria única
+    # T-4.3 (decisão do Programador): 1ª tentativa = padrão da biblioteca (C=1,0; l1_ratio=0,5 é o ponto
+    # de partida fixado pelo Programador, dentro das faixas). Validado pelo search_space.
+    primeira_tentativa: {C: 1.0, l1_ratio: 0.5}
+  xgboost:
+    fixos: {tree_method: hist, n_estimators: 2000, early_stopping_rounds: 50, eval_metric: aucpr}
+    parametros:
+      learning_rate: {tipo: float, escala: log, min: 0.01, max: 0.3}
+      max_depth: {tipo: int, escala: linear, min: 2, max: 6}
+      min_child_weight: {tipo: float, escala: log, min: 1.0, max: 100.0}
+      subsample: {tipo: float, escala: linear, min: 0.5, max: 1.0}
+      colsample_bytree: {tipo: float, escala: linear, min: 0.5, max: 1.0}
+      reg_lambda: {tipo: float, escala: log, min: 0.001, max: 10.0}
+    # Padrões da biblioteca (XGBoost 3.4.1, conferidos após um fit): eta 0,3, max_depth 6,
+    # min_child_weight 1, subsample 1, colsample_bytree 1, reg_lambda 1. eta 0,3 e min_child_weight 1
+    # caem no limite da faixa (faixas incluem os limites): nada foi ajustado.
+    primeira_tentativa: {learning_rate: 0.3, max_depth: 6, min_child_weight: 1.0, subsample: 1.0, colsample_bytree: 1.0, reg_lambda: 1.0}
+  catboost:
+    fixos: {loss_function: Logloss, iterations: 3000, od_type: Iter, od_wait: 50, eval_metric: PRAUC}
+    parametros:
+      learning_rate: {tipo: float, escala: log, min: 0.01, max: 0.3}
+      depth: {tipo: int, escala: linear, min: 4, max: 8}
+      l2_leaf_reg: {tipo: float, escala: log, min: 1.0, max: 30.0}
+    # CatBoost não tem learning_rate fixo: escolhe sozinho pelo nº de linhas e de iterações. 0,05 é o
+    # valor que a biblioteca escolheu numa amostra sintética (0,0503, 45 mil linhas); confirmar no Colab
+    # com dados completos. depth 6 e l2_leaf_reg 3 são os padrões da biblioteca. Decisão do orquestrador
+    # (D-68): aceito este ponto de partida.
+    primeira_tentativa: {learning_rate: 0.05, depth: 6, l2_leaf_reg: 3.0}
+  mlp:
+    fixos: {perda: BCEWithLogitsLoss, otimizador: Adam, epocas_max: 200, paciencia_epocas: 10}
+    parametros:
+      # valores são rótulos: "64" = [64]; "128x64" = [128, 64] (o mlp.py faz a conversão)
+      camadas_ocultas: {tipo: categorico, valores: ["64", "128", "128x64"]}
+      dropout: {tipo: float, escala: linear, min: 0.0, max: 0.3}
+      weight_decay: {tipo: float, escala: log, min: 0.000001, max: 0.01}
+      lr: {tipo: float, escala: log, min: 0.0001, max: 0.01}
+      batch_size: {tipo: categorico, valores: [1024, 4096]}
+    # MLP não tem padrão de biblioteca: ponto médio do espaço (decisão do Programador). Médio em escala
+    # log = média geométrica; categórico de 2 opções sem meio: 1024 (a menor).
+    primeira_tentativa: {camadas_ocultas: "128", dropout: 0.15, weight_decay: 0.0001, lr: 0.001, batch_size: 1024}
+  random_forest:
+    fixos: {criterion: gini, bootstrap: true}
+    parametros:
+      n_estimators: {tipo: int, escala: linear, min: 200, max: 800}
+      max_depth: {tipo: int, escala: linear, min: 3, max: 12}
+      min_samples_leaf: {tipo: int, escala: log, min: 10, max: 2000}
+      max_features: {tipo: categorico, valores: [sqrt, 0.3, 0.5]}
+      max_samples: {tipo: float, escala: linear, min: 0.05, max: 0.3}
+    # Ponto conservador DENTRO do espaço (decisão do Programador): o padrão do sklearn (profundidade
+    # ilimitada, todas as linhas) estoura a RAM com 2,45 M de linhas.
+    primeira_tentativa: {n_estimators: 200, max_depth: 8, min_samples_leaf: 100, max_features: sqrt, max_samples: 0.1}
+  tabfm:
+    sem_busca: true
+
+# T-4.7 (D-69): TabFM roda só na sessão do Colab; o pacote não entra no pyproject nem no lock. Lido por
+# tabfm_m1.py. Números conferidos no repositório oficial (README e FAQ) em 2026-11-17, salvo [VERIFY].
+tabfm:
+  versao_pacote: "1.0.1"              # [VERIFY] última no PyPI (upload 2026-07-21). Conferir na sessão do Colab que é a que traz o alias abaixo; se não for, trocar aqui.
+  alias_pesos: "tabfm_v1_1_0_pytorch" # [VERIFY] alias do model card 1.1.0 (google/tabfm-1.1.0-pytorch); o README do repositório mostra tabfm_v1_0_0_pytorch.
+  max_num_rows: 100                   # padrão verificado (FAQ: "defaults are 500 features and 100 context rows"). Decisão de tamanho pendente: ver Registro da T-4.7.
+  n_estimators: null                  # [VERIFY] ensembling de contextos; padrão não documentado. null = não passar o argumento (padrão do pacote).
+
+# T-4.8 (FR-13, SHOULD): SHAP global do melhor modelo de árvore, em subamostra estratificada pelo
+# alvo de 2022–23 (semente do config, R8). Lido por shap_global.py. [ASSUMPTION] de plan › Incerteza
+# e comparação: 50 mil linhas, por custo computacional. Só agregados saem (R7).
+shap:
+  amostra: 50000

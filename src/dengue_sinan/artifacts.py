@@ -277,9 +277,12 @@ def load_bundle(caminho: str | Path) -> object:
 
 # --- Privacidade (NFR-03, R7) ------------------------------------------------------------------
 
-# Inteiros de 1 a 9 que não são contagens: versão do schema e graus de liberdade das splines.
+# Inteiros de 1 a 9 que não são contagens: versão do schema, graus de liberdade das splines e,
+# no M1 (T-4.10), nº de árvores ou épocas do retreino e os melhores pontos por dobra (são
+# iterações do treino, não casos).
 CAMINHOS_INTEIROS_PERMITIDOS = (("schema_version",), ("graus_de_liberdade", "idade"),
-                                ("graus_de_liberdade", "idade_interacao"))
+                                ("graus_de_liberdade", "idade_interacao"),
+                                ("m1", "iteracoes_finais"), ("m1", "melhores_pontos"))
 
 
 def inteiros_pequenos(valor: object, caminho: tuple = ()) -> list[tuple]:

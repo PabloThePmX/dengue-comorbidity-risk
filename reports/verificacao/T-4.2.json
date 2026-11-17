@@ -1,0 +1,101 @@
+{
+  "tarefa": "T-4.2",
+  "gerado_em": "2026-11-16T23:53:49Z",
+  "commit": "2bbe1f6580c003a3e99d53a3e38894c691f29126",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 15.9,
+    "gpu": "sem GPU"
+  },
+  "hash_dados": {
+    "2022": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+    "2023": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90"
+  },
+  "checks": [
+    {
+      "nome": "oof_uma_predicao_por_caso",
+      "esperado": 2453208,
+      "obtido": 2453208,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "posicoes_sem_repeticao",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "oof_eventos_totais",
+      "esperado": 3985,
+      "obtido": 3985,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "oof_so_anos_de_desenvolvimento",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "pr_auc_oof_b1",
+      "esperado": 0.0128367,
+      "obtido": 0.012836730366473611,
+      "tolerancia": 1e-06,
+      "passou": true
+    },
+    {
+      "nome": "pr_auc_Sudeste_b1",
+      "esperado": 0.01345,
+      "obtido": 0.013451089617656573,
+      "tolerancia": 5e-06,
+      "passou": true
+    },
+    {
+      "nome": "pr_auc_Sul_b1",
+      "esperado": 0.01763,
+      "obtido": 0.01763182105564046,
+      "tolerancia": 5e-06,
+      "passou": true
+    },
+    {
+      "nome": "pr_auc_Centro-Oeste_b1",
+      "esperado": 0.01554,
+      "obtido": 0.015536566612436763,
+      "tolerancia": 5e-06,
+      "passou": true
+    },
+    {
+      "nome": "pr_auc_Nordeste_b1",
+      "esperado": 0.00724,
+      "obtido": 0.007239291627682571,
+      "tolerancia": 5e-06,
+      "passou": true
+    },
+    {
+      "nome": "pr_auc_Norte_b1",
+      "esperado": 0.01026,
+      "obtido": 0.010257711249226495,
+      "tolerancia": 5e-06,
+      "passou": true
+    },
+    {
+      "nome": "b1_sem_melhor_ponto",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "validacao_interna_igual_t23",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

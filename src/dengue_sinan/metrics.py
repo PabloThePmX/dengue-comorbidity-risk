@@ -219,3 +219,110 @@ def paired_bootstrap_diff(
 
     ic_inf, ic_sup = np.quantile(diferencas, _QUANTIS_IC)
     return estimativa, float(ic_inf), float(ic_sup)
+
+
+# --- Bootstrap pareado vetorizado para a PR-AUC (T-4.9, D-53) ---------------------------------
+#
+# `paired_bootstrap_diff` chama `average_precision_score` em cada dobra e em cada reamostra: com
+# 2,45 M de linhas isso custa ~3 s por reamostra e por modelo. A função abaixo chega ao mesmo
+# resultado sem reordenar a cada reamostra:
+# - uma reamostra com reposição, estratificada por (dobra, alvo), equivale a dar a cada linha um
+#   peso igual ao nº de vezes em que foi sorteada (`np.bincount`). A PR-AUC depende só dos pesos;
+# - a ordem decrescente por escore é calculada uma vez por modelo e dobra; na reamostra, os pesos
+#   são só reordenados e somados (inteiros, portanto exatos: `cumsum` nos fins dos grupos de
+#   escore igual, como o sklearn trata os empates);
+# - os sorteios seguem a mesma sequência de `paired_bootstrap_diff` (mesma semente, mesma ordem de
+#   chamadas ao gerador) e valem para todos os modelos: o mesmo sorteio vale para todos os pares.
+
+
+def _ordenar_por_escore(p: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Ordem decrescente do escore, fins dos grupos de escore igual e o `y` ordenado."""
+    ordem = np.argsort(-p, kind="stable")
+    ordenado = p[ordem]
+    fins = np.concatenate((np.flatnonzero(ordenado[1:] != ordenado[:-1]), [len(p) - 1]))
+    return ordem, fins, y[ordem]
+
+
+def _pr_auc_com_pesos(pesos: np.ndarray, fins: np.ndarray, y_ordenado: np.ndarray) -> float:
+    """PR-AUC (average precision) das linhas com `pesos` inteiros, já na ordem por escore.
+
+    Igual a `average_precision_score` do sklearn: Σ_g (VP_g / P) · precisão_g, com g os grupos de
+    escore igual; VP e a contagem acumulada saem de `cumsum` lido nos fins dos grupos. Peso 0 é
+    linha ausente da reamostra.
+    """
+    vp = np.cumsum(pesos * y_ordenado)[fins]
+    total = np.cumsum(pesos)[fins]
+    positivos = vp[-1]
+    ganho = np.diff(vp, prepend=0)
+    precisao = np.divide(vp, total, out=np.zeros(vp.shape, dtype=float), where=total > 0)
+    return float(np.dot(ganho, precisao) / positivos)
+
+
+def paired_bootstrap_pr_auc(
+    escores: dict[str, np.ndarray], y, dobra, n: int, seed: int
+) -> dict:
+    """PR-AUC por dobra em `n` reamostras, para vários modelos, com os MESMOS sorteios (D-53).
+
+    Mesma semântica de `paired_bootstrap_diff(pr_auc, ...)`: em cada reamostra e em cada dobra,
+    sorteia com reposição, dentro de cada classe de `y`, o mesmo nº de linhas; a PR-AUC da dobra
+    sai da reamostra; todos os modelos usam os mesmos índices. Com a mesma semente e os mesmos
+    dados, a diferença das médias por reamostra é a de `paired_bootstrap_diff` (teste de
+    concordância em `tests/test_metrics.py`).
+
+    Devolve:
+    - `dobras`: as dobras na ordem de primeira aparição (a mesma de `paired_bootstrap_diff`);
+    - `por_dobra`: por modelo, array (n, nº de dobras) com a PR-AUC de cada dobra em cada reamostra;
+    - `media`: por modelo, array (n,) com a média das dobras em cada reamostra.
+
+    Levanta ValueError se algum tamanho não bate, se não há modelo ou se uma dobra não tem positivo
+    (a PR-AUC não é definida).
+    """
+    y_arr = np.asarray(y).astype(np.int64)
+    d_arr = np.asarray(dobra)
+    if not escores:
+        raise ValueError("nenhum modelo para o bootstrap")
+    if len(d_arr) != len(y_arr):
+        raise ValueError("y e dobra precisam ter o mesmo tamanho")
+    for nome, p in escores.items():
+        if len(p) != len(y_arr):
+            raise ValueError(f"{nome}: y, p e dobra precisam ter o mesmo tamanho")
+
+    rng = np.random.default_rng(seed)
+    dobras = list(dict.fromkeys(d_arr.tolist()))  # ordem de primeira aparição
+    grupos_por_dobra: list[list[np.ndarray]] = []
+    tamanhos: list[int] = []
+    estruturas: dict[str, list[tuple[np.ndarray, np.ndarray, np.ndarray]]] = {
+        nome: [] for nome in escores
+    }
+    for d in dobras:
+        idx_d = np.flatnonzero(d_arr == d)
+        y_d = y_arr[idx_d]
+        if not (y_d == 1).any():
+            raise ValueError(f"dobra {d!r} sem positivos: a PR-AUC não é definida")
+        tamanhos.append(len(idx_d))
+        # Grupos por classe, na ordem de np.unique (a de paired_bootstrap_diff), em posições
+        # locais da dobra.
+        grupos_por_dobra.append([np.flatnonzero(y_d == v) for v in np.unique(y_d)])
+        for nome, p in escores.items():
+            p_d = np.asarray(p, dtype=float)[idx_d]
+            estruturas[nome].append(_ordenar_por_escore(p_d, y_d))
+
+    por_dobra = {nome: np.empty((n, len(dobras)), dtype=float) for nome in escores}
+    for k in range(n):
+        contagens = []
+        for indice, grupos in enumerate(grupos_por_dobra):
+            cnt = np.zeros(tamanhos[indice], dtype=np.int64)
+            for g in grupos:  # a mesma ordem de chamadas de paired_bootstrap_diff
+                cnt += np.bincount(g[rng.integers(0, len(g), size=len(g))],
+                                   minlength=tamanhos[indice])
+            contagens.append(cnt)
+        for nome, lista in estruturas.items():
+            for indice, (ordem, fins, y_ord) in enumerate(lista):
+                por_dobra[nome][k, indice] = _pr_auc_com_pesos(
+                    contagens[indice][ordem], fins, y_ord)
+
+    return {
+        "dobras": dobras,
+        "por_dobra": por_dobra,
+        "media": {nome: arr.mean(axis=1) for nome, arr in por_dobra.items()},
+    }

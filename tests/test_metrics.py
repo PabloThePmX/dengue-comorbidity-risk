@@ -294,3 +294,79 @@ def test_paired_bootstrap_diff_usa_os_mesmos_indices_para_os_dois_modelos():
     assert diferenca == pytest.approx(-0.1)
     assert ic_inf == pytest.approx(-0.1)
     assert ic_sup == pytest.approx(-0.1)
+
+
+# --- Bootstrap pareado vetorizado (T-4.9, D-53) --------------------------------------------------
+
+
+def _dados_pareados(seed: int = 3, n_por_dobra: int = 3_000):
+    """Cinco dobras, três modelos (um com empates): dados pequenos, para a referência."""
+    rng = np.random.default_rng(seed)
+    dobras = ["Sudeste", "Sul", "Norte", "Nordeste", "Centro-Oeste"]
+    dobra = np.repeat(dobras, n_por_dobra)
+    y = (rng.uniform(size=dobra.size) < 0.05).astype(int)
+    for d in dobras:  # garante positivo em cada dobra
+        y[np.flatnonzero(dobra == d)[0]] = 1
+    p_a = np.clip(0.05 + 0.3 * y + rng.normal(0, 0.1, y.size), 0, 1)
+    p_b = np.round(np.clip(0.02 + 0.2 * y + rng.normal(0, 0.15, y.size), 0, 1), 2)  # com empates
+    p_c = np.full(y.size, float(y.mean()))  # constante, como B0
+    return y, dobra, p_a, p_b, p_c
+
+
+@pytest.mark.parametrize("par", [("a", "b"), ("a", "c"), ("b", "c")])
+def test_bootstrap_vetorizado_concorda_com_paired_bootstrap_diff(par):
+    y, dobra, p_a, p_b, p_c = _dados_pareados()
+    escores = {"a": p_a, "b": p_b, "c": p_c}
+    n, seed = 40, 20261103
+
+    vet = metrics.paired_bootstrap_pr_auc(escores, y, dobra, n=n, seed=seed)
+    x, z = par
+    ref = metrics.paired_bootstrap_diff(metrics.pr_auc, y, escores[x], escores[z], dobra,
+                                        n=n, seed=seed)
+
+    dif = vet["media"][x] - vet["media"][z]
+    estimativa = np.mean([metrics.pr_auc(y[dobra == d], escores[x][dobra == d])
+                          - metrics.pr_auc(y[dobra == d], escores[z][dobra == d])
+                          for d in vet["dobras"]])
+    ic_inf, ic_sup = np.quantile(dif, (0.025, 0.975))
+
+    assert estimativa == pytest.approx(ref[0], abs=1e-10)
+    assert ic_inf == pytest.approx(ref[1], abs=1e-10)
+    assert ic_sup == pytest.approx(ref[2], abs=1e-10)
+
+
+def test_bootstrap_vetorizado_usa_os_mesmos_sorteios_para_todos_os_modelos():
+    # Um modelo duplicado tem que dar diferença exatamente zero em toda reamostra. Se os
+    # sorteios fossem independentes, a diferença teria variância.
+    y, dobra, p_a, p_b, _ = _dados_pareados()
+    vet = metrics.paired_bootstrap_pr_auc({"a": p_a, "a_copia": p_a.copy(), "b": p_b}, y, dobra,
+                                          n=50, seed=20261103)
+
+    assert np.all(vet["media"]["a"] - vet["media"]["a_copia"] == 0.0)
+    assert np.std(vet["media"]["a"] - vet["media"]["b"]) > 0
+
+
+def test_bootstrap_vetorizado_recusa_dobra_sem_positivo():
+    y = np.array([0, 1, 0, 0])
+    dobra = np.array(["a", "a", "b", "b"])
+    with pytest.raises(ValueError, match="sem positivos"):
+        metrics.paired_bootstrap_pr_auc({"m": np.array([0.1, 0.2, 0.3, 0.4])}, y, dobra, n=2,
+                                        seed=1)
+
+
+def test_pr_auc_ponderada_por_contagens_bate_com_linhas_repetidas():
+    # Peso = nº de cópias da linha: a PR-AUC com pesos tem que ser igual à de linhas repetidas.
+    rng = np.random.default_rng(8)
+    p = np.round(rng.uniform(size=60), 1)  # com empates de propósito
+    y = rng.binomial(1, 0.3, 60)
+    y[0] = 1
+    pesos = rng.integers(0, 4, 60)
+    repetidas_y = np.repeat(y, pesos)
+    repetidas_p = np.repeat(p, pesos)
+    if repetidas_y.sum() == 0:
+        pytest.skip("amostra sem positivo")
+
+    ordem, fins, yo = metrics._ordenar_por_escore(p, y.astype(np.int64))
+    com_pesos = metrics._pr_auc_com_pesos(pesos[ordem].astype(np.int64), fins, yo)
+
+    assert com_pesos == pytest.approx(metrics.pr_auc(repetidas_y, repetidas_p), abs=1e-12)
