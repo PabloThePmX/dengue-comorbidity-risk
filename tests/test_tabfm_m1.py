@@ -1,6 +1,6 @@
 """Testes do TabFM do M1 (T-4.7) com um duplo falso do pacote `tabfm` (sem a biblioteca real).
 
-O pacote real só roda no Colab (D-69). Aqui `_carregar_pacote` e `_versao_instalada` são trocados
+O pacote real só roda no Colab (D-69). Aqui `_carregar_pacote` e `_commit_instalado` são trocados
 por um classificador falso que guarda o que recebe no `fit` e prevê a partir de uma coluna. MLflow
 e `mlruns/` ficam numa pasta temporária.
 """
@@ -27,14 +27,15 @@ from dengue_sinan.tabfm_m1 import (
 
 ORDEM = ["A", "B", "C"]
 N_POR_REGIAO = 200
-VERSAO = "1.0.1"
+COMMIT = "0123456789abcdef0123456789abcdef01234567"  # 40 hex: o commit do fake
+ALIAS = "tabfm_v1_0_0_pytorch"
 
 
 def cfg_teste(max_num_rows: int = 100, n_estimators=None) -> dict:
-    """Config mínimo do laço, com o bloco `tabfm` de teste (a versão é a do fake)."""
+    """Config mínimo do laço, com o bloco `tabfm` de teste (o commit é o do fake)."""
     return {
         "ordem_dobras": ORDEM, "seed": 7, "validacao_interna_frac": 0.2, "ano_teste": 2024,
-        "tabfm": {"versao_pacote": VERSAO, "alias_pesos": "tabfm_v1_1_0_pytorch",
+        "tabfm": {"commit_pacote": COMMIT, "alias_pesos": ALIAS,
                   "max_num_rows": max_num_rows, "n_estimators": n_estimators},
     }
 
@@ -108,8 +109,8 @@ def pacote_falso(monkeypatch):
 
     pacote = types.SimpleNamespace(TabFMClassifier=ClassificadorFalso)
     pesos = types.SimpleNamespace(load=lambda: "pesos-falsos")
-    monkeypatch.setattr(tabfm_m1, "_carregar_pacote", lambda alias: (pacote, pesos))
-    monkeypatch.setattr(tabfm_m1, "_versao_instalada", lambda: VERSAO)
+    monkeypatch.setattr(tabfm_m1, "_carregar_pacote", lambda alias, commit: (pacote, pesos))
+    monkeypatch.setattr(tabfm_m1, "_commit_instalado", lambda: COMMIT)
     gravacoes.col_idade = col_idade
     return gravacoes
 
@@ -124,11 +125,78 @@ def test_registrado_no_registro_e_sem_busca_nem_parada():
     assert modelo.melhor_ponto() is None
 
 
-def test_config_real_tem_versao_limite_e_alias():
+def test_config_real_tem_commit_fixo_alias_e_limite():
     tab = load_config()["tabfm"]
     assert isinstance(tab["max_num_rows"], int) and tab["max_num_rows"] >= 1  # valor: base.yaml
-    assert tab["versao_pacote"] == VERSAO
+    assert tabfm_m1.COMMIT_RE.fullmatch(tab["commit_pacote"])  # D-90: SHA completo
+    assert tab["alias_pesos"] == "tabfm_v1_0_0_pytorch"  # D-90: 1.0.0, não 1.1.0
     assert "n_estimators" in tab
+
+
+@pytest.mark.parametrize("commit", [
+    "1.0.1", "fbb6655", "FBB665569425FD2F490C6576B3AF967876FE11FF", "g" * 40, 1234, None,
+])
+def test_commit_pacote_precisa_ser_sha_completo(commit):
+    bloco = {**cfg_teste()["tabfm"], "commit_pacote": commit}
+    with pytest.raises(ValueError, match="commit_pacote"):
+        TabFMM1({}, bloco, seed=7)
+
+
+def test_commit_do_config_sem_a_chave_e_recusado():
+    bloco = {k: v for k, v in cfg_teste()["tabfm"].items() if k != "commit_pacote"}
+    with pytest.raises(ValueError, match="commit_pacote"):
+        TabFMM1({}, bloco, seed=7)
+
+
+class _DistribuicaoFalsa:
+    def __init__(self, direct_url):
+        self._direct_url = direct_url
+
+    def read_text(self, nome):
+        assert nome == "direct_url.json"
+        return self._direct_url
+
+
+def test_commit_instalado_le_o_direct_url_do_pip(monkeypatch):
+    texto = ('{"url": "https://github.com/google-research/tabfm.git", '
+             f'"vcs_info": {{"commit_id": "{COMMIT}", "vcs": "git"}}}}')
+    monkeypatch.setattr(tabfm_m1.importlib.metadata, "distribution",
+                        lambda nome: _DistribuicaoFalsa(texto))
+    assert tabfm_m1._commit_instalado() == COMMIT
+
+
+def test_commit_instalado_e_none_quando_nao_veio_de_git(monkeypatch):
+    # instalado do PyPI: sem direct_url.json, ou com origem que não é git
+    monkeypatch.setattr(tabfm_m1.importlib.metadata, "distribution",
+                        lambda nome: _DistribuicaoFalsa(None))
+    assert tabfm_m1._commit_instalado() is None
+    monkeypatch.setattr(tabfm_m1.importlib.metadata, "distribution",
+                        lambda nome: _DistribuicaoFalsa('{"dir_info": {"editable": true}}'))
+    assert tabfm_m1._commit_instalado() is None
+
+
+def test_pacote_sem_metadados_recusa_com_mensagem(monkeypatch):
+    def sem_pacote(nome):
+        raise tabfm_m1.importlib.metadata.PackageNotFoundError(nome)
+    monkeypatch.setattr(tabfm_m1.importlib.metadata, "distribution", sem_pacote)
+    with pytest.raises(RuntimeError, match="não instalado"):
+        tabfm_m1._commit_instalado()
+
+
+def test_alias_e_atributo_do_pacote_e_nao_submodulo(monkeypatch):
+    pesos = types.SimpleNamespace(load=lambda: "pesos")
+    pacote = types.ModuleType("tabfm")
+    setattr(pacote, ALIAS, pesos)
+    monkeypatch.setitem(sys.modules, "tabfm", pacote)
+    assert tabfm_m1._carregar_pacote(ALIAS, COMMIT) == (pacote, pesos)
+
+
+def test_alias_ausente_recusa_dizendo_o_commit(monkeypatch):
+    monkeypatch.setitem(sys.modules, "tabfm", types.ModuleType("tabfm"))  # sem o atributo
+    with pytest.raises(RuntimeError, match="tabfm_v1_1_0_pytorch") as erro:
+        tabfm_m1._carregar_pacote("tabfm_v1_1_0_pytorch", COMMIT)
+    assert COMMIT in str(erro.value)
+    assert "--no-deps" in str(erro.value)
 
 
 def test_construir_sem_bloco_tabfm_recusa():
@@ -181,10 +249,10 @@ def test_sem_pacote_instalado_recusa_com_instrucao_util(monkeypatch):
     assert "Colab" in str(erro.value)
 
 
-def test_versao_instalada_diferente_da_do_config_recusa(pacote_falso, monkeypatch):
-    monkeypatch.setattr(tabfm_m1, "_versao_instalada", lambda: "9.9.9")
+def test_commit_instalado_diferente_do_config_recusa(pacote_falso, monkeypatch):
+    monkeypatch.setattr(tabfm_m1, "_commit_instalado", lambda: "f" * 40)
     df = frame()
-    with pytest.raises(RuntimeError, match="versão fixa"):
+    with pytest.raises(RuntimeError, match="commit fixo"):
         TabFMM1({}, cfg_teste()["tabfm"], seed=7).ajustar(df, df["y"])
 
 
@@ -357,7 +425,7 @@ def test_versao_contexto_e_dispositivo_ficam_no_mlflow(tmp_path, pacote_falso):
         id_run = run.info.run_id
     client = MlflowClient(tracking_uri=str(tmp_path / "mlruns"))
     dados = client.get_run(id_run).data
-    assert dados.params[tabfm_m1.PARAM_MLFLOW_VERSAO] == VERSAO
+    assert dados.params[tabfm_m1.PARAM_MLFLOW_COMMIT] == COMMIT
     assert dados.params[tabfm_m1.PARAM_MLFLOW_MAX_LINHAS] == str(bloco["max_num_rows"])
     assert dados.params[tabfm_m1.PARAM_MLFLOW_N_ESTIMATORS] == "padrao_do_pacote"
     assert dados.params[tabfm_m1.PARAM_MLFLOW_DISPOSITIVO] in ("cpu", "cuda")

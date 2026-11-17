@@ -54,6 +54,16 @@ def test_checa_versao_do_python_antes_de_instalar():
     assert codigo.index("assert sys.version_info") < codigo.index("uv export --frozen")
 
 
+def test_tabfm_instala_do_commit_fixo_do_config_sem_dependencias():
+    """D-90: o tabfm vem do commit do config (o PyPI só tem a JAX), com --no-deps."""
+    codigo = "\n".join(_linhas_de_codigo())
+    assert "cfg['tabfm']['commit_pacote']" in codigo
+    assert "git+https://github.com/google-research/tabfm.git@{commit_tabfm}" in codigo
+    assert "tabfm==" not in codigo  # nada de PyPI
+    (instalacao,) = [ln for ln in _linhas_de_codigo() if "{pacotes}" in ln]
+    assert instalacao.startswith("!pip install") and "--no-deps" in instalacao
+
+
 def test_notebook_nao_contem_chamada_de_treino():
     for linha in _linhas_de_codigo():
         assert not CHAMADA_DE_TREINO.search(linha), linha

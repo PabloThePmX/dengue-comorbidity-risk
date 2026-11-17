@@ -16,14 +16,16 @@ escala) é a que o TabFM recebe; o pacote não documenta o formato de entrada co
 
 Pacote: `tabfm` é importado **só** dentro de `ajustar` (import preguiçoso), para o módulo carregar
 sem o pacote instalado. Sem o pacote, levanta `RuntimeError` com a instrução de instalação na sessão
-do Colab (D-69). A versão instalada tem que ser a de `tabfm.versao_pacote`, senão a execução para.
+do Colab (D-69). O pacote vem de um commit fixo da `main` do GitHub (`tabfm.commit_pacote`, D-90): o
+commit instalado (`direct_url.json` do pip) tem que ser esse, senão a execução para. Os pesos são um
+atributo do pacote (`tabfm.alias_pesos`), não um submódulo.
 O `n_estimators` (ensembling de contextos) só é passado quando não é `null` no config; com `null`
 vale o padrão do pacote.
 
 Dispositivo: o README do pacote não expõe escolha de dispositivo, então o módulo só **registra**
 o que o torch enxerga (`cuda` ou `cpu`); quem decide é o pacote.
 
-MLflow (quando há um run ativo): versão do pacote, `max_num_rows`, `n_estimators`, dispositivo
+MLflow (quando há um run ativo): commit do pacote, `max_num_rows`, `n_estimators`, dispositivo
 (parâmetros) e tamanho e nº de positivos do contexto (métricas, por dobra).
 
 Predição: uma probabilidade de y = 1 por linha, em blocos de `TAMANHO_BLOCO_PREDICAO` linhas
@@ -34,6 +36,8 @@ from __future__ import annotations
 
 import importlib
 import importlib.metadata
+import json
+import re
 from typing import Any
 
 import mlflow
@@ -45,11 +49,12 @@ from dengue_sinan.preprocess import make_preprocessor
 
 NOME_PACOTE = "tabfm"
 CHAVE_CONFIG = "tabfm"  # bloco do config/base.yaml
-CHAVES_OBRIGATORIAS = ("versao_pacote", "alias_pesos", "max_num_rows", "n_estimators")
+CHAVES_OBRIGATORIAS = ("commit_pacote", "alias_pesos", "max_num_rows", "n_estimators")
+COMMIT_RE = re.compile(r"[0-9a-f]{40}")  # SHA-1 completo, minúsculo (é o que o pip grava)
 TAMANHO_BLOCO_PREDICAO = 65_536  # linhas por chamada de predição (memória)
 # Nomes diferentes dos do config: o start_run já grava o config achatado, e o MLflow recusa mudar
 # o valor de um parâmetro (aqui: n_estimators null no config e "padrao_do_pacote" no run).
-PARAM_MLFLOW_VERSAO = "tabfm.versao_instalada"
+PARAM_MLFLOW_COMMIT = "tabfm.commit_instalado"
 PARAM_MLFLOW_MAX_LINHAS = "tabfm.contexto_max_linhas"
 PARAM_MLFLOW_N_ESTIMATORS = "tabfm.n_estimators_efetivo"
 PARAM_MLFLOW_DISPOSITIVO = "tabfm.dispositivo"
@@ -57,28 +62,50 @@ METRICA_MLFLOW_CONTEXTO = "tabfm.contexto_linhas"
 METRICA_MLFLOW_POSITIVOS = "tabfm.contexto_positivos"
 
 
-def _carregar_pacote(alias_pesos: str) -> tuple[Any, Any]:
-    """Importa o pacote `tabfm` e o módulo de pesos `alias_pesos`. Import preguiçoso (D-69).
+def _instrucao_instalacao(commit: str) -> str:
+    """Comando que instala o `tabfm` do commit fixo (D-90). Sem dependências: o lock cobre."""
+    return f'pip install --no-deps "git+https://github.com/google-research/tabfm.git@{commit}"'
 
-    Sem o pacote, levanta RuntimeError com a instrução de instalação, em vez do ImportError cru.
+
+def _carregar_pacote(alias_pesos: str, commit: str) -> tuple[Any, Any]:
+    """Importa o pacote `tabfm` e pega os pesos `alias_pesos` como atributo dele (D-90).
+
+    Import preguiçoso (D-69). Sem o pacote, levanta RuntimeError com a instrução de instalação do
+    commit fixo, em vez do ImportError cru. O alias é atributo de `tabfm/__init__.py`, não
+    submódulo: se o PyTorch não importar, o atributo não existe e o erro diz isso.
     """
     try:
         pacote = importlib.import_module(NOME_PACOTE)
-        pesos = importlib.import_module(f"{NOME_PACOTE}.{alias_pesos}")
     except ImportError as erro:
         raise RuntimeError(
-            "TabFM não instalado. Ele só roda na sessão do Colab, com a versão fixa do config "
-            "(tabfm.versao_pacote): pip install 'tabfm[pytorch]==<versão>' (D-69). "
+            "TabFM não instalado. Ele só roda na sessão do Colab, do commit fixo do config "
+            f"(tabfm.commit_pacote, D-69 e D-90): {_instrucao_instalacao(commit)}. "
             f"Erro original: {erro}"
         ) from erro
-    return pacote, pesos
+    if not hasattr(pacote, alias_pesos):
+        raise RuntimeError(
+            f"tabfm: o pacote instalado não expõe {alias_pesos!r} (tabfm.alias_pesos). Ou o commit "
+            f"não é {commit}, ou o PyTorch não importou (D-90). Reinstale: "
+            f"{_instrucao_instalacao(commit)}")
+    return pacote, getattr(pacote, alias_pesos)
 
 
-def _versao_instalada() -> str:
+def _commit_instalado() -> str | None:
+    """SHA do commit de onde o pip instalou o `tabfm`, pelo `direct_url.json` (PEP 610).
+
+    None se o pacote não veio de git (ex.: PyPI). A versão não serve para isso: é '1.0.1' em todo
+    commit da `main` (D-90).
+    """
     try:
-        return importlib.metadata.version(NOME_PACOTE)
+        distribuicao = importlib.metadata.distribution(NOME_PACOTE)
     except importlib.metadata.PackageNotFoundError as erro:
-        raise RuntimeError("TabFM não instalado: sem metadados do pacote (D-69)") from erro
+        raise RuntimeError("TabFM não instalado: sem metadados do pacote (D-69, D-90)") from erro
+    origem = distribuicao.read_text("direct_url.json")
+    if origem is None:
+        return None
+    vcs = json.loads(origem).get("vcs_info") or {}
+    commit = vcs.get("commit_id")
+    return commit if isinstance(commit, str) else None
 
 
 def detectar_dispositivo() -> str:
@@ -140,7 +167,12 @@ class TabFMM1:
         if n_est is not None and (isinstance(n_est, bool) or not isinstance(n_est, int)
                                   or n_est < 1):
             raise ValueError(f"tabfm.n_estimators deve ser inteiro >= 1 ou null, não {n_est!r}")
-        self._versao = str(cfg_tabfm["versao_pacote"])
+        commit = cfg_tabfm["commit_pacote"]
+        if not isinstance(commit, str) or not COMMIT_RE.fullmatch(commit):
+            raise ValueError(
+                "tabfm.commit_pacote deve ser o SHA-1 completo (40 hex minúsculos), "
+                f"não {commit!r}")
+        self._commit = commit
         self._alias = str(cfg_tabfm["alias_pesos"])
         self._max_linhas = max_linhas
         self._n_estimators = n_est
@@ -170,7 +202,7 @@ class TabFMM1:
         self.contexto_linhas_ = int(pos.size)
         self.contexto_positivos_ = int((y_ctx == 1).sum())
         if mlflow.active_run() is not None:
-            mlflow.log_param(PARAM_MLFLOW_VERSAO, _versao_instalada())
+            mlflow.log_param(PARAM_MLFLOW_COMMIT, self._commit)  # já conferido em _novo_estimador
             mlflow.log_param(PARAM_MLFLOW_MAX_LINHAS, self._max_linhas)
             mlflow.log_param(PARAM_MLFLOW_N_ESTIMATORS,
                              "padrao_do_pacote" if self._n_estimators is None
@@ -180,12 +212,15 @@ class TabFMM1:
             mlflow.log_metric(METRICA_MLFLOW_POSITIVOS, float(self.contexto_positivos_))
 
     def _novo_estimador(self):
-        """Carrega o pacote, confere a versão fixa (D-69) e cria o classificador do pacote."""
-        pacote, pesos = _carregar_pacote(self._alias)
-        versao = _versao_instalada()
-        if versao != self._versao:
+        """Carrega o pacote, confere o commit fixo (D-90) e cria o classificador do pacote."""
+        pacote, pesos = _carregar_pacote(self._alias, self._commit)
+        instalado = _commit_instalado()
+        if instalado != self._commit:
             raise RuntimeError(
-                f"tabfm: versão instalada {versao} != config {self._versao} (versão fixa, D-69)")
+                f"tabfm: commit instalado "
+                f"{instalado or 'desconhecido (não veio de git)'} != config {self._commit} "
+                "(commit fixo, D-90). Reinstale: "
+                f"{_instrucao_instalacao(self._commit)}")
         kwargs: dict[str, Any] = {"max_num_rows": self._max_linhas}
         if self._n_estimators is not None:
             kwargs["n_estimators"] = self._n_estimators
