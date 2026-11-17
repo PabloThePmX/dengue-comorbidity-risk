@@ -22,8 +22,9 @@ atributo do pacote (`tabfm.alias_pesos`), não um submódulo.
 O `n_estimators` (ensembling de contextos) só é passado quando não é `null` no config; com `null`
 vale o padrão do pacote.
 
-Dispositivo: o README do pacote não expõe escolha de dispositivo, então o módulo só **registra**
-o que o torch enxerga (`cuda` ou `cpu`); quem decide é o pacote.
+Dispositivo: `pesos.load()` do pacote usa **CPU por padrão** (descoberto no Colab, D-90). Por isso o
+módulo passa `device=` explicitamente: `cuda` se o torch enxerga uma GPU, senão `cpu`. O MLflow
+registra o mesmo valor que foi passado ao `load`, guardado em `self._dispositivo`.
 
 MLflow (quando há um run ativo): commit do pacote, `max_num_rows`, `n_estimators`, dispositivo
 (parâmetros) e tamanho e nº de positivos do contexto (métricas, por dobra).
@@ -109,7 +110,8 @@ def _commit_instalado() -> str | None:
 
 
 def detectar_dispositivo() -> str:
-    """"cuda" se o torch enxerga uma GPU, senão "cpu". Só registro (o pacote escolhe sozinho)."""
+    """"cuda" se o torch enxerga uma GPU, senão "cpu". Vai a `pesos.load(device=...)`, porque o
+    padrão do pacote é CPU (D-90)."""
     import torch  # lazy: o módulo carrega sem torch por perto; o pacote PyTorch precisa dele
 
     return "cuda" if torch.cuda.is_available() else "cpu"
@@ -177,6 +179,7 @@ class TabFMM1:
         self._max_linhas = max_linhas
         self._n_estimators = n_est
         self._seed = int(seed)  # R8
+        self._dispositivo: str | None = None  # o que foi passado ao load na última _novo_estimador
         self._pipeline: Pipeline | None = None
         self.contexto_linhas_: int | None = None
         self.contexto_positivos_: int | None = None
@@ -207,7 +210,7 @@ class TabFMM1:
             mlflow.log_param(PARAM_MLFLOW_N_ESTIMATORS,
                              "padrao_do_pacote" if self._n_estimators is None
                              else self._n_estimators)
-            mlflow.log_param(PARAM_MLFLOW_DISPOSITIVO, detectar_dispositivo())
+            mlflow.log_param(PARAM_MLFLOW_DISPOSITIVO, self._dispositivo)  # o usado no load
             mlflow.log_metric(METRICA_MLFLOW_CONTEXTO, float(self.contexto_linhas_))
             mlflow.log_metric(METRICA_MLFLOW_POSITIVOS, float(self.contexto_positivos_))
 
@@ -221,10 +224,11 @@ class TabFMM1:
                 f"{instalado or 'desconhecido (não veio de git)'} != config {self._commit} "
                 "(commit fixo, D-90). Reinstale: "
                 f"{_instrucao_instalacao(self._commit)}")
+        self._dispositivo = detectar_dispositivo()
         kwargs: dict[str, Any] = {"max_num_rows": self._max_linhas}
         if self._n_estimators is not None:
             kwargs["n_estimators"] = self._n_estimators
-        return pacote.TabFMClassifier(model=pesos.load(), **kwargs)
+        return pacote.TabFMClassifier(model=pesos.load(device=self._dispositivo), **kwargs)
 
     def prever_proba(self, X) -> np.ndarray:
         if self._pipeline is None:

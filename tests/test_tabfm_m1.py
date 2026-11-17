@@ -79,6 +79,7 @@ class Gravacoes:
     def __init__(self) -> None:
         self.fits: list[dict] = []
         self.predicoes: list[int] = []
+        self.cargas: list[str] = []  # device recebido em cada pesos.load (D-90: o padrão é CPU)
 
 
 @pytest.fixture
@@ -107,8 +108,12 @@ def pacote_falso(monkeypatch):
             p = np.clip(X[:, col_idade] / 1000.0, 0.0, 1.0)
             return np.column_stack([1.0 - p, p])
 
+    def carregar_falso(device):  # sem default: `load()` sem device falha, como no pacote real
+        gravacoes.cargas.append(device)
+        return "pesos-falsos"
+
     pacote = types.SimpleNamespace(TabFMClassifier=ClassificadorFalso)
-    pesos = types.SimpleNamespace(load=lambda: "pesos-falsos")
+    pesos = types.SimpleNamespace(load=carregar_falso)
     monkeypatch.setattr(tabfm_m1, "_carregar_pacote", lambda alias, commit: (pacote, pesos))
     monkeypatch.setattr(tabfm_m1, "_commit_instalado", lambda: COMMIT)
     gravacoes.col_idade = col_idade
@@ -433,5 +438,53 @@ def test_versao_contexto_e_dispositivo_ficam_no_mlflow(tmp_path, pacote_falso):
     assert dados.metrics[tabfm_m1.METRICA_MLFLOW_POSITIVOS] == 30
 
 
+def torch_falso(monkeypatch, disponivel: bool) -> None:
+    """Troca o `torch` por um duplo com só o necessário: a GPU (conferida) e a semente (R8)."""
+    monkeypatch.setitem(sys.modules, "torch", types.SimpleNamespace(
+        cuda=types.SimpleNamespace(is_available=lambda: disponivel),
+        manual_seed=lambda seed: None,
+    ))
+
+
 def test_detectar_dispositivo_devolve_cpu_ou_cuda():
     assert detectar_dispositivo() in ("cpu", "cuda")
+
+
+def test_detectar_dispositivo_com_gpu_devolve_cuda(monkeypatch):
+    torch_falso(monkeypatch, disponivel=True)
+    assert detectar_dispositivo() == "cuda"
+
+
+def test_detectar_dispositivo_sem_gpu_devolve_cpu(monkeypatch):
+    torch_falso(monkeypatch, disponivel=False)
+    assert detectar_dispositivo() == "cpu"
+
+
+@pytest.mark.parametrize("disponivel, esperado", [(True, "cuda"), (False, "cpu")])
+def test_pesos_sao_carregados_no_dispositivo_detectado(pacote_falso, monkeypatch,
+                                                      disponivel, esperado):
+    """D-90: `load()` do pacote usa CPU por padrão; o módulo tem que passar o device."""
+    torch_falso(monkeypatch, disponivel)
+    df = frame()
+    TabFMM1({}, cfg_teste()["tabfm"], seed=7).ajustar(df, df["y"])
+    assert pacote_falso.cargas == [esperado]
+
+
+@pytest.mark.parametrize("disponivel, esperado", [(True, "cuda"), (False, "cpu")])
+def test_mlflow_registra_o_dispositivo_usado_no_load(tmp_path, pacote_falso, monkeypatch,
+                                                    disponivel, esperado):
+    torch_falso(monkeypatch, disponivel)
+    base = load_config()
+    cfg = {**base, "seed": 7,
+           "caminhos": {**base["caminhos"], "dados": str(tmp_path / "data"),
+                        "mlruns": str(tmp_path / "mlruns")}}
+    df = frame()
+    # config próprio: o contexto de 100 linhas cabe no frame de teste (600 linhas)
+    bloco = cfg_teste(max_num_rows=100)["tabfm"]
+    with tracking.start_run(cfg, "teste-tabfm-dispositivo") as run:
+        TabFMM1({}, bloco, seed=7).ajustar(df.iloc[:1000], df["y"].iloc[:1000])
+        id_run = run.info.run_id
+    client = MlflowClient(tracking_uri=str(tmp_path / "mlruns"))
+    dados = client.get_run(id_run).data
+    assert dados.params[tabfm_m1.PARAM_MLFLOW_DISPOSITIVO] == esperado
+    assert pacote_falso.cargas == [dados.params[tabfm_m1.PARAM_MLFLOW_DISPOSITIVO]]
