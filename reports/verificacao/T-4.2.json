@@ -1,7 +1,7 @@
 {
   "tarefa": "T-4.2",
-  "gerado_em": "2026-11-16T23:53:49Z",
-  "commit": "2bbe1f6580c003a3e99d53a3e38894c691f29126",
+  "gerado_em": "2026-11-17T13:03:38Z",
+  "commit": "bbcea0388078ef8cabc032ce0f250e16ae16936f",
   "ambiente": {
     "python": "3.13.16",
     "ram_gib": 15.9,

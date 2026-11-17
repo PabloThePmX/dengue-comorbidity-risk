@@ -508,3 +508,186 @@ def test_hardware_do_run_do_tune_vai_para_o_mlflow(tmp_path, toy):
     assert params["hardware.vcpus"] == str(os.cpu_count())  # tracking.start_run grava o hardware
     assert float(params["hardware.ram_gib"]) > 0
     assert {"hardware.cpu", "hardware.gpu"} <= set(params)
+
+
+# --- Limite de tempo por tentativa e orçamento restante (poda por tempo, na busca) ----------
+# Relógio falso: o `perf_counter` do módulo tuning lê `Relogio.agora`, que só muda quando o
+# código de teste (ou o modelo falso) avança o tempo. Nada depende da máquina.
+
+class Relogio:
+    def __init__(self, agora: float = 0.0) -> None:
+        self.agora = float(agora)
+
+    def perf_counter(self) -> float:
+        return self.agora
+
+
+@pytest.fixture
+def relogio(monkeypatch):
+    rel = Relogio()
+    monkeypatch.setattr(tuning, "time", SimpleNamespace(perf_counter=rel.perf_counter))
+    return rel
+
+
+def _uma_tentativa(tmp_path, relogio, custos, *, podar=True, fim_busca=None, limite=None):
+    """Roda `_objetivo` (com `cv.run_loro` falso que gasta `custos[i]` s na dobra i) e devolve
+    a única tentativa do estudo em memória."""
+    def falso(cfg_, familia, params, df_, ao_fim_da_dobra=None):
+        for i, custo in enumerate(custos):
+            relogio.agora += custo
+            ao_fim_da_dobra(ORDEM[i], i, 0.5)
+        return {"pr_auc_por_dobra": {r: 0.5 for r in ORDEM},
+                "melhores_pontos": {r: None for r in ORDEM}, "pr_auc_media": 0.5}
+
+    cfg = cfg_toy(tmp_path)
+    espaco = tuning._espaco(cfg, "toy")
+    estudo = optuna.create_study(direction="maximize")
+    objetivo = tuning._objetivo(cfg, "toy", espaco, frame(), podar=podar,
+                                fim_busca=fim_busca, limite_tentativa_s=limite)
+    original = cv.run_loro
+    cv.run_loro = falso
+    try:
+        estudo.optimize(objetivo, n_trials=1)
+    finally:
+        cv.run_loro = original
+    return estudo.trials[0]
+
+
+def test_primeira_dobra_que_estoura_o_limite_poda_ao_fim_dela(tmp_path, relogio):
+    t = _uma_tentativa(tmp_path, relogio, custos=[20.0, 1.0, 1.0], limite=10.0)
+    assert t.state == TrialState.PRUNED
+    assert len(t.intermediate_values) == 1  # parou ao fim da 1ª dobra, sem gastar as outras
+    assert t.user_attrs["motivo_poda"] == tuning.MOTIVO_LIMITE
+    assert t.user_attrs["tempo_dobras_s"] == [20.0]
+
+
+def test_tentativa_que_passa_do_orcamento_restante_e_podada(tmp_path, relogio):
+    relogio.agora = 100.0  # a busca começou em outro instante: o restante é relativo a ele
+    t = _uma_tentativa(tmp_path, relogio, custos=[6.0, 12.0, 6.0], fim_busca=115.0, limite=50.0)
+    assert t.state == TrialState.PRUNED
+    # fim das dobras: 106 ≤ 115 (segue); 118 > 115 na 2ª, que é penúltima: poda ao fim dela (D-89)
+    assert len(t.intermediate_values) == 2
+    assert t.user_attrs["motivo_poda"] == tuning.MOTIVO_ORCAMENTO
+
+
+def test_orcamento_restante_tem_prioridade_sobre_o_limite(tmp_path, relogio):
+    t = _uma_tentativa(tmp_path, relogio, custos=[20.0, 20.0], fim_busca=5.0, limite=5.0)
+    assert t.state == TrialState.PRUNED
+    assert t.user_attrs["motivo_poda"] == tuning.MOTIVO_ORCAMENTO
+
+
+def test_tentativa_dentro_dos_dois_limites_completa(tmp_path, relogio):
+    t = _uma_tentativa(tmp_path, relogio, custos=[1.0, 1.0, 1.0], fim_busca=100.0, limite=10.0)
+    assert t.state == TrialState.COMPLETE
+    assert len(t.intermediate_values) == len(ORDEM)
+
+
+def test_cronometragem_nao_tem_limite_de_tempo(tmp_path, relogio):
+    # podar=False é a cronometragem: mesmo estourando orçamento e limite, mede as 3 dobras
+    t = _uma_tentativa(tmp_path, relogio, custos=[20.0, 20.0, 20.0], podar=False,
+                       fim_busca=5.0, limite=5.0)
+    assert t.state == TrialState.COMPLETE
+    assert len(t.intermediate_values) == len(ORDEM)
+    assert "motivo_poda" not in t.user_attrs
+
+
+def test_sem_limites_a_tentativa_nunca_e_podada_por_tempo(tmp_path, relogio):
+    t = _uma_tentativa(tmp_path, relogio, custos=[1e6, 1e6, 1e6], fim_busca=None, limite=None)
+    assert t.state == TrialState.COMPLETE
+
+
+class ToyCusto(Toy):
+    """Toy que gasta tempo no relógio falso: 10 s por dobra na tentativa de partida (forca 0) e
+    20 s nas sorteadas. Sem sorteio de tempo: o custo depende só do parâmetro."""
+
+    def __init__(self, forca: float, relogio: Relogio) -> None:
+        super().__init__(forca)
+        self.relogio = relogio
+
+    def ajustar(self, X_treino, y_treino, X_parada=None, y_parada=None) -> None:
+        self.relogio.agora += 10.0 if self.forca == 0.0 else 20.0
+
+
+def test_busca_inteira_nao_passa_do_orcamento_por_mais_de_uma_dobra(
+    tmp_path, relogio, monkeypatch
+):
+    monkeypatch.setitem(cv.REGISTRO, "toy", lambda params, cfg: ToyCusto(params["forca"], relogio))
+    # piso 0 para o orçamento ser a fórmula: t = 30 s, 3 tentativas → orçamento = 3 × 30 = 90 s
+    cfg = {**cfg_toy(tmp_path, max_tentativas=3), "orcamento_piso_min": 0}
+
+    r = tuning.tune(cfg, "toy", frame())
+    assert r["t_cronometragem_s"] == pytest.approx(30.0)
+    assert r["orcamento_s"] == pytest.approx(90.0)
+    trials = tuning.criar_estudo(cfg, "toy").trials
+    podadas = [t for t in trials if t.state == TrialState.PRUNED]
+    assert len(podadas) == 1 and podadas[0].user_attrs["motivo_poda"] == tuning.MOTIVO_ORCAMENTO
+    assert len(podadas[0].intermediate_values) == 1  # parou na 1ª dobra, no estouro
+    # passou do orçamento no máximo o tempo de uma dobra (20 s)
+    assert r["tempo_busca_total_s"] <= r["orcamento_s"] + 20.0 + 1e-9
+    assert r["tentativas_falhas"] == 0
+    assert r["maior_dobra_s"] == pytest.approx(20.0)  # maior dobra vista na busca
+
+
+def test_retomada_mantem_a_tentativa_podada_por_tempo_como_podada(tmp_path, relogio, monkeypatch):
+    monkeypatch.setitem(cv.REGISTRO, "toy", lambda params, cfg: ToyCusto(params["forca"], relogio))
+    cfg = {**cfg_toy(tmp_path, max_tentativas=3), "orcamento_piso_min": 0}
+    tuning.tune(cfg, "toy", frame())
+    antes = [t.state for t in tuning.criar_estudo(cfg, "toy").trials]
+
+    r2 = tuning.tune(cfg, "toy", frame())  # orçamento já gasto: não roda nada novo
+    depois = [t.state for t in tuning.criar_estudo(cfg, "toy").trials]
+    assert depois == antes
+    assert r2["tentativas_podadas"] == 1 and r2["tentativas_falhas"] == 0
+
+
+# --- Última dobra poupada da poda por tempo (D-89) --------------------------------------------
+
+def test_cruzar_o_orcamento_so_na_ultima_dobra_termina_completa(tmp_path, relogio):
+    # 1 + 1 = 2 ≤ 10 nas duas primeiras; 22 > 10 só na última: fica COMPLETE, sem poda
+    t = _uma_tentativa(tmp_path, relogio, custos=[1.0, 1.0, 20.0], fim_busca=10.0)
+    assert t.state == TrialState.COMPLETE
+    assert len(t.intermediate_values) == len(ORDEM)
+    assert "motivo_poda" not in t.user_attrs
+
+
+def test_cruzar_o_limite_so_na_ultima_dobra_termina_completa(tmp_path, relogio):
+    t = _uma_tentativa(tmp_path, relogio, custos=[1.0, 1.0, 20.0], limite=10.0)
+    assert t.state == TrialState.COMPLETE
+    assert len(t.intermediate_values) == len(ORDEM)
+
+
+def test_cruzar_o_orcamento_na_penultima_dobra_e_podada(tmp_path, relogio):
+    # 1 ≤ 10; 21 > 10 na 2ª (penúltima): podada ao fim dela, sem rodar a última
+    t = _uma_tentativa(tmp_path, relogio, custos=[1.0, 20.0, 1.0], fim_busca=10.0)
+    assert t.state == TrialState.PRUNED
+    assert len(t.intermediate_values) == 2
+    assert t.user_attrs["motivo_poda"] == tuning.MOTIVO_ORCAMENTO
+
+
+def test_cruzar_o_limite_na_penultima_dobra_e_podada(tmp_path, relogio):
+    t = _uma_tentativa(tmp_path, relogio, custos=[1.0, 20.0, 1.0], limite=10.0)
+    assert t.state == TrialState.PRUNED
+    assert len(t.intermediate_values) == 2
+    assert t.user_attrs["motivo_poda"] == tuning.MOTIVO_LIMITE
+
+
+def test_unica_tentativa_que_cruza_o_orcamento_so_na_ultima_dobra_e_concluida(
+    tmp_path, relogio, monkeypatch
+):
+    monkeypatch.setitem(cv.REGISTRO, "toy", lambda params, cfg: ToyCusto(params["forca"], relogio))
+    # cronometragem: 3 × 10 s = 30 s. Orçamento = piso = 80 s (80/60 min); sobram 50 s para a
+    # busca. Tentativa sorteada: 20 s por dobra → 20, 40 (≤ 50) e 60 (> 50, só na última dobra).
+    cfg = {**cfg_toy(tmp_path, max_tentativas=2), "orcamento_piso_min": 80 / 60}
+
+    r = tuning.tune(cfg, "toy", frame())
+    assert r["orcamento_s"] == pytest.approx(80.0)
+    trials = tuning.criar_estudo(cfg, "toy").trials
+    busca = trials[1]  # trials[0] é a cronometragem copiada
+    assert busca.state == TrialState.COMPLETE
+    assert len(busca.intermediate_values) == len(ORDEM)
+    assert r["tentativas_podadas"] == 0 and r["tentativas_falhas"] == 0
+    melhor = {t.number: t for t in trials}[r["melhor_tentativa"]]  # pode ser a cronometragem
+    assert melhor.state == TrialState.COMPLETE and r["melhor_pr_auc"] is not None
+    # passou do orçamento (90 s > 80 s) só pela última dobra: no máximo uma dobra além
+    assert r["tempo_busca_total_s"] > r["orcamento_s"]
+    assert r["tempo_busca_total_s"] <= r["orcamento_s"] + r["maior_dobra_s"] + 1e-9

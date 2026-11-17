@@ -15,7 +15,15 @@ Passos (D-53):
 3. **Orçamento**: `calcular_orcamento` (fórmula abaixo). Se `3t` não cabe no teto, a busca vai para
    a **subamostra estratificada** por (região, alvo), que mantém a prevalência de cada dobra (R3).
 4. **Busca**: `study.optimize` até o nº de tentativas do config ou o tempo restante do orçamento.
-   Cada dobra reporta a PR-AUC acumulada (`trial.report`) e pode podar a tentativa.
+   Cada dobra reporta a PR-AUC acumulada (`trial.report`) e pode podar a tentativa. Limites de
+   tempo, checados no fim de cada dobra (inclusive a 1ª), só na busca (não na cronometragem):
+   - **orçamento da busca**: a tentativa é podada se o tempo gasto nela passou do que restava do
+     orçamento quando ela começou (`fim_busca`, o instante em que o orçamento acaba);
+   - **limite por tentativa**: `FATOR_LIMITE_TENTATIVA · fracao · t` (3 × o custo de referência de
+     uma tentativa no conjunto da busca). Motivo gravado em `user_attrs["motivo_poda"]`.
+   A poda por tempo acontece ao fim de cada dobra anterior à última (D-89). Uma dobra não pode
+   ser interrompida (o saga é caixa-preta): a tentativa só passa do orçamento ou do limite na
+   última dobra, e por no máximo o tempo dela (a folga do check é `maior_dobra_s`).
 5. **Melhor tentativa**: vai ao registro de modelos `m1-<modelo>`, alias `melhor-validacao`.
    Uma tentativa pior ou igual nunca move o alias.
 
@@ -69,6 +77,9 @@ ALIAS_MELHOR = "melhor-validacao"  # FR-22
 ATRIBUTO_CRONOMETRAGEM = "cronometragem"  # user attr do estudo principal: a decisão de orçamento
 SUFIXO_CRONOMETRAGEM = "__cronometragem"
 NOME_ARTEFATO = "melhor_tentativa.json"
+FATOR_LIMITE_TENTATIVA = 3.0  # limite por tentativa = fator · fracao · t (ver docstring do módulo)
+MOTIVO_ORCAMENTO = "orcamento_busca"
+MOTIVO_LIMITE = "limite_tentativa"
 
 
 # --- Caminhos, estudos e retomada ------------------------------------------------------------
@@ -169,18 +180,38 @@ def subamostra_estratificada(df: pd.DataFrame, fracao: float, seed: int) -> pd.D
 
 # --- Objetivo --------------------------------------------------------------------------------
 
+def _motivo_de_poda(
+    agora: float, inicio_tentativa: float, fim_busca: float | None, limite_s: float | None,
+) -> str | None:
+    """Por que a tentativa deve ser podada por tempo, ou None. O orçamento tem prioridade.
+
+    `agora > fim_busca` é o mesmo que "o gasto da tentativa passou do restante do orçamento que
+    havia quando ela começou" (restante = fim_busca − início da tentativa).
+    """
+    if fim_busca is not None and agora > fim_busca:
+        return MOTIVO_ORCAMENTO
+    if limite_s is not None and agora - inicio_tentativa > limite_s:
+        return MOTIVO_LIMITE
+    return None
+
+
 def _objetivo(
-    cfg: dict, modelo: str, espaco: EspacoModelo, df: pd.DataFrame, podar: bool
+    cfg: dict, modelo: str, espaco: EspacoModelo, df: pd.DataFrame, podar: bool,
+    fim_busca: float | None = None, limite_tentativa_s: float | None = None,
 ) -> Callable[[optuna.Trial], float]:
     """Função objetivo: uma tentativa = `cv.run_loro` com os parâmetros sorteados.
 
     Após cada dobra reporta a PR-AUC acumulada (média até ali) com `step` = dobras concluídas e,
-    se `podar`, para a tentativa quando o MedianPruner decidir. Guarda o tempo de cada dobra.
+    se `podar`, (1) poda a tentativa por tempo, se ela passou do orçamento que restava na busca
+    (`fim_busca`, instante do `perf_counter`) ou do `limite_tentativa_s`, só ao fim das dobras
+    anteriores à última (D-89); (2) poda pelo MedianPruner. Guarda o tempo de cada dobra. A
+    cronometragem não tem limites (`podar=False`).
     """
     def objetivo(trial: optuna.Trial) -> float:
         valores = sugerir(trial, espaco)
         params = {**espaco.fixos, **valores}
         instante = [time.perf_counter()]
+        inicio_tentativa = instante[0]
         tempos: list[float] = []
         prs: list[float] = []
 
@@ -190,6 +221,15 @@ def _objetivo(
             instante[0] = agora
             prs.append(pr_auc)
             trial.report(float(np.mean(prs)), step=indice + 1)
+            # a última dobra é poupada da poda por tempo (D-89): a tentativa que já terminou
+            # todas as dobras fica COMPLETE, mesmo que tenha passado do orçamento ou do limite
+            ultima = indice == len(cfg["ordem_dobras"]) - 1
+            if podar and not ultima:
+                motivo = _motivo_de_poda(agora, inicio_tentativa, fim_busca, limite_tentativa_s)
+                if motivo is not None:
+                    trial.set_user_attr("tempo_dobras_s", [float(x) for x in tempos])
+                    trial.set_user_attr("motivo_poda", motivo)
+                    raise optuna.TrialPruned(f"{motivo} após {indice + 1} dobra(s)")
             if podar and trial.should_prune():
                 raise optuna.TrialPruned(f"podada após {indice + 1} dobra(s)")
 
@@ -348,9 +388,13 @@ def tune(cfg: dict, modelo: str, df: pd.DataFrame) -> dict:
         gasto_s = sum(_segundos(t) for t in finalizadas)
         restantes = max_tentativas - len(finalizadas)
         tempo_restante = cron["orcamento_s"] - gasto_s
+        # limite por tentativa: 3 × o custo de referência de uma tentativa na busca (fracao · t)
+        limite_tentativa_s = FATOR_LIMITE_TENTATIVA * cron["fracao"] * cron["t_s"]
         if restantes > 0 and tempo_restante > 0:
+            fim_busca = time.perf_counter() + tempo_restante
             estudo.optimize(
-                _objetivo(cfg, modelo, espaco, df_busca, podar=True),
+                _objetivo(cfg, modelo, espaco, df_busca, podar=True,
+                          fim_busca=fim_busca, limite_tentativa_s=limite_tentativa_s),
                 n_trials=restantes,
                 timeout=tempo_restante,
             )
@@ -364,6 +408,14 @@ def tune(cfg: dict, modelo: str, df: pd.DataFrame) -> dict:
         )
         melhor = _melhor(estudo)
         melhores = {**espaco.fixos, **melhor.params} if melhor is not None else None
+        # maior dobra vista na busca: uma tentativa que cruza o fim do orçamento pode passar dele
+        # por no máximo uma dobra (a poda é no fim da dobra), então esse é o tamanho da folga
+        maior_dobra_s = max(
+            (max(t.user_attrs["tempo_dobras_s"]) for t in estudo.trials
+             if t.state in (TrialState.COMPLETE, TrialState.PRUNED)
+             and t.user_attrs.get("tempo_dobras_s")),
+            default=0.0,
+        )
 
         mlflow.log_params({
             "tuning.modelo": modelo,
@@ -381,6 +433,11 @@ def tune(cfg: dict, modelo: str, df: pd.DataFrame) -> dict:
             "tuning.teto_s": teto_s,
             "tuning.piso_s": piso_s,
             "tuning.max_tentativas": float(max_tentativas),
+            "tuning.limite_tentativa_s": float(limite_tentativa_s),
+            "tuning.podadas_por_orcamento": float(sum(
+                1 for t in podadas if t.user_attrs.get("motivo_poda") == MOTIVO_ORCAMENTO)),
+            "tuning.podadas_por_limite": float(sum(
+                1 for t in podadas if t.user_attrs.get("motivo_poda") == MOTIVO_LIMITE)),
             "tuning.tentativas_concluidas": float(len(concluidas)),
             "tuning.tentativas_podadas": float(len(podadas)),
             "tuning.tentativas_falhas": float(len(falhas)),
@@ -418,6 +475,7 @@ def tune(cfg: dict, modelo: str, df: pd.DataFrame) -> dict:
         "tentativas_falhas": len(falhas),
         "interrompidas_na_retomada": interrompidas,
         "tempo_busca_total_s": gasto_total_s,
+        "maior_dobra_s": maior_dobra_s,
         "melhor_tentativa": None if melhor is None else melhor.number,
         "melhor_pr_auc": None if melhor is None else float(melhor.value),
         "melhores_parametros": melhores,

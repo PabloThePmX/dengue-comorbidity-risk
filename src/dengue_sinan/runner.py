@@ -431,13 +431,20 @@ def _treinar_modelo(
         resumo = _resumo_sem_busca(0.0)
         melhores: dict = {}
         tempo_busca_s = 0.0
+        teto_efetivo_s = teto_s  # sem busca, o teto vale para a única execução, sem folga
     else:
         inicio = time.perf_counter()
         resumo = tuning.tune(cfg, modelo, df)
-        tempo_busca_s = time.perf_counter() - inicio
+        tempo_parede_s = time.perf_counter() - inicio  # inclui a cronometragem (não cobrada)
         melhores = resumo["melhores_parametros"]
         if melhores is None:
-            raise RuntimeError(f"{modelo}: a busca não concluiu nenhuma tentativa")
+            # nenhuma tentativa concluiu (ex.: teto de tempo menor que uma dobra): sem OOF, o bloco
+            # reprova o check `tentativa_concluida` e a sessão segue para o próximo modelo (T-4.3b)
+            return _bloco_sem_tentativa(modelo, pasta, resumo)
+        # o teto vale para o que o orçamento cobra (D-53: a cronometragem em subamostra não é
+        # cobrada); a folga é uma dobra, a maior vista na busca, porque a poda é no fim da dobra
+        tempo_busca_s = float(resumo["tempo_busca_total_s"])
+        teto_efetivo_s = teto_s + float(resumo["maior_dobra_s"])
 
     inicio = time.perf_counter()
     resultado = cv.run_loro(cfg, modelo, melhores, df)
@@ -445,6 +452,7 @@ def _treinar_modelo(
     if sem_busca:
         resumo["t_cronometragem_s"] = tempo_treino_s
         tempo_busca_s = tempo_treino_s  # o teto vale para a única execução
+        tempo_parede_s = tempo_treino_s
     iterativo = any(v is not None for v in resultado["melhores_pontos"].values())
     oof = resultado["oof"]
     metricas = {
@@ -474,12 +482,13 @@ def _treinar_modelo(
     _gravar_json(pasta / ARQ_PARAMETROS, parametros)
 
     checks = _checks_modelo(cfg, modelo, len(df), resultado, resumo,
-                            tempo_busca_s, teto_s, iterativo, sem_busca=sem_busca)
+                            tempo_busca_s, teto_efetivo_s, iterativo, sem_busca=sem_busca)
     with tracking.start_run(cfg, f"final-{modelo}", tags={"modelo": modelo, "etapa": "T-4.3b"}):
         mlflow.log_metrics({
             "final.oof_pr_auc": metricas["oof_pr_auc"],
             "final.pr_auc_media": metricas["pr_auc_media"],
             "final.tempo_busca_s": float(tempo_busca_s),
+            "final.tempo_busca_parede_s": float(tempo_parede_s),
             "final.tempo_treino_s": float(tempo_treino_s),
         })
         mlflow.log_param("final.sem_busca", str(sem_busca))
@@ -493,6 +502,23 @@ def _treinar_modelo(
         "pasta": str(pasta),
     }
     return resumo_sessao, checks  # o OOF e o resultado saem de escopo aqui
+
+
+def _bloco_sem_tentativa(modelo: str, pasta: Path, resumo: dict) -> tuple[dict, list[dict]]:
+    """Bloco de um modelo cuja busca não concluiu nenhuma tentativa: sem OOF nem métricas, com o
+    check `tentativa_concluida` reprovado. Não grava arquivos do modelo nem `CONCLUIDO.json`."""
+    checks = [verify.check("tentativa_concluida", True,
+                           bool(resumo["tentativas_concluidas"] >= 1))]
+    logger.warning("%s: a busca não concluiu nenhuma tentativa (podadas %s, falhas %s); "
+                   "bloco reprovado, sem OOF, seguindo para o próximo modelo", modelo,
+                   resumo["tentativas_podadas"], resumo["tentativas_falhas"])
+    return {
+        "modelo": modelo,
+        "pulado": False,
+        "metricas": None,
+        "melhores_parametros": None,
+        "pasta": str(pasta),
+    }, checks
 
 
 def _gravar_concluido(pasta: Path, modelo: str, hash_dobras: str, hash_cfg: str) -> None:
@@ -619,6 +645,12 @@ def run_all_models(
 
     del df
     _liberar_memoria()
+    sem_oof = [m for m, r in resultados.items() if r.get("metricas") is None]
+    if sem_oof:
+        # os ganchos (seleção, SHAP, retreino) leem o OOF de todos os modelos: não rodam sem ele.
+        # A sessão fica incompleta (passou=false pelo bloco reprovado; sem sessao_completa).
+        logger.warning("ganchos pulados: modelos sem OOF %s", sem_oof)
+        return resultados
     _executar_ganchos(cfg, ganchos, resultados, relatorio, hash_dobras)
     return resultados
 

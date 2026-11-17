@@ -7,6 +7,7 @@ gerados em pastas temporárias; os modelos entram no `REGISTRO` só dentro do te
 import json
 import logging
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
@@ -445,22 +446,106 @@ def test_modelo_que_reprova_um_check_nao_ganha_concluido_e_treina_de_novo(
     esperado = preparar_referencias(cfg, df, tmp_path)
     apertado = {**cfg, "orcamento_teto_min": {**cfg["orcamento_teto_min"], "toy_a": 1e-6}}
 
-    rodar(apertado, df, esperado, ganchos=())  # teto de tempo estourado no toy_a
+    rodar(apertado, df, esperado, ganchos=())  # teto menor que uma dobra: nenhuma tentativa
 
     bloco = blocos(cfg)["toy_a"]
     assert bloco["passou"] is False
     assert [c["nome"] for c in bloco["checks"] if not c["passou"]] == [
-        "tempo_busca_dentro_do_teto"]
+        "tentativa_concluida"]
     assert not concluido(cfg, "toy_a")  # reprovado: sem marcador
     assert concluido(cfg, "toy_b")
 
     chamados = espiar_tune(monkeypatch)
-    rodar(cfg, df, esperado, ganchos=())  # teto normal de volta
+    # teto normal de volta. A decisão de cronometragem do teto apertado (subamostra, fracao
+    # minúscula, orçamento) fica gravada no SQLite do toy_a (D-53) e o limite por tentativa sai
+    # dela: sem recomeçar o estudo, as tentativas novas seriam podadas. Recomeçar = apagar o .db.
+    (tuning.pasta_optuna(cfg) / "toy_a.db").unlink()
+    rodar(cfg, df, esperado, ganchos=())
 
     # O teto voltou ao normal: a config mudou, então o hash de config do toy_b também muda e
     # ele refaz; o que este teste prova é que o toy_a, reprovado, treina de novo.
     assert chamados == ["toy_a", "toy_b"]
     assert concluido(cfg, "toy_a")
+
+
+def test_modelo_sem_tentativa_concluida_nao_derruba_a_sessao(tmp_path, toys, caplog):
+    cfg = cfg_sessao(tmp_path)
+    df = frame()
+    esperado = preparar_referencias(cfg, df, tmp_path)
+    apertado = {**cfg, "orcamento_teto_min": {**cfg["orcamento_teto_min"], "toy_a": 1e-6}}
+    espiadas: list[str] = []
+
+    def espiao(cfg_, resultados):
+        espiadas.append("ganchos rodaram")
+        return gancho_ok(cfg_, resultados)
+
+    with caplog.at_level(logging.WARNING, logger="dengue_sinan.runner"):
+        resultados = rodar(apertado, df, esperado,
+                           ganchos=(Gancho("espiao", "T-0.0", "", funcao=espiao),))
+
+    # a sessão não levantou erro: os dois modelos têm resultado, e o toy_b (com tentativa) roda
+    assert sorted(resultados) == ["toy_a", "toy_b"]
+    assert resultados["toy_a"]["metricas"] is None
+    assert any("não concluiu nenhuma tentativa" in r.getMessage() for r in caplog.records)
+
+    bloco_a = blocos(cfg)["toy_a"]
+    assert bloco_a["passou"] is False
+    assert [c["nome"] for c in bloco_a["checks"]] == ["tentativa_concluida"]
+    assert not concluido(cfg, "toy_a")
+    assert not (runner.pasta_m1(cfg) / "toy_a" / runner.ARQ_OOF).exists()
+    assert blocos(cfg)["toy_b"]["passou"] is True
+    assert concluido(cfg, "toy_b")
+
+    rel = relatorio(cfg)
+    assert rel["passou"] is False and rel["sessao_completa"] is False
+    assert espiadas == []  # o OOF de toy_a falta: os ganchos não rodam
+
+
+class Relogio:
+    def __init__(self) -> None:
+        self.agora = 0.0
+
+    def perf_counter(self) -> float:
+        return self.agora
+
+
+def fingir_busca(monkeypatch, rel: Relogio, *, cron_s: float, busca_s: float, dobra_s: float):
+    """`tuning.tune` falso: gasta `cron_s` (cronometragem, não cobrada) e `busca_s` (cobrada) no
+    relógio falso. O runner mede o tempo de parede com o mesmo relógio."""
+    def tune(cfg_, modelo, df_):
+        rel.agora += cron_s + busca_s
+        return {
+            "modelo": modelo, "melhores_parametros": {"forca": 0.0}, "melhor_tentativa": 0,
+            "tentativas_concluidas": 1, "tentativas_podadas": 0, "tentativas_falhas": 0,
+            "tempo_busca_total_s": busca_s, "maior_dobra_s": dobra_s,
+            "t_cronometragem_s": cron_s,
+        }
+
+    monkeypatch.setattr(tuning, "tune", tune)
+    monkeypatch.setattr(runner, "time", SimpleNamespace(perf_counter=rel.perf_counter))
+
+
+@pytest.mark.parametrize("busca_s, passa", [
+    (900.0, True),     # busca dentro do teto; a cronometragem longa não entra no check
+    (1450.0, True),    # acima do teto de 1200 s, mas dentro da folga de uma dobra (300 s)
+    (1600.0, False),   # acima do teto mais a folga de uma dobra
+])
+def test_tempo_busca_mede_o_que_o_orcamento_cobra_com_folga_de_uma_dobra(
+    tmp_path, toys, monkeypatch, busca_s, passa
+):
+    cfg = cfg_sessao(tmp_path)
+    cfg["orcamento_teto_min"] = {"toy_a": 20, "toy_b": 20}  # teto de 1200 s
+    rel = Relogio()
+    fingir_busca(monkeypatch, rel, cron_s=1500.0, busca_s=busca_s, dobra_s=300.0)
+    df = frame()
+    esperado = preparar_referencias(cfg, df, tmp_path)
+
+    rodar(cfg, df, esperado, ganchos=())
+
+    checks = {c["nome"]: c for c in blocos(cfg)["toy_a"]["checks"]}
+    assert checks["tempo_busca_dentro_do_teto"]["passou"] is passa
+    # os dois modelos gastam 1500 s de cronometragem + busca_s: o tempo de parede passou do teto
+    assert rel.agora == pytest.approx(2 * (1500.0 + busca_s))
 
 
 def test_gancho_do_primeiro_ausente_impede_sessao_completa(tmp_path, toys):
