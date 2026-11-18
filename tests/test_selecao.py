@@ -19,7 +19,7 @@ from dengue_sinan import metrics, selecao
 from dengue_sinan.config import load_config
 
 REGIOES = ["Sudeste", "Sul", "Centro-Oeste", "Nordeste", "Norte"]
-CANDIDATOS = ["elastic_net", "xgboost", "catboost", "mlp", "random_forest", "tabfm"]
+CANDIDATOS = ["elastic_net", "xgboost", "catboost", "mlp", "random_forest"]  # D-91: sem TabFM
 N_POR_REGIAO = 400
 
 
@@ -198,7 +198,7 @@ def _resumo(pr, ic, brier):
     return {"pr_auc_media": pr, "ic_inf": ic[0], "ic_sup": ic[1], "brier": brier}
 
 
-ORDEM = ["elastic_net", "random_forest", "xgboost", "catboost", "mlp", "tabfm"]
+ORDEM = ["elastic_net", "random_forest", "xgboost", "catboost", "mlp"]
 
 
 def test_sem_empate_vence_a_maior_pr_auc_mesmo_com_brier_pior():
@@ -252,7 +252,7 @@ def test_modelo_fora_da_faixa_de_empate_nao_vence_pelo_brier():
     resumos = {
         "elastic_net": _resumo(0.300, (0.29, 0.31), 0.0020),
         "random_forest": _resumo(0.299, (0.29, 0.31), 0.0018),
-        "tabfm": _resumo(0.200, (0.19, 0.21), 0.0001),  # Brier ótimo, mas fora do empate
+        "mlp": _resumo(0.200, (0.19, 0.21), 0.0001),  # Brier ótimo, mas fora do empate
     }
     assert selecao.escolher_modelo(resumos, ORDEM)["vencedor"] == "random_forest"
 
@@ -302,7 +302,8 @@ def test_pareada_cobre_21_pares_com_b1_e_e_so_reportada(cfg, tmp_path, monkeypat
 
     linhas_do_par = [ln for ln in relatorio.splitlines()
                      if ln.startswith("| ") and " − " in ln and not ln.startswith("| Par")]
-    assert len(linhas_do_par) == 21
+    n = len(CANDIDATOS)  # pares entre candidatos (n·(n-1)/2) mais um par com B1 por candidato
+    assert len(linhas_do_par) == n * (n - 1) // 2 + n
     assert any("B1" in ln for ln in linhas_do_par)
     assert "Não entra na seleção" in relatorio
 

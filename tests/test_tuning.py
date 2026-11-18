@@ -164,7 +164,16 @@ def test_tune_recusa_ano_de_teste(tmp_path, toy):
 
 
 def test_tune_recusa_modelo_sem_busca(tmp_path):
+    # D-91: o TabFM fica fora de ordem_modelos no config; aqui ele é reativado para testar o caso.
+    cfg = load_config()
+    cfg["ordem_modelos"] = [*cfg["ordem_modelos"], "tabfm"]
+    cfg["busca"]["tabfm"] = {"sem_busca": True}
     with pytest.raises(ValueError, match="sem_busca"):
+        tuning.tune(cfg, "tabfm", frame())
+
+
+def test_tune_recusa_modelo_fora_da_ordem_quando_tabfm_esta_fora(tmp_path):
+    with pytest.raises(ValueError, match="ordem_modelos"):
         tuning.tune(load_config(), "tabfm", frame())
 
 

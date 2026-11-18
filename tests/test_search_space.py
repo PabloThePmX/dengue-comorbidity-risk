@@ -32,12 +32,34 @@ def test_carrega_espaco_do_config_na_ordem_dos_modelos(cfg, espacos):
 
 
 def test_cada_modelo_tem_entrada_e_tabfm_nao_tem_busca(cfg):
+    # D-91: o TabFM saiu da sessão do M1 (sem `tabfm` em ordem_modelos nem em busca).
     busca = cfg["busca"]
+    assert cfg["ordem_modelos"] == ["elastic_net", "xgboost", "catboost", "mlp", "random_forest"]
     assert set(busca) == set(cfg["ordem_modelos"])
-    assert busca["tabfm"] == {"sem_busca": True}
     for modelo in cfg["ordem_modelos"]:
-        if modelo != "tabfm":
-            assert busca[modelo]["parametros"], modelo
+        assert busca[modelo]["parametros"], modelo
+
+
+def test_reativar_tabfm_pelo_config_continua_valido(cfg):
+    # D-91, reversibilidade: o que o comentário do config manda fazer (incluir `tabfm` em
+    # ordem_modelos e descomentar `busca.tabfm`) produz um espaço válido, com o TabFM sem busca.
+    reativado = copy.deepcopy(cfg)
+    reativado["ordem_modelos"] = [*cfg["ordem_modelos"], "tabfm"]
+    reativado["busca"]["tabfm"] = {"sem_busca": True}
+    espacos = load_search_space(reativado)
+    assert list(espacos) == reativado["ordem_modelos"]
+    assert espacos["tabfm"].sem_busca is True
+    assert "tabfm" in cfg["orcamento_teto_min"]
+    assert "tabfm" in cfg["optuna"]["max_tentativas"]
+    assert "commit_pacote" in cfg["tabfm"]  # o bloco `tabfm:` fica no config
+
+
+def test_tabfm_sem_entrada_em_busca_recusado_quando_esta_na_ordem(cfg):
+    # Guarda contra reativar só num lado: `tabfm` em ordem_modelos sem busca levanta erro.
+    ruim = copy.deepcopy(cfg)
+    ruim["ordem_modelos"] = [*cfg["ordem_modelos"], "tabfm"]
+    with pytest.raises(ValueError, match="tabfm"):
+        load_search_space(ruim)
 
 
 def test_nenhum_parametro_de_peso_de_classe_no_config(cfg):
@@ -209,7 +231,7 @@ def test_primeira_tentativa_do_config_e_carregada(espacos):
         "camadas_ocultas": "128", "dropout": 0.15, "weight_decay": 0.0001,
         "lr": 0.001, "batch_size": 1024,
     }
-    assert espacos["tabfm"].primeira_tentativa == {}
+    assert "tabfm" not in espacos  # D-91: fora da sessão (o caso sem busca: teste de reativação)
 
 
 def test_elastic_net_nao_fixa_penalty_deprecado(espacos):

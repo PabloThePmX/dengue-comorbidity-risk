@@ -138,6 +138,15 @@ def test_config_real_tem_commit_fixo_alias_e_limite():
     assert "n_estimators" in tab
 
 
+def test_bloco_tabfm_do_config_ainda_constroi_o_modelo():
+    # D-91, reversibilidade: fora da ordem o bloco `tabfm:` fica no config; reativado, tem de
+    # construir o modelo sem tocar o pacote (import só no ajuste).
+    cfg = {**load_config(), "seed": 7}
+    modelo = construir_tabfm({}, cfg)
+    assert isinstance(modelo, TabFMM1)
+    assert cv.REGISTRO["tabfm"] is construir_tabfm  # registro segue no cv.py
+
+
 @pytest.mark.parametrize("commit", [
     "1.0.1", "fbb6655", "FBB665569425FD2F490C6576B3AF967876FE11FF", "g" * 40, 1234, None,
 ])
