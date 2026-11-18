@@ -124,3 +124,9 @@ On top of the Spec Kit skeleton, an academic ML spec must state:
 - Teach briefly: explain the *why* of a concept I may not know in 1–3 sentences.
 - End every session with: what changed in the artifacts, decisions still pending, what you didn't
   verify.
+
+---
+
+## 7. Agent team mode
+
+When the agent team (Yoshi, Mario, Luigi, Peach; see `agentes/README.md`) is operating, the authorized task sheet in `agentes/tarefas/` is the only source of authorized scope. In that mode, the "current phase" rule in the Implementation mode above does not select work. This does not remove or weaken any rule in `specs/constitution.md` (R1–R10), the project methodology or the restrictions recorded in `agentes/criterios/`. When the sheet and a project rule disagree, stop and ask the Programador.

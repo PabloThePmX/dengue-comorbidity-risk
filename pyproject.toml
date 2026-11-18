@@ -8,6 +8,14 @@ dependencies = [
     "dbfread>=2.0.7",
     "pandas>=2.2",
     "pyarrow>=11",
+    # Pipeline de ML (Etapa 2.1): imports diretos em src/dengue_sinan/. Mínimos = versões testadas.
+    "numpy>=2.5",
+    "scikit-learn>=1.9",
+    "xgboost>=3.4",
+    "joblib>=1.6",
+    "statsmodels>=0.15",
+    "scipy>=1.18",
+    "patsy>=1.0",
 ]
 
 [dependency-groups]

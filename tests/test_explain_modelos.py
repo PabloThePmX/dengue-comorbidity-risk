@@ -9,6 +9,7 @@ from conftest_sint import bruto_sintetico  # noqa: E402
 from dengue_sinan import explain as E  # noqa: E402
 from dengue_sinan import modelos as MD  # noqa: E402
 from dengue_sinan.dataset import montar_features, montar_populacao  # noqa: E402
+from dengue_sinan.guard import marcar_anos  # noqa: E402
 
 
 @pytest.fixture(scope="module")
@@ -110,6 +111,7 @@ def test_calibrador_monotono_e_cruzado():
     g = np.linspace(0, 0.05, 50)
     assert (np.diff(c.prever(g)) >= -1e-12).all()
     reg = pd.Series(rng.choice(["Norte", "Sul", "Sudeste"], 5000))
+    marcar_anos(reg, [2022, 2023])  # R1 (J8): a origem dos dados agora é obrigatória
     out = MD.calibrar_cruzado(p, y, reg, "platt")
     assert not np.isnan(out).any()
 

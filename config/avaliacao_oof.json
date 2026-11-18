@@ -1,0 +1,23 @@
+{
+  "versao_avaliacao": "3.2.0",
+  "config_do_modelo": "config/treino_perfil.json",
+  "agrupamento": "conglomerado",
+  "agrupamento_descricao": "município de residência (IBGE, 6 dígitos); UF como reserva quando o município falta",
+  "bootstrap": {
+    "metodo": "conglomerados reamostrados com reposição dentro de cada região (estratificado por região)",
+    "replicacoes": 2000,
+    "seed": 20261104,
+    "nivel": 0.95,
+    "intervalo": "percentil",
+    "fracao_minima_de_replicacoes_validas": 0.95,
+    "justificativa_das_replicacoes": "2000 replicações dão extremos de 2,5% e 97,5% estimados com 50 replicações em cada cauda; o custo é pequeno porque as métricas são calculadas sobre contagens por nível de escore. A estabilidade é conferida comparando duas metades."
+  },
+  "baselines": {
+    "b0": "prevalência do treino da dobra",
+    "b1": "logística sem penalização: spline cúbico da idade (5 nós por quantis do treino), sexo (F, M, I) e gestante",
+    "b1_idade": "logística sem penalização: spline cúbico da idade (mesma especificação do B1)",
+    "max_iter": 1000
+  },
+  "saida_agregada": "reports/etapa3/etapa3_2",
+  "saida_local_oof": "artefatos/oof"
+}

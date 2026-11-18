@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 
+from dengue_sinan.guard import CHAVE_ANOS, marcar_anos
 from dengue_sinan.profiling import (
     COMORBIDADES,
     SINAIS,
@@ -66,7 +67,8 @@ def montar_populacao(raw: pd.DataFrame, ano: int) -> pd.DataFrame:
     df = raw.copy()
     df["ANO"] = ano
     df = df[population_mask(df)].copy()
-    return add_derived(df).reset_index(drop=True)
+    # J8: a marca do ano de origem viaja com os dados (guard.verificar_dev a lê).
+    return marcar_anos(add_derived(df).reset_index(drop=True), [ano])
 
 
 def montar_features(pop: pd.DataFrame) -> pd.DataFrame:
@@ -81,7 +83,10 @@ def montar_features(pop: pd.DataFrame) -> pd.DataFrame:
     x["n_comorbidades"] = sum((x[c] == "Sim").astype("int8") for c in COMORBIDADES).astype("int8")
     atraso = (parse_date(pop["DT_NOTIFIC"]) - parse_date(pop["DT_SIN_PRI"])).dt.days
     x["dias_ate_notificacao"] = atraso.clip(lower=0, upper=DIAS_MAX).astype("float64")
-    return x[FEATURES_M1]
+    x = x[FEATURES_M1]
+    if CHAVE_ANOS in pop.attrs:
+        x.attrs[CHAVE_ANOS] = list(pop.attrs[CHAVE_ANOS])
+    return x
 
 
 def matriz_arvore(x: pd.DataFrame, dias_nan: float | None = None) -> pd.DataFrame:
@@ -92,8 +97,9 @@ def matriz_arvore(x: pd.DataFrame, dias_nan: float | None = None) -> pd.DataFram
     """
     out = x.copy()
     for campo in CATEGORICAS:
-        out[campo] = out[campo].cat.codes.astype("int8")
-    if dias_nan is not None:
+        if campo in out.columns:  # etapa 1B (J5): permite ablação de colunas
+            out[campo] = out[campo].cat.codes.astype("int8")
+    if dias_nan is not None and "dias_ate_notificacao" in out.columns:
         out["dias_ate_notificacao"] = out["dias_ate_notificacao"].fillna(dias_nan)
     return out
 
@@ -159,4 +165,8 @@ def empilhar_populacoes(frames: list[pd.DataFrame]) -> pd.DataFrame:
             saida[c] = pd.Series(union_categoricals(series, ignore_order=True))
         else:
             saida[c] = pd.concat(series, ignore_index=True)
-    return pd.DataFrame(saida)
+    out = pd.DataFrame(saida)
+    marcas = [f.attrs.get(CHAVE_ANOS) for f in frames]
+    if all(m is not None for m in marcas):  # J8: união das origens; sem marca, sem herança
+        marcar_anos(out, [a for m in marcas for a in m])
+    return out

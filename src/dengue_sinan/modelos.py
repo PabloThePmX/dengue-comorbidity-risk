@@ -8,6 +8,7 @@ validação interna das regiões de treino (R6); semente única (R8).
 import hashlib
 import json
 import time
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -32,7 +33,7 @@ from dengue_sinan.dataset import (
     matriz_arvore,
 )
 from dengue_sinan.folds import dobras_loro, validacao_interna
-from dengue_sinan.guard import assert_dev_only
+from dengue_sinan.guard import verificar_dev
 from dengue_sinan.metrics import brier
 from dengue_sinan.profiling import COMORBIDADES
 
@@ -115,7 +116,8 @@ class ModeloB1:
             ]
         )
 
-    def ajustar(self, x, y):
+    def ajustar(self, x, y, meta=None):
+        verificar_dev(x, meta=meta, contexto="ModeloB1.ajustar")  # R1 (J8)
         self.pipe.fit(x, np.asarray(y))
         return self
 
@@ -123,8 +125,9 @@ class ModeloB1:
         return self.pipe.predict_proba(x)[:, 1]
 
 
-def oof_b0(y: np.ndarray, regiao: pd.Series) -> np.ndarray:
+def oof_b0(y: np.ndarray, regiao: pd.Series, meta=None) -> np.ndarray:
     """B0 — prevê a prevalência do treino da dobra para todos."""
+    verificar_dev(regiao, meta=meta, contexto="oof_b0")  # R1 (J8)
     y = np.asarray(y)
     oof = np.full(len(y), np.nan)
     for _, tr, te in dobras_loro(regiao):
@@ -132,7 +135,8 @@ def oof_b0(y: np.ndarray, regiao: pd.Series) -> np.ndarray:
     return oof
 
 
-def oof_b1(x: pd.DataFrame, y: np.ndarray, regiao: pd.Series) -> np.ndarray:
+def oof_b1(x: pd.DataFrame, y: np.ndarray, regiao: pd.Series, meta=None) -> np.ndarray:
+    verificar_dev(x, regiao, meta=meta, contexto="oof_b1")  # R1 (J8)
     y = np.asarray(y)
     oof = np.full(len(y), np.nan)
     for _, tr, te in dobras_loro(regiao):
@@ -171,7 +175,8 @@ class ModeloM1:
             return adicionar_pares(x)
         return matriz_arvore(x, dias_nan=-1.0 if self.nome == "random_forest" else None)
 
-    def ajustar(self, x: pd.DataFrame, y, n_fixo: int | None = None):
+    def ajustar(self, x: pd.DataFrame, y, n_fixo: int | None = None, meta=None):
+        verificar_dev(x, meta=meta, contexto=f"ModeloM1.ajustar[{self.nome}]")  # R1 (J8)
         y = np.asarray(y)
         m = self._matriz(x)
         if self.nome == "elastic_net":
@@ -256,8 +261,14 @@ def rotulo_boosting() -> str:
 
 
 # ------------------------------------------------------------------------------ validação LORO
-def cv_oof(nome: str, params: dict, x: pd.DataFrame, y, regiao: pd.Series, seed: int, **kw) -> dict:
-    """Predições fora da dobra (leave-one-region-out): treina em 4 regiões, prediz a 5ª (FR-17)."""
+def cv_oof(
+    nome: str, params: dict, x: pd.DataFrame, y, regiao: pd.Series, seed: int, meta=None, **kw
+) -> dict:
+    """Predições fora da dobra (leave-one-region-out): treina em 4 regiões, prediz a 5ª (FR-17).
+
+    R1 (J8): `verificar_dev` roda aqui, em todo caminho, sem depender de quem chama.
+    """
+    verificar_dev(x, regiao, meta=meta, contexto="cv_oof")
     y = np.asarray(y)
     oof = np.full(len(y), np.nan)
     info = {"pr_auc_dobra": {}, "melhor_iter": [], "tempo_s": 0.0}
@@ -287,13 +298,24 @@ def busca_hiperparametros(
     orcamento_s: float,
     cache_dir: Path | None = None,
     assinatura: dict | None = None,
+    meta=None,
     **kw,
 ) -> dict:
     """Busca em grade pré-declarada, critério = PR-AUC média nas dobras (spec §3.11).
 
     A 1ª configuração é a de referência e sempre roda; as demais param ao estourar o orçamento
     de tempo do modelo. Cada configuração concluída é guardada em cache (busca retomável).
+
+    DEPRECIADA (J7): o corte por tempo faz a grade avaliada depender da máquina. Use
+    `busca_deterministica` em experimentos novos. Mantida só para reproduzir a versão 1.
     """
+    warnings.warn(
+        "busca_hiperparametros corta a grade por tempo (não determinístico); "
+        "use busca_deterministica.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    verificar_dev(x, regiao, meta=meta, contexto="busca_hiperparametros")  # R1 (J8)
     registros, melhores, t0 = [], None, time.time()
     for i, params in enumerate(grade):
         if i > 0 and time.time() - t0 > orcamento_s:
@@ -307,7 +329,7 @@ def busca_hiperparametros(
             res = {"oof": z["oof"], **json.loads(str(z["info"]))}
             res["do_cache"] = True
         else:
-            res = cv_oof(nome, params, x, y, regiao, seed, **kw)
+            res = cv_oof(nome, params, x, y, regiao, seed, meta=meta, **kw)
             res["do_cache"] = False
             if arq is not None:
                 info = {k: v for k, v in res.items() if k not in ("oof", "do_cache")}
@@ -330,6 +352,134 @@ def busca_hiperparametros(
         "configs_na_grade": len(grade),
         "tempo_total_s": time.time() - t0,
     }
+
+
+CRITERIO_SELECAO_BUSCA = (
+    "Maior PR-AUC média das dobras LORO entre as configurações executadas; empate exato "
+    "→ menor índice na grade declarada (a 1ª é a de referência). O tempo de execução "
+    "só é registrado e nunca entra na decisão."
+)
+
+
+def _hash_grade(grade: list[dict]) -> str:
+    texto = json.dumps(grade, sort_keys=True, default=str)
+    return hashlib.sha256(texto.encode()).hexdigest()
+
+
+def busca_deterministica(
+    nome: str,
+    grade: list[dict],
+    x,
+    y,
+    regiao,
+    seed: int,
+    max_configs: int,
+    registro_dir: Path | None = None,
+    cache_dir: Path | None = None,
+    assinatura: dict | None = None,
+    meta=None,
+    **kw,
+) -> dict:
+    """Busca em grade determinística (J7): limite explícito, ordem fixa, tudo registrado.
+
+    - Avalia as `max_configs` primeiras configurações da grade, na ordem declarada (a 1ª é a de
+      referência). Nada depende do relógio nem da máquina.
+    - Antes de rodar grava `grade.json` (grade completa, hash, semente, limite, critério); depois
+      grava `execucao.json` e `execucao.csv` (cada configuração: executada ou não, e por quê).
+    - Seleção: ver `CRITERIO_SELECAO_BUSCA`. R1 verificada (J8). Não amplia a grade sozinha.
+    """
+    if not grade:
+        raise ValueError("grade vazia: declare ao menos a configuração de referência.")
+    if not isinstance(max_configs, int) or max_configs < 1:
+        raise ValueError("max_configs deve ser um inteiro >= 1 (limite explícito de configs).")
+    verificar_dev(x, regiao, meta=meta, contexto="busca_deterministica")
+    hash_grade = _hash_grade(grade)
+    n_exec = min(max_configs, len(grade))
+    registro = {
+        "modelo": nome,
+        "semente": seed,
+        "max_configs": max_configs,
+        "n_configs_na_grade": len(grade),
+        "hash_grade": hash_grade,
+        "criterio_selecao": CRITERIO_SELECAO_BUSCA,
+        "configuracoes": [{"config": i, "params": p} for i, p in enumerate(grade)],
+    }
+    if registro_dir is not None:
+        registro_dir = Path(registro_dir)
+        registro_dir.mkdir(parents=True, exist_ok=True)
+        (registro_dir / "grade.json").write_text(
+            json.dumps(registro, indent=2, default=str, ensure_ascii=False), "utf-8"
+        )
+
+    linhas, melhor = [], None
+    for i, params in enumerate(grade):
+        if i >= n_exec:
+            linhas.append(
+                {
+                    "config": i,
+                    "status": "nao_executada",
+                    "motivo": f"fora do limite max_configs={max_configs}",
+                    "params": params,
+                }
+            )
+            continue
+        arq = None
+        if cache_dir is not None:
+            cache_dir = Path(cache_dir)
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            arq = cache_dir / f"oof_{nome}_{_chave_cache(nome, params, assinatura)}.npz"
+        if arq is not None and arq.exists():
+            z = np.load(arq, allow_pickle=True)
+            res = {"oof": z["oof"], **json.loads(str(z["info"]))}
+            res["do_cache"] = True
+        else:
+            res = cv_oof(nome, params, x, y, regiao, seed, meta=meta, **kw)
+            res["do_cache"] = False
+            if arq is not None:
+                info = {k: v for k, v in res.items() if k not in ("oof", "do_cache")}
+                np.savez(arq, oof=res["oof"], info=json.dumps(info))
+        linhas.append(
+            {
+                "config": i,
+                "status": "executada",
+                "motivo": "",
+                "params": params,
+                "pr_auc_media": res["pr_auc_media"],
+                "tempo_s": round(res["tempo_s"], 1),
+                "do_cache": res["do_cache"],
+            }
+        )
+        if melhor is None or res["pr_auc_media"] > melhor["pr_auc_media"]:  # '>' → menor índice
+            melhor = {**res, "params": params, "config": i}
+
+    tabela = pd.DataFrame(linhas)
+    saida = {
+        "tabela": tabela,
+        "melhor": melhor,
+        "configs_avaliadas": n_exec,
+        "configs_na_grade": len(grade),
+        "hash_grade": hash_grade,
+        "criterio_selecao": CRITERIO_SELECAO_BUSCA,
+    }
+    if registro_dir is not None:
+        (registro_dir / "execucao.json").write_text(
+            json.dumps(
+                {
+                    **{k: registro[k] for k in ("modelo", "semente", "max_configs", "hash_grade")},
+                    "criterio_selecao": CRITERIO_SELECAO_BUSCA,
+                    "melhor_config": None if melhor is None else melhor["config"],
+                    "configuracoes": linhas,
+                },
+                indent=2,
+                default=str,
+                ensure_ascii=False,
+            ),
+            "utf-8",
+        )
+        tabela.assign(params=tabela["params"].map(lambda d: json.dumps(d, sort_keys=True))).to_csv(
+            registro_dir / "execucao.csv", index=False
+        )
+    return saida
 
 
 # ------------------------------------------------------------------------------ calibração
@@ -364,8 +514,9 @@ class Calibrador:
         return p
 
 
-def calibrar_cruzado(p_oof, y, regiao: pd.Series, tipo: str) -> np.ndarray:
+def calibrar_cruzado(p_oof, y, regiao: pd.Series, tipo: str, meta=None) -> np.ndarray:
     """Calibração cruzada por região: o calibrador de cada dobra NÃO vê essa região."""
+    verificar_dev(regiao, meta=meta, contexto="calibrar_cruzado")  # R1 (J8)
     p_oof, y = np.asarray(p_oof, dtype="float64"), np.asarray(y)
     out = np.full(len(y), np.nan)
     for _, tr, te in dobras_loro(regiao):
@@ -374,11 +525,12 @@ def calibrar_cruzado(p_oof, y, regiao: pd.Series, tipo: str) -> np.ndarray:
     return out
 
 
-def escolher_calibrador(p_oof, y, regiao, tipos=("nenhum", "platt", "isotonica")):
+def escolher_calibrador(p_oof, y, regiao, tipos=("nenhum", "platt", "isotonica"), meta=None):
     """Escolhe o tipo pelo menor Brier com calibração cruzada (só dados de desenvolvimento)."""
+    verificar_dev(regiao, meta=meta, contexto="escolher_calibrador")  # R1 (J8)
     linhas = []
     for t in tipos:
-        pc = calibrar_cruzado(p_oof, y, regiao, t)
+        pc = calibrar_cruzado(p_oof, y, regiao, t, meta=meta)
         ok = ~np.isnan(pc)
         linhas.append({"calibrador": t, "brier_cruzado": brier(np.asarray(y)[ok], pc[ok])})
     tab = pd.DataFrame(linhas)
@@ -416,6 +568,8 @@ def ajustar_final(
     **kw,
 ):
     """Retreino em todo o desenvolvimento 2022–23 (D-37). Falha se `x_meta` tiver 2024 (R1)."""
-    assert_dev_only(x_meta) if x_meta is not None else None
+    # R1 (J8): obrigatória. Sem marca em `x` nem `x_meta` com ANO, falha (antes só rodava se
+    # o chamador passasse x_meta).
+    verificar_dev(x, meta=x_meta, contexto="ajustar_final")
     n_fixo = n_iter_mediano if nome in ("xgboost", "hgb") else None
-    return ModeloM1(nome, params, seed, **kw).ajustar(x, y, n_fixo=n_fixo)
+    return ModeloM1(nome, params, seed, **kw).ajustar(x, y, n_fixo=n_fixo, meta=x_meta)
