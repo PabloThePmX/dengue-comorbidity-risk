@@ -13,8 +13,8 @@ configuração e o resultado de cada modelo (`resultados[modelo]["pasta"]` é a 
    predições OOF inteiras e gravado (`<dados>/m1/<modelo>/calibrador.{json,npz}`).
 3. **Limiar**: `metrics.best_f2_threshold` nas predições OOF calibradas (FR-08, D-33).
 4. **Bootstrap pareado** (`metrics.paired_bootstrap_pr_auc`, uma passagem para todos os modelos,
-   mesmos sorteios): IC 95% da PR-AUC média de cada modelo e de cada par (15 pares com B1 para 5 modelos). É só
-   reportado em `reports/m1/comparacao_pareada.md`, e a seleção **não** lê a tabela de pares.
+   mesmos sorteios): IC 95% da PR-AUC média de cada modelo e de cada par (15 pares com B1).
+   É só reportado em `reports/m1/comparacao_pareada.md`, e a seleção **não** lê a tabela de pares.
 5. **Seleção**: `escolher_modelo` aplica a regra do plan, com os resumos dos candidatos.
 6. **Saídas**: `<dados>/m1/selecao.json` (vencedor, motivo, limiar, calibrador), registro no MLflow
    (run `selecao`) e os dois relatórios em `reports/m1/`, só com agregados (R7).
