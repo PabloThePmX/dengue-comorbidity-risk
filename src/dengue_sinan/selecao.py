@@ -11,7 +11,11 @@ configuração e o resultado de cada modelo (`resultados[modelo]["pasta"]` é a 
    dobra**: o calibrador de cada região é ajustado nas outras quatro e aplicado à região deixada
    de fora (plan › Regra de seleção, "fora da dobra"). O calibrador vencedor é reajustado nas
    predições OOF inteiras e gravado (`<dados>/m1/<modelo>/calibrador.{json,npz}`).
-3. **Limiar**: `metrics.best_f2_threshold` nas predições OOF calibradas (FR-08, D-33).
+3. **Limiar** (D-92): `metrics.threshold_for_min_recall` nas predições OOF calibradas dos
+   candidatos (e nas brutas de B0 e B1), com `recall_min` = recall da regra B2 nas mesmas
+   predições. É o limiar de maior precisão com recall ≥ B2 (empate: o maior limiar). O F2 máximo
+   (`metrics.best_f2_threshold`, D-33) continua calculado e gravado como ponto secundário, fora do
+   modelo congelado. A B2 é regra e mantém o seu ponto. Calculada antes dos candidatos.
 4. **Bootstrap pareado** (`metrics.paired_bootstrap_pr_auc`, uma passagem para todos os modelos,
    mesmos sorteios): IC 95% da PR-AUC média de cada modelo e de cada par (15 pares com B1).
    É só reportado em `reports/m1/comparacao_pareada.md`, e a seleção **não** lê a tabela de pares.
@@ -77,6 +81,9 @@ TIPO_PLATT = "platt"
 TIPO_ISOTONICA = "isotonica"
 ORDEM_CALIBRADOR = (TIPO_PLATT, TIPO_ISOTONICA)  # empate exato no Brier: a mais simples
 _EPS_PROBABILIDADE = 1e-12
+
+CRITERIO_LIMIAR = ("precisão máxima com recall ≥ recall da B2 nas predições do OOF; empate: "
+                   "maior limiar (D-92)")
 
 PRECISAO_EMPATE_PR_AUC = 0.005  # plan › Regra de seleção (D-53)
 # Simplicidade para o último desempate (plan: EN < RF < XGB/CatBoost < MLP < TabFM).
@@ -295,15 +302,27 @@ def _pr_por_dobra(oof: _Oof, n_dobras: int) -> np.ndarray:
                      for d in range(n_dobras)], dtype=float)
 
 
-def _analisar_candidato(oof: _Oof, n_dobras: int) -> dict:
-    """Calibração escolhida fora da dobra, calibrador no OOF inteiro, limiar e métricas."""
+def _limiares(y: np.ndarray, p: np.ndarray, recall_alvo: float) -> dict:
+    """Limiar de recall (principal, D-92) e de F2 (secundário, D-33), com as métricas de cada um."""
+    limiar = metrics.threshold_for_min_recall(y, p, recall_alvo)
+    limiar_f2 = metrics.best_f2_threshold(y, p)
+    return {
+        "limiar": float(limiar),
+        "criterio_limiar": CRITERIO_LIMIAR,
+        "no_limiar": metrics.threshold_metrics(y, p, limiar),
+        "limiar_f2": float(limiar_f2),
+        "no_limiar_f2": metrics.threshold_metrics(y, p, limiar_f2),
+    }
+
+
+def _analisar_candidato(oof: _Oof, n_dobras: int, recall_alvo: float) -> dict:
+    """Calibração escolhida fora da dobra, calibrador no OOF inteiro, limiares e métricas."""
     brier_por_tipo: dict[str, float] = {}
     for tipo in ORDEM_CALIBRADOR:
         brier_por_tipo[tipo], _ = brier_fora_da_dobra(oof.p, oof.y, oof.dobra, AJUSTADORES[tipo])
     tipo = escolher_calibrador(brier_por_tipo)
     calibrador = AJUSTADORES[tipo](oof.p, oof.y)
     p_cal = calibrador.aplicar(oof.p)
-    limiar = metrics.best_f2_threshold(oof.y, p_cal)
     slope, intercepto = metrics.calibration_slope_intercept(oof.y, p_cal)
     pr_dobras = _pr_por_dobra(oof, n_dobras)
     return {
@@ -317,17 +336,18 @@ def _analisar_candidato(oof: _Oof, n_dobras: int) -> dict:
         "pr_auc_media": float(pr_dobras.mean()),
         "slope": float(slope),
         "intercepto": float(intercepto),
-        "limiar": float(limiar),
-        "no_limiar": metrics.threshold_metrics(oof.y, p_cal, limiar),
+        **_limiares(oof.y, p_cal, recall_alvo),
     }
 
 
-def _analisar_baseline(nome: str, oof: _Oof, n_dobras: int) -> dict:
-    """B0 e B1: predições brutas e limiar de F2 próprio. B2: a regra (sem PR-AUC)."""
+def _analisar_baseline(nome: str, oof: _Oof, n_dobras: int, recall_alvo: float | None) -> dict:
+    """B0 e B1: predições brutas e limiares próprios (D-92). B2: a regra (sem PR-AUC, sem limiar).
+
+    `recall_alvo` é o recall da B2 e não se aplica à própria B2 (passe None).
+    """
     if nome == "B2":
         return {"no_limiar": baselines.metricas_regra(oof.y, oof.p), "limiar": None}
     probabilisticas = baselines.metricas_probabilisticas(oof.y, oof.p)
-    limiar = metrics.best_f2_threshold(oof.y, oof.p)
     pr_dobras = _pr_por_dobra(oof, n_dobras)
     return {
         "pr_auc_por_dobra": pr_dobras,
@@ -336,8 +356,7 @@ def _analisar_baseline(nome: str, oof: _Oof, n_dobras: int) -> dict:
         "brier_bruto": probabilisticas["brier"],
         "slope": probabilisticas["calibracao_slope"],
         "intercepto": probabilisticas["calibracao_intercept"],
-        "limiar": float(limiar),
-        "no_limiar": metrics.threshold_metrics(oof.y, oof.p, limiar),
+        **_limiares(oof.y, oof.p, recall_alvo),
     }
 
 
@@ -398,6 +417,7 @@ def escrever_relatorio_oof(cfg: dict, analises: dict, base: dict[str, _Oof], par
     dobras = list(cfg["ordem_dobras"])
     minimo = cfg["supressao_min_celula"]
     candidatos = list(cfg["ordem_modelos"])
+    recall_alvo = analises["B2"]["no_limiar"]["recall"]
     cab_dobras = ["Modelo", *dobras, "Média", "IC 95% da média"]
     pr_linhas = []
     for m in [*candidatos, "B0", "B1"]:
@@ -420,19 +440,20 @@ def escrever_relatorio_oof(cfg: dict, analises: dict, base: dict[str, _Oof], par
     cal_linhas.append(["B2", "—", "—", "—", "—", "—", "—"])
 
     lim_linhas = []
-    for m in candidatos:
+    lim_f2_linhas = []
+    for m in [*candidatos, "B0", "B1"]:
         a = analises[m]
         t = a["no_limiar"]
         lim_linhas.append([m, _pt(a["limiar"], 6), _pt(t["recall"], 4), _pt(t["precisao"], 4),
                            _pt(t["f2"], 4)])
-    for b in ("B0", "B1"):
-        a = analises[b]
-        t = a["no_limiar"]
-        lim_linhas.append([b, _pt(a["limiar"], 6), _pt(t["recall"], 4), _pt(t["precisao"], 4),
-                           _pt(t["f2"], 4)])
+        t_f2 = a["no_limiar_f2"]
+        lim_f2_linhas.append([m, _pt(a["limiar_f2"], 6), _pt(t_f2["recall"], 4),
+                              _pt(t_f2["precisao"], 4), _pt(t_f2["f2"], 4)])
     t2 = analises["B2"]["no_limiar"]
     lim_linhas.append(["B2", "regra", _pt(t2["recall"], 4), _pt(t2["precisao"], 4),
                        _pt(t2["f2"], 4)])
+    lim_f2_linhas.append(["B2", "regra", _pt(t2["recall"], 4), _pt(t2["precisao"], 4),
+                          _pt(t2["f2"], 4)])
 
     busca_linhas = []
     for m in candidatos:
@@ -472,10 +493,18 @@ def escrever_relatorio_oof(cfg: dict, analises: dict, base: dict[str, _Oof], par
         "",
         "## 3. Métricas no limiar",
         "",
-        "Candidatos: limiar de F2 máximo nas predições calibradas do OOF. B0 e B1: o mesmo "
-        "critério, nas predições brutas. B2: a regra do protocolo.",
+        f"Limiar principal (D-92): {CRITERIO_LIMIAR}. Recall de referência (B2 no OOF): "
+        f"{_pt(recall_alvo, 4)}. Candidatos: predições calibradas do OOF. B0 e B1: o mesmo "
+        "critério, nas predições brutas. B2: a regra do protocolo, sem limiar.",
         "",
         *_tabela(["Modelo", "Limiar", "Recall", "Precisão", "F2"], lim_linhas),
+        "",
+        "### 3.1 Ponto F2 (secundário, D-33)",
+        "",
+        "Máximo de F2 nas mesmas predições. Reportado para comparação; não entra no modelo "
+        "congelado.",
+        "",
+        *_tabela(["Modelo", "Limiar F2", "Recall", "Precisão", "F2"], lim_f2_linhas),
         "",
         "## 4. Busca de hiperparâmetros (cronometragem, orçamento e tentativas)",
         "",
@@ -492,8 +521,10 @@ def escrever_relatorio_oof(cfg: dict, analises: dict, base: dict[str, _Oof], par
         "",
         f"- Calibrador do vencedor: {analises[selecao['vencedor']]['calibrador_tipo']} "
         "(menor Brier fora da dobra).",
-        "- Limiar (F2 máximo, predições calibradas do OOF): "
-        f"{_pt(analises[selecao['vencedor']]['limiar'], 6)}.",
+        f"- Limiar (precisão máxima com recall ≥ {_pt(recall_alvo, 4)} da B2, predições calibradas "
+        f"do OOF; empate: maior limiar): {_pt(analises[selecao['vencedor']]['limiar'], 6)}.",
+        "- Ponto F2 (secundário, não entra no modelo): "
+        f"{_pt(analises[selecao['vencedor']]['limiar_f2'], 6)}.",
         "- A comparação pareada (`comparacao_pareada.md`) é só reportada (D-53).",
     ]
     caminho = Path(caminho)
@@ -559,9 +590,13 @@ def executar(cfg: dict, resultados: dict) -> list[dict]:
     referencia = candidatos[candidatos_ordem[0]]
     n_dobras = len(dobras)
 
-    analises = {m: _analisar_candidato(candidatos[m], n_dobras) for m in candidatos_ordem}
-    for b in BASELINES:
-        analises[b] = _analisar_baseline(b, base[b], n_dobras)
+    # A B2 vem primeiro: o recall dela é o alvo do limiar de todos os outros (D-92).
+    analises = {"B2": _analisar_baseline("B2", base["B2"], n_dobras, None)}
+    recall_alvo = analises["B2"]["no_limiar"]["recall"]
+    analises.update({m: _analisar_candidato(candidatos[m], n_dobras, recall_alvo)
+                     for m in candidatos_ordem})
+    for b in ("B0", "B1"):
+        analises[b] = _analisar_baseline(b, base[b], n_dobras, recall_alvo)
     for m in candidatos_ordem:
         parametros = _ler_json(Path(resultados[m]["pasta"]) / ARQ_PARAMETROS)
         if parametros is None or "tuning" not in parametros:
@@ -596,7 +631,14 @@ def executar(cfg: dict, resultados: dict) -> list[dict]:
         "empatados": escolha["empatados"],
         "motivo": escolha["motivo"],
         "calibrador": analises[vencedor]["calibrador_tipo"],
+        # Limiar do modelo congelado (D-92): recall >= recall_alvo, com precisão máxima.
         "limiar": analises[vencedor]["limiar"],
+        "criterio_limiar": CRITERIO_LIMIAR,
+        "recall_alvo": recall_alvo,
+        "no_limiar": analises[vencedor]["no_limiar"],
+        # Ponto F2, secundário (D-33): gravado, não entra no modelo congelado.
+        "limiar_f2": analises[vencedor]["limiar_f2"],
+        "no_limiar_f2": analises[vencedor]["no_limiar_f2"],
         "reamostras_pareadas": pareada["reamostras"],
         "semente": pareada["seed"],
         "gerado_em_utc": _agora(),
@@ -607,9 +649,13 @@ def executar(cfg: dict, resultados: dict) -> list[dict]:
             "brier_fora_da_dobra": analises[m]["brier_fora_da_dobra"],
             "calibrador": analises[m]["calibrador_tipo"],
             "limiar": analises[m]["limiar"],
+            "no_limiar": analises[m]["no_limiar"],
+            "limiar_f2": analises[m]["limiar_f2"],
+            "no_limiar_f2": analises[m]["no_limiar_f2"],
         } for m in candidatos_ordem},
     }
     _gravar_json(raiz / NOME_SELECAO, selecao)
+    gravado = _ler_json(raiz / NOME_SELECAO)  # o que vale é o que ficou no disco
 
     relatorio_oof = _caminho(cfg, "relatorios") / "m1" / "comparacao_oof.md"
     relatorio_par = _caminho(cfg, "relatorios") / "m1" / "comparacao_pareada.md"
@@ -623,9 +669,13 @@ def executar(cfg: dict, resultados: dict) -> list[dict]:
             "selecao.empatados": ",".join(escolha["empatados"]),
             "selecao.calibrador": analises[vencedor]["calibrador_tipo"],
             "selecao.reamostras": str(pareada["reamostras"]),
+            "selecao.criterio_limiar": CRITERIO_LIMIAR,
         })
         mlflow.log_metrics({
             "selecao.limiar": analises[vencedor]["limiar"],
+            "selecao.recall_alvo": recall_alvo,
+            "selecao.recall_no_limiar": analises[vencedor]["no_limiar"]["recall"],
+            "selecao.limiar_f2": analises[vencedor]["limiar_f2"],
             "selecao.pr_auc_media": resumos[vencedor]["pr_auc_media"],
             "selecao.brier_calibrado": resumos[vencedor]["brier"],
         })
@@ -642,6 +692,16 @@ def executar(cfg: dict, resultados: dict) -> list[dict]:
         max_diferenca = max(max_diferenca, diferenca)
 
     limiar = analises[vencedor]["limiar"]
+    recall_vencedor = analises[vencedor]["no_limiar"]["recall"]
+    # Conferências sobre o selecao.json gravado (o que o retreino vai ler).
+    limiar_f2_gravado = gravado.get("limiar_f2") if gravado else None
+    no_f2_gravado = gravado.get("no_limiar_f2") if gravado else None
+    f2_registrado = (
+        isinstance(limiar_f2_gravado, float) and 0.0 <= limiar_f2_gravado <= 1.0
+        and isinstance(no_f2_gravado, dict) and 0.0 <= no_f2_gravado.get("f2", -1.0) <= 1.0
+        and gravado.get("recall_alvo") == recall_alvo
+        and gravado.get("criterio_limiar") == CRITERIO_LIMIAR
+    )
     arquivos = [raiz / NOME_SELECAO, relatorio_oof, relatorio_par,
                 *[raiz / m / ARQ_CALIBRADOR_JSON for m in candidatos_ordem]]
     esperado_pares = len(_pares([*candidatos_ordem, BASELINE_PAREADO]))
@@ -656,5 +716,7 @@ def executar(cfg: dict, resultados: dict) -> list[dict]:
         verify.check("modelo_unico_escolhido", True, vencedor in candidatos_ordem),
         verify.check("calibrador_recarregado_igual", True, cal_ok),
         verify.check("limiar_no_intervalo", True, bool(0.0 <= limiar <= 1.0)),
+        verify.check("limiar_atinge_recall_alvo", True, bool(recall_vencedor >= recall_alvo)),
+        verify.check("limiar_f2_secundario_registrado", True, bool(f2_registrado)),
         verify.check("arquivos_gerados", True, all(Path(a).exists() for a in arquivos)),
     ]

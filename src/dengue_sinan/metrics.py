@@ -125,6 +125,38 @@ def best_f2_threshold(y, p) -> float:
     return float(candidatos[int(np.argmax(f2))])
 
 
+def threshold_for_min_recall(y, p, recall_min: float) -> float:
+    """Limiar de maior precisão entre os que dão recall ≥ `recall_min` (D-92).
+
+    Candidatos: valores únicos de `p` (predito positivo se `p >= limiar`). Entre os que atingem o
+    recall mínimo, devolve o de maior precisão. Empate de precisão: o MAIOR limiar. Sem folga:
+    recall igual a `recall_min` já conta.
+
+    `recall_min` precisa estar em [0, 1]. Com 1 é sempre atingível (o menor valor de `p` pega
+    todos os eventos). Sem eventos o recall não é definido e a função levanta ValueError.
+    Escolha do limiar só nas predições fora da dobra (FR-17), nunca no teste (R1, P2).
+    """
+    y_arr = np.asarray(y)
+    p_arr = np.asarray(p, dtype=float)
+    if p_arr.size == 0:
+        raise ValueError("p vazio: não há limiar a escolher")
+    if y_arr.shape != p_arr.shape:
+        raise ValueError("y e p precisam ter o mesmo tamanho")
+    if not 0.0 <= recall_min <= 1.0:  # também recusa NaN
+        raise ValueError(f"recall_min precisa estar em [0, 1]: {recall_min}")
+    if not (y_arr == 1).any():
+        raise ValueError("sem eventos: o recall não é definido, não há limiar a escolher")
+
+    candidatos = np.unique(p_arr)  # ordenados de forma crescente
+    vp, fp, total_pos = _contagens(y_arr, p_arr, candidatos)
+    recall = vp / total_pos
+    precisao = vp / (vp + fp)  # vp + fp >= 1: cada candidato é um valor de p
+    precisao_valida = np.where(recall >= recall_min, precisao, -np.inf)
+    # Empate: np.flatnonzero devolve índices crescentes; o último é o maior limiar.
+    empatados = np.flatnonzero(precisao_valida == precisao_valida.max())
+    return float(candidatos[empatados[-1]])
+
+
 def net_benefit(y, p, limiares) -> pd.DataFrame:
     """Curva de decisão (decision curve analysis, D-39).
 

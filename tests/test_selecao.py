@@ -15,7 +15,7 @@ from mlflow.tracking import MlflowClient
 from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
 
-from dengue_sinan import metrics, selecao
+from dengue_sinan import baselines, metrics, selecao
 from dengue_sinan.config import load_config
 
 REGIOES = ["Sudeste", "Sul", "Centro-Oeste", "Nordeste", "Norte"]
@@ -114,7 +114,7 @@ def test_escolhe_o_calibrador_de_menor_brier_e_empate_vai_para_platt():
 def test_calibrador_escolhido_tem_o_menor_brier_fora_da_dobra(cfg, tmp_path):
     resultados = _montar(tmp_path, cfg)
     base = selecao._carregar_predicoes(cfg, resultados)[0]["elastic_net"]
-    analise = selecao._analisar_candidato(base, len(REGIOES))
+    analise = selecao._analisar_candidato(base, len(REGIOES), recall_alvo=0.5)
 
     menor = min(analise["brier_fora_da_dobra"], key=analise["brier_fora_da_dobra"].get)
     assert analise["calibrador_tipo"] == menor
@@ -282,17 +282,147 @@ def test_executar_escolhe_um_modelo_grava_tudo_e_todos_os_checks_passam(cfg, tmp
         assert (tmp_path / "data" / "m1" / modelo / "calibrador.json").exists()
 
 
-def test_limiar_gravado_e_o_f2_maximo_nas_predicoes_calibradas(cfg, tmp_path, monkeypatch):
-    resultados = _montar(tmp_path, cfg)
-    _executar(cfg, resultados, monkeypatch)
-    selecao_json = _ler_selecao(tmp_path)
-    vencedor = selecao_json["vencedor"]
+def _recall_b2(tmp_path) -> float:
+    b2 = pd.read_parquet(tmp_path / "data" / "oof" / "oof_B2.parquet")
+    return baselines.metricas_regra(b2["y"].to_numpy(), b2["p"].to_numpy())["recall"]
 
+
+def _oof_calibrado_do_vencedor(tmp_path, vencedor):
     oof = pd.read_parquet(tmp_path / "m1" / vencedor / "oof.parquet")
     cal = selecao.carregar_calibrador(tmp_path / "data" / "m1" / vencedor)
-    p_cal = cal.aplicar(oof["p"].to_numpy())
+    return oof["y"].to_numpy(), cal.aplicar(oof["p"].to_numpy())
 
-    assert selecao_json["limiar"] == metrics.best_f2_threshold(oof["y"].to_numpy(), p_cal)
+
+def test_limiar_gravado_e_o_de_precisao_maxima_com_recall_da_b2(cfg, tmp_path, monkeypatch):
+    resultados = _montar(tmp_path, cfg)
+    _executar(cfg, resultados, monkeypatch)
+    sj = _ler_selecao(tmp_path)
+    y, p_cal = _oof_calibrado_do_vencedor(tmp_path, sj["vencedor"])
+
+    recall_b2 = _recall_b2(tmp_path)
+    assert sj["recall_alvo"] == pytest.approx(recall_b2, abs=1e-12)
+    assert sj["limiar"] == metrics.threshold_for_min_recall(y, p_cal, recall_b2)
+
+
+def test_limiar_principal_difere_do_f2_maximo_no_cenario_de_teste(cfg, tmp_path, monkeypatch):
+    # Pré-condição do teste acima: o critério novo e o F2 dão limiares diferentes aqui. Se o
+    # cenário sintético mudar e os dois coincidirem, o teste acima deixa de provar a troca.
+    resultados = _montar(tmp_path, cfg)
+    _executar(cfg, resultados, monkeypatch)
+    sj = _ler_selecao(tmp_path)
+    y, p_cal = _oof_calibrado_do_vencedor(tmp_path, sj["vencedor"])
+
+    assert sj["limiar"] != metrics.best_f2_threshold(y, p_cal)
+
+
+def test_limiar_f2_secundario_gravado_e_o_f2_maximo(cfg, tmp_path, monkeypatch):
+    resultados = _montar(tmp_path, cfg)
+    _executar(cfg, resultados, monkeypatch)
+    sj = _ler_selecao(tmp_path)
+    y, p_cal = _oof_calibrado_do_vencedor(tmp_path, sj["vencedor"])
+
+    limiar_f2 = metrics.best_f2_threshold(y, p_cal)
+    assert sj["limiar_f2"] == limiar_f2
+    assert sj["no_limiar_f2"] == metrics.threshold_metrics(y, p_cal, limiar_f2)
+    assert sj["modelos"][sj["vencedor"]]["limiar_f2"] == limiar_f2
+
+
+def test_no_limiar_do_vencedor_atinge_o_recall_da_b2_no_oof(cfg, tmp_path, monkeypatch):
+    resultados = _montar(tmp_path, cfg)
+    _executar(cfg, resultados, monkeypatch)
+    sj = _ler_selecao(tmp_path)
+    y, p_cal = _oof_calibrado_do_vencedor(tmp_path, sj["vencedor"])
+
+    assert sj["no_limiar"] == metrics.threshold_metrics(y, p_cal, sj["limiar"])
+    assert sj["no_limiar"]["recall"] >= _recall_b2(tmp_path)
+
+
+def test_selecao_json_grava_criterio_e_recall_alvo_por_modelo(cfg, tmp_path, monkeypatch):
+    resultados = _montar(tmp_path, cfg)
+    _executar(cfg, resultados, monkeypatch)
+    sj = _ler_selecao(tmp_path)
+
+    assert sj["criterio_limiar"] == selecao.CRITERIO_LIMIAR
+    for m in CANDIDATOS:
+        for chave in ("limiar", "no_limiar", "limiar_f2", "no_limiar_f2"):
+            assert chave in sj["modelos"][m]
+
+
+def test_b1_usa_o_mesmo_criterio_de_recall_nas_predicoes_brutas(cfg, tmp_path):
+    _montar(tmp_path, cfg)
+    recall_alvo = _recall_b2(tmp_path)
+    b1 = pd.read_parquet(tmp_path / "data" / "oof" / "oof_B1.parquet")
+    oof_b1 = selecao._ler_oof(tmp_path / "data" / "oof" / "oof_B1.parquet", REGIOES)
+
+    analise = selecao._analisar_baseline("B1", oof_b1, len(REGIOES), recall_alvo)
+
+    y, p = b1["y"].to_numpy(), b1["p"].to_numpy()
+    assert analise["limiar"] == metrics.threshold_for_min_recall(y, p, recall_alvo)
+    assert analise["no_limiar"]["recall"] >= recall_alvo
+    assert analise["limiar_f2"] == metrics.best_f2_threshold(y, p)
+
+
+def test_b0_com_score_constante_tem_limiar_unico_e_recall_um(cfg, tmp_path):
+    _montar(tmp_path, cfg)
+    oof_b0 = selecao._ler_oof(tmp_path / "data" / "oof" / "oof_B0.parquet", REGIOES)
+
+    analise = selecao._analisar_baseline("B0", oof_b0, len(REGIOES), _recall_b2(tmp_path))
+
+    assert analise["limiar"] == pytest.approx(float(oof_b0.p[0]))
+    assert analise["no_limiar"]["recall"] == 1.0
+
+
+def test_b2_segue_a_regra_sem_limiar(cfg, tmp_path):
+    _montar(tmp_path, cfg)
+    oof_b2 = selecao._ler_oof(tmp_path / "data" / "oof" / "oof_B2.parquet", REGIOES)
+
+    analise = selecao._analisar_baseline("B2", oof_b2, len(REGIOES), None)
+
+    assert analise["limiar"] is None
+    assert set(analise["no_limiar"]) == {"recall", "precisao", "f2"}
+
+
+def test_checks_de_limiar_passam_no_cenario_normal(cfg, tmp_path, monkeypatch):
+    resultados = _montar(tmp_path, cfg)
+    checks = {c["nome"]: c for c in _executar(cfg, resultados, monkeypatch)}
+
+    assert checks["limiar_atinge_recall_alvo"]["passou"] is True
+    assert checks["limiar_f2_secundario_registrado"]["passou"] is True
+
+
+def test_check_limiar_atinge_recall_reprova_limiar_com_recall_baixo(cfg, tmp_path, monkeypatch):
+    # Limiar no maior escore: quase nenhum positivo fica acima dele, então o recall cai abaixo
+    # do da B2 e o check tem que reprovar. Um check fixo em True passaria aqui.
+    resultados = _montar(tmp_path, cfg)
+    monkeypatch.setattr(metrics, "threshold_for_min_recall",
+                        lambda y, p, recall_min: float(np.max(p)))
+    checks = {c["nome"]: c for c in _executar(cfg, resultados, monkeypatch)}
+
+    assert checks["limiar_atinge_recall_alvo"]["passou"] is False
+
+
+def test_check_f2_secundario_reprova_quando_nao_gravado(cfg, tmp_path, monkeypatch):
+    resultados = _montar(tmp_path, cfg)
+    original = selecao._gravar_json
+
+    def gravar_sem_f2(caminho, dados):
+        dados = {k: v for k, v in dados.items() if k != "limiar_f2"}
+        original(caminho, dados)
+
+    monkeypatch.setattr(selecao, "_gravar_json", gravar_sem_f2)
+    checks = {c["nome"]: c for c in _executar(cfg, resultados, monkeypatch)}
+
+    assert checks["limiar_f2_secundario_registrado"]["passou"] is False
+
+
+def test_relatorio_oof_mostra_limiar_de_recall_e_f2_como_secundario(cfg, tmp_path, monkeypatch):
+    resultados = _montar(tmp_path, cfg)
+    _executar(cfg, resultados, monkeypatch)
+    relatorio = (tmp_path / "reports" / "m1" / "comparacao_oof.md").read_text(encoding="utf-8")
+
+    assert "precisão máxima com recall ≥" in relatorio
+    assert "### 3.1 Ponto F2 (secundário, D-33)" in relatorio
+    assert "limiar de F2 máximo" not in relatorio
 
 
 def test_pareada_cobre_21_pares_com_b1_e_e_so_reportada(cfg, tmp_path, monkeypatch):

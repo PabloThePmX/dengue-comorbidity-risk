@@ -47,6 +47,103 @@ def test_best_f2_threshold_escolhe_o_limiar_de_maior_f2():
     assert metrics.best_f2_threshold(Y_EXEMPLO, P_EXEMPLO) == pytest.approx(0.3)
 
 
+# --- Limiar de precisão máxima com recall mínimo (D-92) -----------------------------------------
+#
+# Mesmo exemplo: precisão e recall por limiar (candidatos = valores de p):
+#   0,9 -> VP 1, FP 0 -> precisão 1,00, recall 1/3
+#   0,4 -> VP 2, FP 0 -> precisão 1,00, recall 2/3
+#   0,3 -> VP 3, FP 0 -> precisão 1,00, recall 1
+#   0,2 -> VP 3, FP 1 -> precisão 0,75, recall 1
+#   0,1 -> VP 3, FP 2 -> precisão 0,60, recall 1
+
+
+def test_min_recall_exemplo_a_mao_empate_de_precisao_vai_para_o_maior_limiar():
+    # recall ≥ 2/3: sobram 0,4, 0,3, 0,2 e 0,1. Precisão 1 em 0,4 e 0,3: empate, vale 0,4.
+    assert metrics.threshold_for_min_recall(Y_EXEMPLO, P_EXEMPLO, 2 / 3) == pytest.approx(0.4)
+
+
+def test_min_recall_acima_de_2_3_exclui_o_limiar_04():
+    # recall ≥ 0,7: sobram 0,3, 0,2 e 0,1. Maior precisão é 1, em 0,3.
+    assert metrics.threshold_for_min_recall(Y_EXEMPLO, P_EXEMPLO, 0.7) == pytest.approx(0.3)
+
+
+def test_min_recall_igual_ao_recall_de_um_limiar_conta_sem_folga():
+    # recall ≥ 1/3 exatamente: 0,9 entra (recall 1/3), tem precisão 1 e é o maior limiar com
+    # precisão 1. Com ">" em vez de "≥" o resultado seria 0,4: o teste pega essa troca.
+    assert metrics.threshold_for_min_recall(Y_EXEMPLO, P_EXEMPLO, 1 / 3) == pytest.approx(0.9)
+
+
+def test_min_recall_1_escolhe_a_maior_precisao_que_pega_todos_os_eventos():
+    # recall = 1: 0,3, 0,2 e 0,1. A precisão cai com o limiar, então 0,3 vence.
+    assert metrics.threshold_for_min_recall(Y_EXEMPLO, P_EXEMPLO, 1.0) == pytest.approx(0.3)
+
+
+def test_min_recall_zero_devolve_o_maior_limiar_de_precisao_maxima():
+    # recall ≥ 0 libera tudo: precisão 1 em 0,9, 0,4 e 0,3. Empate: o maior, 0,9.
+    assert metrics.threshold_for_min_recall(Y_EXEMPLO, P_EXEMPLO, 0.0) == pytest.approx(0.9)
+
+
+def test_min_recall_score_constante_devolve_o_unico_valor():
+    # B0: um só candidato. Recall 1 para qualquer recall_min ≤ 1.
+    p = np.full(5, 0.4)
+    y = np.array([1, 1, 0, 0, 0])
+    assert metrics.threshold_for_min_recall(y, p, 0.6843) == pytest.approx(0.4)
+    assert metrics.threshold_for_min_recall(y, p, 1.0) == pytest.approx(0.4)
+
+
+def test_min_recall_bate_com_a_busca_bruta_em_dados_aleatorios():
+    # Confere contra a definição, sem atalho: testa todo candidato, filtra por recall e pega a
+    # maior precisão, com empate para o maior limiar.
+    rng = np.random.default_rng(42)
+    for _ in range(50):
+        n = 60
+        y = (rng.uniform(size=n) < 0.2).astype(int)
+        y[0] = 1
+        p = np.round(rng.uniform(size=n), 1)  # poucos valores distintos: empates de propósito
+        recall_min = float(rng.choice([0.0, 0.3, 0.5, 0.6843, 0.9, 1.0]))
+
+        melhor = None
+        for t in sorted(set(p.tolist())):
+            r = metrics.threshold_metrics(y, p, t)
+            if r["recall"] >= recall_min:
+                if melhor is None or r["precisao"] >= melhor[1]:
+                    melhor = (t, r["precisao"])  # o último de maior precisão é o maior limiar
+        esperado = melhor[0]
+
+        assert metrics.threshold_for_min_recall(y, p, recall_min) == pytest.approx(esperado)
+
+
+def test_min_recall_resultado_atinge_o_recall_minimo():
+    rng = np.random.default_rng(7)
+    y = (rng.uniform(size=200) < 0.1).astype(int)
+    y[0] = 1
+    p = rng.uniform(size=200)
+    for recall_min in (0.1, 0.5, 0.6843, 0.95):
+        t = metrics.threshold_for_min_recall(y, p, recall_min)
+        assert metrics.threshold_metrics(y, p, t)["recall"] >= recall_min
+
+
+def test_min_recall_recusa_recall_fora_de_0_1():
+    with pytest.raises(ValueError, match="recall_min"):
+        metrics.threshold_for_min_recall(Y_EXEMPLO, P_EXEMPLO, 1.2)
+    with pytest.raises(ValueError, match="recall_min"):
+        metrics.threshold_for_min_recall(Y_EXEMPLO, P_EXEMPLO, -0.1)
+    with pytest.raises(ValueError, match="recall_min"):
+        metrics.threshold_for_min_recall(Y_EXEMPLO, P_EXEMPLO, float("nan"))
+
+
+def test_min_recall_sem_eventos_levanta_erro():
+    with pytest.raises(ValueError, match="sem eventos"):
+        metrics.threshold_for_min_recall([0, 0, 0], [0.1, 0.5, 0.9], 0.5)
+
+
+def test_min_recall_recusa_p_vazio_e_tamanho_diferente():
+    with pytest.raises(ValueError, match="vazio"):
+        metrics.threshold_for_min_recall([], [], 0.5)
+    with pytest.raises(ValueError, match="mesmo tamanho"):
+        metrics.threshold_for_min_recall([1, 0], [0.5], 0.5)
+
+
 # --- Ranking e calibração ------------------------------------------------------------------------
 
 
