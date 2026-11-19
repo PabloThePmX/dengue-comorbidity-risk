@@ -1,0 +1,56 @@
+{
+  "tarefa": "T-4.8",
+  "modelo": "xgboost",
+  "unidade": "log-odds (margem do modelo)",
+  "nota_diagonal": "Diagonal = efeito principal (convenção do SHAP); fora da diagonal = interação do par.",
+  "n_arvores": 419,
+  "n_amostra": 50000,
+  "n_positivos_amostra": 81,
+  "amostra_estratificada_por": "y",
+  "seed": 20261103,
+  "n_colunas_entrada": 26,
+  "n_features": 26,
+  "features": [
+    "sexo",
+    "DIABETES",
+    "HEMATOLOG",
+    "HEPATOPAT",
+    "RENAL",
+    "HIPERTENSA",
+    "ACIDO_PEPT",
+    "AUTO_IMUNE",
+    "FEBRE",
+    "MIALGIA",
+    "CEFALEIA",
+    "EXANTEMA",
+    "VOMITO",
+    "NAUSEA",
+    "DOR_COSTAS",
+    "CONJUNTVIT",
+    "ARTRITE",
+    "ARTRALGIA",
+    "PETEQUIA_N",
+    "LEUCOPENIA",
+    "LACO",
+    "DOR_RETRO",
+    "idade_anos",
+    "dias_ate_notificacao",
+    "gestante",
+    "n_comorbidades"
+  ],
+  "medidas": {
+    "erro_aditividade": 5.245208740234375e-06,
+    "erro_soma": 9.5367431640625e-07,
+    "erro_simetria": 0.0
+  },
+  "arquivos": {
+    "shap_importancia.csv": {
+      "sha256": "68e40753d5de4c761b2be182d3ef833cb0a5698dccbb8838fb7aa23144ac7160",
+      "bytes": 1089
+    },
+    "shap_interacoes.csv": {
+      "sha256": "38bc52ff25e3a3653376ac88cc1d33280b875ff1cf67d8f58945d27973c10f86",
+      "bytes": 8131
+    }
+  }
+}

@@ -1,0 +1,419 @@
+{
+  "sessao": "sessao-m1",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 51.0,
+    "gpu": "Tesla T4"
+  },
+  "hash_dados": {
+    "2022": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+    "2023": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90"
+  },
+  "blocos": [
+    {
+      "bloco": "checagem_inicial",
+      "tarefa": "T-4.3b",
+      "checks": [
+        {
+          "nome": "drive_gravavel",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "sqlite_abre_no_diretorio",
+          "esperado": "ok",
+          "obtido": "ok",
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "gpu",
+          "esperado": "T4",
+          "obtido": "Tesla T4",
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "ram_gib",
+          "esperado": 50,
+          "obtido": 51.0,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "vcpus",
+          "esperado": null,
+          "obtido": 8,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "sha256_dbc_2022",
+          "esperado": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+          "obtido": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "sha256_dbc_2023",
+          "esperado": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90",
+          "obtido": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90",
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "hash_conteudo_dobras",
+          "esperado": "09e29252e4ed3b44e49569962fbf8e42a5be00f82a77b673ca8830a03c44a0ea",
+          "obtido": "09e29252e4ed3b44e49569962fbf8e42a5be00f82a77b673ca8830a03c44a0ea",
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "casos_dev",
+          "esperado": 2453208,
+          "obtido": 2453208,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "eventos_dev",
+          "esperado": 3985,
+          "obtido": 3985,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "selecao",
+      "tarefa": "T-4.9",
+      "checks": [
+        {
+          "nome": "candidatos_com_oof",
+          "esperado": 5,
+          "obtido": 5,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "linhas_oof",
+          "esperado": 2453208,
+          "obtido": 2453208,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "anos_do_oof_no_desenvolvimento",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "pr_auc_confere_com_cv",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "pares_calculados",
+          "esperado": 15,
+          "obtido": 15,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "reamostras_pareadas",
+          "esperado": 1000,
+          "obtido": 1000,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "modelo_unico_escolhido",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "calibrador_recarregado_igual",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "limiar_no_intervalo",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "limiar_atinge_recall_alvo",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "limiar_f2_secundario_registrado",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "arquivos_gerados",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "shap",
+      "tarefa": "T-4.8",
+      "checks": [
+        {
+          "nome": "agregados_gravados",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "n_features_modelo",
+          "esperado": 26,
+          "obtido": 26,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "n_features_importancia",
+          "esperado": 26,
+          "obtido": 26,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "n_features_interacoes",
+          "esperado": 26,
+          "obtido": 26,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "amostra_tamanho",
+          "esperado": 50000,
+          "obtido": 50000,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "aditividade_erro_max",
+          "esperado": 0.0,
+          "obtido": 5.245208740234375e-06,
+          "tolerancia": 0.0001,
+          "passou": true
+        },
+        {
+          "nome": "soma_coerente_erro_max",
+          "esperado": 0.0,
+          "obtido": 9.5367431640625e-07,
+          "tolerancia": 0.0001,
+          "passou": true
+        },
+        {
+          "nome": "simetria_erro_max",
+          "esperado": 0.0,
+          "obtido": 0.0,
+          "tolerancia": 0.0001,
+          "passou": true
+        },
+        {
+          "nome": "positivos_na_amostra_minimo",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "sem_arquivo_por_linha",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    },
+    {
+      "bloco": "retreino",
+      "tarefa": "T-4.10",
+      "checks": [
+        {
+          "nome": "casos_treino_2022_2023",
+          "esperado": 2453208,
+          "obtido": 2453208,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "eventos_treino_2022_2023",
+          "esperado": 3985,
+          "obtido": 3985,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "anos_do_treino_no_desenvolvimento",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_carrega_e_prediz",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_predicoes_iguais_apos_carga",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_sha256_payload",
+          "esperado": "394c0f19e9384dc41e4e13b872a29ac8b8fb9de1d0f0413ba5c72321d0e9901a",
+          "obtido": "394c0f19e9384dc41e4e13b872a29ac8b8fb9de1d0f0413ba5c72321d0e9901a",
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_limiar_da_selecao",
+          "esperado": 0.0021548546241191616,
+          "obtido": 0.0021548546241191616,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_calibrador_da_selecao",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_sem_contagens_por_nivel",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_features_sem_proibidas",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_tamanho_payload_bytes",
+          "esperado": null,
+          "obtido": 88257,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_tamanho_pasta_bytes",
+          "esperado": null,
+          "obtido": 97465,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_tempo_predicao_um_caso_s",
+          "esperado": null,
+          "obtido": 0.0316,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_shap_local_viavel",
+          "esperado": null,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_iteracoes_finais",
+          "esperado": null,
+          "obtido": 419,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "m1_final_tempo_shap_um_caso_s",
+          "esperado": null,
+          "obtido": 0.014342,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "vencedor",
+          "esperado": null,
+          "obtido": "xgboost",
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "demo_tempo_consulta_ate_1s",
+          "esperado": 1.0,
+          "obtido": 0.045942,
+          "tolerancia": 0,
+          "criterio": "obtido <= esperado",
+          "passou": true
+        },
+        {
+          "nome": "modelo_demo_definido",
+          "esperado": true,
+          "obtido": true,
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "modelo_demo",
+          "esperado": null,
+          "obtido": "xgboost",
+          "tolerancia": 0,
+          "passou": true
+        },
+        {
+          "nome": "motivo_demo",
+          "esperado": null,
+          "obtido": "o vencedor (xgboost) cumpre os três critérios da demo (D-70)",
+          "tolerancia": 0,
+          "passou": true
+        }
+      ],
+      "passou": true
+    }
+  ],
+  "gerado_em": "2026-11-19T01:45:00Z",
+  "commit": "7ea1b9b92a8bdea5a63ce61d37eb6cf7a9ecb3cd",
+  "sessao_completa": true,
+  "passou": true,
+  "hash_dobras": "09e29252e4ed3b44e49569962fbf8e42a5be00f82a77b673ca8830a03c44a0ea"
+}

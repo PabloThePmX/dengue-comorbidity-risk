@@ -36,3 +36,6 @@ Thumbs.db
 # Ficam fora do git até o Programador decidir (R7). O E1 (models/e1) continua versionado.
 models/m1_final*
 models/m1_demo*
+
+# Área de passagem do download do Drive (retorno do Colab): nunca versionar (R7, D-85)
+retorno-m1/

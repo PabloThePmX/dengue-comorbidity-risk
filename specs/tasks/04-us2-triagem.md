@@ -109,7 +109,7 @@ Nenhum parâmetro de peso de classe (R3).
   marcada como falha na retomada.
 - **Pronto quando:** testes passam. A busca real é verificada no `sessao-m1.json` (T-4.3b).
 
-### [~] T-4.3b [US2] — Execução em sessão única (`runner.py`) (D-53)
+### [x] T-4.3b [US2] — Execução em sessão única (`runner.py`) (D-53)
 
 - `run_all_models(cfg)`:
   1. carrega a população 2022–23 uma vez (`load_population`, dados do Drive) e **recria** as dobras
@@ -153,7 +153,7 @@ Nenhum parâmetro de peso de classe (R3).
 - **Pronto quando:** testes passam e o bloco `checagem_inicial` do `sessao-m1.json` tem
   `"passou": true`.
 
-### [~] T-4.4 a T-4.8 [US2] — Os 6 modelos (dentro de `run_all_models`)
+### [x] T-4.4 a T-4.8 [US2] — Os 6 modelos (dentro de `run_all_models`)
 
 Implemente e teste cada modelo separadamente (testes rápidos em CPU), mas a execução real é **uma
 só**, pela T-4.3b, na ordem do config. Tetos de tempo e de tentativas: `config/base.yaml` (D-53).
@@ -172,7 +172,7 @@ só**, pela T-4.3b, na ordem do config. Tetos de tempo e de tentativas: `config/
     config (R8) e registre o dispositivo usado no MLflow.
   - Teste unitário rápido em CPU com dados sintéticos: treina, para no early stopping e devolve
     probabilidades entre 0 e 1.
-- [x] **T-4.7 TabFM** (teto 30 min, GPU).
+- [x] **T-4.7 TabFM** (teto 30 min, GPU). **Fora do M1 pelo D-91** (2026-11-18): inviável na T4 (OOM no prefill com 10.000 linhas de contexto; 17 a 89 ms por linha na predição). Sem bloco no `sessao-m1.json`; código e testes prontos e reativáveis pelo config (`ordem_modelos`, `busca.tabfm`).
   - Licença e uso já decididos (D-69): candidato só para comparação, **nunca** na demo; o artefato
     fica no Drive. Detalhes: [plan › Restrições do TabFM](../plan.md#restrições-do-tabfm).
   - Antes de codar, confira no model card e no repositório o limite de linhas de contexto, o
@@ -196,7 +196,7 @@ no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podad
 (SHAP, SHOULD), o bloco `shap` confere que os agregados de SHAP foram gravados, e os gráficos de
 `reports/shap/` são desenhados localmente a partir deles.
 
-### [~] T-4.9 [US2] — Calibração, limiar e seleção (FR-08, FR-17)
+### [x] T-4.9 [US2] — Calibração, limiar e seleção (FR-08, FR-17)
 
 - Para cada modelo: ajustar **isotônica** e **Platt** nas predições OOF (2022–23); escolher a de
   menor Brier **fora da dobra** (D-87). Guardar o calibrador.
@@ -215,7 +215,7 @@ no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podad
   `comparacao_pareada.md` gerados no Colab e trazidos pelo MCP com SHA-256 conferido (D-66);
   nenhum arquivo de 2024 aberto na sessão (`guard`).
 
-### [~] T-4.10 [US2] — Retreino final e congelamento (FR-12, FR-22, D-37)
+### [x] T-4.10 [US2] — Retreino final e congelamento (FR-12, FR-22, D-37)
 
 - Retreinar o modelo escolhido em **todo** 2022–23 com os melhores hiperparâmetros.
   Iterativos: nº de árvores/épocas = **mediana** dos melhores pontos das 5 dobras (sem early stopping).
