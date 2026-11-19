@@ -200,7 +200,7 @@ no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podad
 
 - Para cada modelo: ajustar **isotônica** e **Platt** nas predições OOF (2022–23); escolher a de
   menor Brier **fora da dobra** (D-87). Guardar o calibrador.
-- Limiar = `best_f2_threshold` nas predições OOF **calibradas**.
+- Limiar = precisão máxima com recall ≥ recall da B2 nas predições OOF **calibradas** (`threshold_for_min_recall`, D-92); o ponto de F2 máximo (`best_f2_threshold`) fica como ponto secundário.
 - Tabela comparativa `reports/m1/comparacao_oof.md`: por modelo, PR-AUC média (e por dobra),
   Brier, slope/intercept, ROC-AUC, métricas no limiar; com B0, B1 e B2 ao lado; e, por modelo, tempo
   da cronometragem, orçamento usado e tentativas concluídas/podadas.

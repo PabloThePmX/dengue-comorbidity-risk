@@ -19,7 +19,7 @@ Inclui a antiga T-7.2 (D-60).
   [spec › Formulação do problema](../spec.md#formulação-do-problema)).
 - Ética (NFR-04): dados públicos e **desidentificados** (não "anonimizados"); dispensa pela CNS
   510/2016, art. 1º, parágrafo único, inciso II.
-- Explicar F2 vs F0.5 (D-33) e por que não há correção de desbalanceamento (D-38).
+- Explicar F2 vs F0.5 (D-33, F2 como ponto secundário depois do D-92), por que o limiar principal é o de recall ≥ B2 (D-92) e por que não há correção de desbalanceamento (D-38).
 - Apêndices:
   - A: [registro de decisões](../research.md#registro-de-decisões), destacando D-22 a D-25;
   - B: fluxograma de exclusão e resultados do profiling;

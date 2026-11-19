@@ -29,7 +29,7 @@ as figuras de `reports/teste/` localmente.
 
 ### [ ] T-5.2 — Curva de decisão, calibração e subgrupos
 
-- Curva de decisão (0,1%–5%) para M1, B1 e B2, com "tratar todos" e "ninguém"; marcar o limiar F2.
+- Curva de decisão (0,1%–5%) para M1, B1 e B2, com "tratar todos" e "ninguém"; marcar o limiar principal (recall ≥ B2, D-92, congelado com o modelo) e o limiar F2 (secundário). O limiar F2 não está no modelo congelado: leia `limiar_f2` do `selecao.json` da T-4.9 (Colab, `<Drive>/data/m1/selecao.json`).
 - Curva de calibração com bandas (2.000 bootstrap) para M1 e E1.
 - Subgrupos: faixa etária; sexo; gestantes; região; **raça/cor** (com "ignorado"). PR-AUC, recall no
   limiar e calibração, com IC. Os subgrupos com poucos eventos

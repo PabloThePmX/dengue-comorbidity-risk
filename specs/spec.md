@@ -60,7 +60,7 @@ Os objetivos estão em [goal.md](goal.md). Fica fora do escopo:
 **Custo dos erros (D-14)**
 - **Falso negativo** (diz "baixo risco" para quem evolui para grave/óbito): erro **muito mais caro**. Pode atrasar o reconhecimento de um paciente que vai piorar.
 - **Falso positivo** (diz "alto risco" para quem não piora): custa monitoramento extra e ocupação do serviço.
-- Consequência: o limiar prioriza recall alto. Ele é o que maximiza o F2 nas predições fora da dobra (D-33, [Plano de avaliação](#plano-de-avaliação)).
+- Consequência: o limiar prioriza recall alto. Ele é o de **precisão máxima entre os que dão recall ≥ ao da regra B2** nas predições calibradas fora da dobra (D-92, [Plano de avaliação](#plano-de-avaliação)); o ponto de F2 máximo (D-33) é reportado como ponto secundário.
 
 ## Cenários de usuário
 
@@ -334,8 +334,8 @@ Todos obrigatórios (FR-04). Todos os modelos são julgados contra eles.
   - Na tabela de resultados, sempre ao lado de **B0** e **B2**.
   - B0 no limiar prevê "ninguém agrava": acurácia ≈ 1 − prevalência, recall = 0. O relatório usa essa linha para mostrar por que a acurácia não serve como métrica de decisão com classe rara.
   - Não são critério de seleção de modelo (a [regra de seleção](plan.md#regra-de-seleção) usa PR-AUC).
-- **Limiar:** escolhido nas predições calibradas fora da dobra (2022–23, FR-17), como o que **maximiza o F2** (D-33). O recall resultante é reportado, em vez de fixado antes.
-- **Utilidade clínica (D-39):** curva de decisão (*decision curve analysis*, net benefit) no teste para o melhor M1, B1 e a regra do protocolo (B2), contra "tratar todos" e "tratar ninguém", numa faixa de limiares de risco plausível para triagem `[ASSUMPTION]`, ajustada à prevalência observada de 0,16%–0,21%: **0,1%–5%**, ou seja, até ~30 vezes o risco médio. O limiar F2 aparece como um ponto de operação marcado na curva, e não como a única justificativa do limiar. Síntese das referências (Vickers & Holland 2021; benchmark com F2 + DCA) em `research/consensus-boas-praticas.md` (cópia local, fora do repositório: termos do Consensus).
+- **Limiar (D-92, complementa D-33):** escolhido nas predições calibradas fora da dobra (2022–23, FR-17) como o de **precisão máxima entre os limiares com recall ≥ ao da regra B2 nas mesmas predições**; empate: o maior limiar; sem folga. É fixado antes do teste e congelado com o modelo. No teste, o recall resultante é reportado e o SC-02 o compara com o da B2 no teste. O limiar de **F2 máximo** (D-33) continua calculado nas mesmas predições e é reportado como ponto secundário, sem entrar no modelo congelado.
+- **Utilidade clínica (D-39):** curva de decisão (*decision curve analysis*, net benefit) no teste para o melhor M1, B1 e a regra do protocolo (B2), contra "tratar todos" e "tratar ninguém", numa faixa de limiares de risco plausível para triagem `[ASSUMPTION]`, ajustada à prevalência observada de 0,16%–0,21%: **0,1%–5%**, ou seja, até ~30 vezes o risco médio. Os limiares principal (recall ≥ B2, D-92) e de F2 máximo (secundário, D-33) aparecem como pontos de operação marcados na curva, e nenhum deles é a única justificativa do limiar. Síntese das referências (Vickers & Holland 2021; benchmark com F2 + DCA) em `research/consensus-boas-praticas.md` (cópia local, fora do repositório: termos do Consensus).
 - **Calibração:** obrigatória, porque o produto é "qual o risco". Isotônica ou Platt, ajustada nas predições fora da dobra (FR-17). No teste, reportar a curva de calibração e o calibration slope: é a métrica que a literatura mostra degradar primeiro sob drift ([research › Evidência para o desenho de validação](research.md#evidência-para-o-desenho-de-validação)).
 - **Variação entre regiões no desenvolvimento:** reportar PR-AUC e calibration slope de cada dobra leave-one-region-out. É a medida de robustez geográfica do modelo.
 - **Incerteza:** IC 95% por bootstrap no teste, para todas as métricas e para a **diferença** de PR-AUC entre o melhor modelo e B1. Número de reamostras e alternativas: [plan › Incerteza e comparação](plan.md#incerteza-e-comparação).
@@ -437,7 +437,7 @@ Python, notebooks de profiling, explicação e avaliação, e MLflow. CLI só co
 | Cuidar com vazamento de dados | [Revisão de vazamento](#revisão-de-vazamento) (campo a campo, vazamento por completude), profiling passo 4 | Coberto. |
 | Validar preditores e resultados com alguém da área da saúde | FR-21, D-34 | Parcial, por decisão do grupo: só os resultados. |
 | Trabalhar a explicabilidade do modelo | [Interpretabilidade](#interpretabilidade-e-equidade), FR-13, FR-19, D-35 | Coberto: OR, ranking, perfis, SHAP global e SHAP local na demo. |
-| Usar F0.5 ("F1 mais inclinado para o recall") | [Plano de avaliação](#plano-de-avaliação), D-33 | Ajustado: F2, que é o que favorece o recall; o relatório explica. |
+| Usar F0.5 ("F1 mais inclinado para o recall") | [Plano de avaliação](#plano-de-avaliação), D-33 | Ajustado: F2, que é o que favorece o recall, reportado como ponto secundário depois do D-92; o relatório explica. |
 | Desenvolver um app legal para profissionais da saúde | [contracts › Demo](contracts/interfaces.md#demo), FR-11, D-27, D-35 | Coberto: demo com abas Perfil e Triagem, com explicação por caso. |
 
 ## Perguntas em aberto
