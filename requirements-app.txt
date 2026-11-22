@@ -1,0 +1,7 @@
+# Dependências NOVAS para rodar a API e o frontend. Mínimos = versões testadas (Python 3.13).
+# NÃO estão no pyproject.toml: adicioná-las é decisão do responsável (ver docs/app.md).
+fastapi>=0.165
+uvicorn>=0.54
+requests>=2.34
+streamlit>=1.67
+pandas<3  # exigido pelo Streamlit; o uv.lock do projeto já tem pandas 2.3.3

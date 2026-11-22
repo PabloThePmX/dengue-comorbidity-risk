@@ -1,0 +1,7 @@
+{
+  "descricao": "Configuração da camada de serviço (API e Streamlit). Variáveis de ambiente têm prioridade: DENGUE_ARTEFATOS, DENGUE_M1, DENGUE_E1, DENGUE_LIMITE_REGISTROS.",
+  "pasta_artefatos": "artefatos/modelos",
+  "m1": "m1-perfil-2.0.0",
+  "e1": null,
+  "limite_registros": 1000
+}
