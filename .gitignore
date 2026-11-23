@@ -43,3 +43,6 @@ models/b0_final*
 
 # Área de passagem do download do Drive (retorno do Colab): nunca versionar (R7, D-85)
 retorno-m1/
+
+# Area de passagem do download do Drive (resultados do Colab): nunca versionar.
+retorno-m5/

@@ -1,0 +1,70 @@
+{
+  "artefatos": {
+    "B0": {
+      "pasta": "/content/drive/MyDrive/dengue-comorbidity-risk/models/b0_final",
+      "sha256_payload": {
+        "b0.json": "b6e4ad9c92adfc63561d69fff52e3a25eaf62eb21fe83a26ec13edfa94b32ee3"
+      }
+    },
+    "B1": {
+      "pasta": "/content/drive/MyDrive/dengue-comorbidity-risk/models/b1_final",
+      "sha256_payload": {
+        "b1.joblib": "9271ca6f2d4c45134ce6a2a5292878d7a989d0cc35293cda195c0a65ea6e6504"
+      }
+    },
+    "E1": {
+      "pasta": "/content/drive/MyDrive/dengue-comorbidity-risk/models/e1",
+      "sha256_payload": {
+        "e1.json": "d001ec87470cb8b583aba1aa18d0de49bb201d79a2ef079c7971f594c2ce8a68",
+        "e1.npz": "7d669a7f2faba9d28c5974c0095d6ae8ef790400a3af6fa29c8c5b142c289ebc"
+      }
+    },
+    "M1": {
+      "pasta": "/content/drive/MyDrive/dengue-comorbidity-risk/models/m1_final",
+      "sha256_payload": {
+        "m1.joblib": "394c0f19e9384dc41e4e13b872a29ac8b8fb9de1d0f0413ba5c72321d0e9901a"
+      }
+    }
+  },
+  "arvore_limpa": false,
+  "aviso": "Lacre do teste (R2): existir aqui impede nova avaliação. Não apague.",
+  "commit": "91425adf9a3c2a614cecc10650a2f75678aeb9b0",
+  "dados": {
+    "ano": 2024,
+    "casos": 5331745,
+    "eventos": 11338,
+    "eventos_por_regiao": {
+      "Centro-Oeste": 1682,
+      "Nordeste": 942,
+      "Norte": 110,
+      "Sudeste": 6510,
+      "Sul": 2094
+    },
+    "sha256_dbc": "cd66ee77271a9718c81ef0b78f60d906087d9cc61e1b1ced15719227cde5d59a",
+    "sha256_parquet": "8ffbbcd8ec5dd4a95a9b04e5927cea161a2d4ac513602ec95b2f4d3bd602ffe5"
+  },
+  "gravado_em_utc": "2026-11-23T05:54:22+00:00",
+  "hash_config": "a89ba5ac88536a6e28a433ba1b32936d23a9994831883f4d98919a5c0c749237",
+  "reamostras": 1000,
+  "relatorios": {
+    "calibracao__calibracao_E1.csv": "8975b50742eb4d31d36b78b6121d501f73679eca58416b9d2d6f0666e6de4096",
+    "calibracao__calibracao_M1.csv": "69cb1711b1e420da256901c0e98197660e7ba72808e3f4c94c716afac7960502",
+    "criterios.md": "b9c773f1770dc7349479dc359aa7b40470a0ec476e4b495a57c6af72381a66b9",
+    "criterios__criterios.csv": "b45e1ceb880634908e8a77652b1105c722f885a52ad652205ee1a3c0d662b5c4",
+    "decisao__curva_decisao.csv": "de4f4ef479ba003aa730f88b4fbbabd61b5991380bddc722450b745d0d2c2ac5",
+    "erros.md": "dcacbce74c9186ae1e12ff9982b54a6c2785a935ac6baf548041d6c18cf2292e",
+    "erros__calibracao_comorbidades.csv": "a2b4c5f10db566b3d940e8de607161a2fc1c7573714e96295c97377195cceb1f",
+    "erros__espirito_santo.csv": "67359b8a1573d7a03109ac63f857600240696b93ac0e1ad912683cc00f8ab123",
+    "erros__perfil_falsos_negativos.csv": "eb0c043fe50d8aaa97e1e2f5a3113581ac575ca0d2980c3e89054cb2dfcad278",
+    "metricas.json": "d629c771e435ccacde582a7b2f51ff336bf91c974212c082b9a9ec22839ab0ab",
+    "metricas.md": "0aed2bba0b2d6906304034da25bebe22351f2693620e63d03f18df40a67778ad",
+    "metricas__metricas.csv": "f71ec2204bcf817eb1956d494f9bea840529e301223a74236743f3b090bf55c9",
+    "subgrupos__subgrupos.csv": "9a28269f8b0094365449e48e02a6e9b7ffc81d00e78e1cf2c873c57c01e1b860"
+  },
+  "selecao": {
+    "limiar_f2": 0.021513905788163062,
+    "sha256": "f8a7be42bddcc4b0978b1b138a1bbfda214d55a2a146e13b9ea4d2c5de85408f"
+  },
+  "semente": 20261103,
+  "tarefa": "T-5.1"
+}

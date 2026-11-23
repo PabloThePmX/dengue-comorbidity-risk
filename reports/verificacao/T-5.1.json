@@ -1,0 +1,360 @@
+{
+  "tarefa": "T-5.1",
+  "gerado_em": "2026-11-23T05:54:22Z",
+  "commit": "91425adf9a3c2a614cecc10650a2f75678aeb9b0",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 51.0,
+    "gpu": "Tesla T4"
+  },
+  "hash_dados": {
+    "2022": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+    "2023": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90"
+  },
+  "checks": [
+    {
+      "nome": "populacao_2024_igual_ao_esperado",
+      "esperado": 5331745,
+      "obtido": 5331745,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2024_igual_ao_esperado",
+      "esperado": 11338,
+      "obtido": 11338,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2024_centro_oeste_igual_ao_esperado",
+      "esperado": 1682,
+      "obtido": 1682,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2024_nordeste_igual_ao_esperado",
+      "esperado": 942,
+      "obtido": 942,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2024_norte_igual_ao_esperado",
+      "esperado": 110,
+      "obtido": 110,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2024_sudeste_igual_ao_esperado",
+      "esperado": 6510,
+      "obtido": 6510,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2024_sul_igual_ao_esperado",
+      "esperado": 2094,
+      "obtido": 2094,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "so_2024_lido_na_avaliacao",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "artefatos_sha256_conferidos",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "nada_gravado_antes_do_fim",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "reamostras_metricas_do_config",
+      "esperado": 1000,
+      "obtido": 1000,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "reamostras_calibracao_configuradas_para_t52",
+      "esperado": 2000,
+      "obtido": 2000,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "semente_do_config",
+      "esperado": 20261103,
+      "obtido": 20261103,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "sem_contagens_de_1_a_9_no_json",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "iteracoes_newton_maximas",
+      "esperado": null,
+      "obtido": 5,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "alertas_fr03_disparados",
+      "esperado": null,
+      "obtido": 9,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tempo_carga_s",
+      "esperado": null,
+      "obtido": 291.007,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tempo_predicao_s",
+      "esperado": null,
+      "obtido": 35.448,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tempo_analises_s",
+      "esperado": null,
+      "obtido": 445.262,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "arvore_limpa",
+      "esperado": null,
+      "obtido": false,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "vcpus",
+      "esperado": null,
+      "obtido": 8,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "processos_bootstrap",
+      "esperado": null,
+      "obtido": 8,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "curva_decisao_com_os_limiares_do_config",
+      "esperado": 50,
+      "obtido": 50,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "curva_decisao_dentro_de_dca_min_e_max",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "bandas_de_calibracao_com_as_reamostras_do_config",
+      "esperado": 2000,
+      "obtido": 2000,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "reamostras_dos_subgrupos_do_config",
+      "esperado": 1000,
+      "obtido": 1000,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "limiar_f2_lido_do_selecao_json",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "subgrupos_presentes_por_particao",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "politica_de_reamostras_descartadas_registrada",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "sem_contagens_de_1_a_9_nas_tabelas",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "subgrupos_com_reamostras_descartadas",
+      "esperado": null,
+      "obtido": 0,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tempo_analise_calibracao_s",
+      "esperado": null,
+      "obtido": 1.815,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tempo_analise_criterios_s",
+      "esperado": null,
+      "obtido": 0.876,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tempo_analise_decisao_s",
+      "esperado": null,
+      "obtido": 1.601,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tempo_analise_erros_s",
+      "esperado": null,
+      "obtido": 125.067,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tempo_analise_metricas_s",
+      "esperado": null,
+      "obtido": 111.797,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tempo_analise_subgrupos_s",
+      "esperado": null,
+      "obtido": 204.106,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "erros_com_n_falsos_negativos_do_config",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "erros_sem_contagens_de_1_a_9",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "criterios_sc01_a_sc04_presentes",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "espirito_santo_a_parte_presente",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "reamostras_dos_erros_e_do_sc02_do_config",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "sc01_passou",
+      "esperado": null,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "sc02_passou",
+      "esperado": null,
+      "obtido": false,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "sc03_passou",
+      "esperado": null,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "sc04_passou",
+      "esperado": null,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "gpu",
+      "esperado": "T4",
+      "obtido": "Tesla T4",
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "ram_gib",
+      "esperado": 50,
+      "obtido": 51.0,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "vcpus",
+      "esperado": null,
+      "obtido": 8,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

@@ -1,0 +1,6 @@
+criterio,medida,valor,ic_inf,ic_sup,regra,resultado
+SC-01,diferença de PR-AUC M1 − B0,0.032500127229318845,0.030328070347036568,0.03502569012124049,o IC 95% da diferença de PR-AUC (M1 − B0) não inclui 0 e fica acima dele,passou
+SC-02,diferença de recall M1 − B2,-0.007232316105133196,-0.015084230022931716,0.000529193861351196,recall do M1 ≥ recall da B2,falhou
+SC-02,diferença de precisão M1 − B2,0.004459745327331082,0.004359059176357894,0.00456331466396113,precisão do M1 > precisão da B2,passou
+SC-03,calibration slope do M1,0.9448963373611661,0.9334935351849648,0.9553317570424004,"calibration slope do M1 entre 0,8 e 1,2, inclusive (estimativa pontual)",passou
+SC-04,diferença de PR-AUC M1 − B1,0.018066025024549244,0.016330306481728247,0.02007014727353251,"diferença de PR-AUC (M1 − B1) reportada com IC 95%, qualquer que seja o sinal",passou

@@ -1,0 +1,178 @@
+{
+  "tarefa": "T-5.0",
+  "gerado_em": "2026-11-23T05:08:35Z",
+  "commit": "5d64e3cf750f3dcc295c2f60524b6846b28e9444",
+  "ambiente": {
+    "python": "3.13.16",
+    "ram_gib": 51.0,
+    "gpu": "Tesla T4"
+  },
+  "hash_dados": {
+    "2022": "1a5a3a1be0d63c8b179abe63aa1c3b3296336c6dc9e2ce78a867c17591a955c6",
+    "2023": "c0e7f95ef832c09793adb21fe9a5b7bdfbb5b9a0bb6c8561ef31b7197cb1cf90"
+  },
+  "checks": [
+    {
+      "nome": "casos_2022_2023",
+      "esperado": 2453208,
+      "obtido": 2453208,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "eventos_2022_2023",
+      "esperado": 3985,
+      "obtido": 3985,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "so_anos_de_desenvolvimento",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "b1_predicoes_iguais_apos_carga",
+      "esperado": 0.0,
+      "obtido": 0.0,
+      "tolerancia": 0.0,
+      "passou": true
+    },
+    {
+      "nome": "b0_predicoes_iguais_apos_carga",
+      "esperado": 0.0,
+      "obtido": 0.0,
+      "tolerancia": 0.0,
+      "passou": true
+    },
+    {
+      "nome": "b0_prevalencia_igual_ao_ajuste",
+      "esperado": 0.0016244036380119418,
+      "obtido": 0.0016244036380119418,
+      "tolerancia": 0.0,
+      "passou": true
+    },
+    {
+      "nome": "limiar_b1_gravado_igual_recalculado",
+      "esperado": 0.0011404326369948274,
+      "obtido": 0.0011404326369948274,
+      "tolerancia": 0.0,
+      "passou": true
+    },
+    {
+      "nome": "limiar_b0_gravado_igual_recalculado",
+      "esperado": 0.0015293309772438427,
+      "obtido": 0.0015293309772438427,
+      "tolerancia": 0.0,
+      "passou": true
+    },
+    {
+      "nome": "recall_b1_no_limiar_ge_recall_alvo",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "recall_b0_no_limiar_ge_recall_alvo",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "criterio_limiar_d92",
+      "esperado": "precisão máxima com recall ≥ recall da B2 nas predições do OOF; empate: maior limiar (D-92)",
+      "obtido": "precisão máxima com recall ≥ recall da B2 nas predições do OOF; empate: maior limiar (D-92)",
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "limiar_b0_recalculado_igual_tabela_comparacao_oof",
+      "esperado": 0.001529,
+      "obtido": 0.0015293309772438427,
+      "tolerancia": 5.00001e-07,
+      "passou": true
+    },
+    {
+      "nome": "limiar_b1_recalculado_igual_tabela_comparacao_oof",
+      "esperado": 0.00114,
+      "obtido": 0.0011404326369948274,
+      "tolerancia": 5.00001e-07,
+      "passou": true
+    },
+    {
+      "nome": "b1_tipo_payload",
+      "esperado": "b1",
+      "obtido": "b1",
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "b1_metadata_fr12_completo",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "b1_sha256_payload",
+      "esperado": "9271ca6f2d4c45134ce6a2a5292878d7a989d0cc35293cda195c0a65ea6e6504",
+      "obtido": "9271ca6f2d4c45134ce6a2a5292878d7a989d0cc35293cda195c0a65ea6e6504",
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "b1_sem_contagens_de_1_a_9",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "b0_tipo_payload",
+      "esperado": "b0",
+      "obtido": "b0",
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "b0_metadata_fr12_completo",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "b0_sha256_payload",
+      "esperado": "b6e4ad9c92adfc63561d69fff52e3a25eaf62eb21fe83a26ec13edfa94b32ee3",
+      "obtido": "b6e4ad9c92adfc63561d69fff52e3a25eaf62eb21fe83a26ec13edfa94b32ee3",
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "b0_sem_contagens_de_1_a_9",
+      "esperado": true,
+      "obtido": true,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "prevalencia_b0_2022_2023",
+      "esperado": null,
+      "obtido": 0.0016244036380119418,
+      "tolerancia": 0,
+      "passou": true
+    },
+    {
+      "nome": "tempo_ajuste_b1_s",
+      "esperado": null,
+      "obtido": 7.36,
+      "tolerancia": 0,
+      "passou": true
+    }
+  ],
+  "passou": true
+}

@@ -1,3 +1,6 @@
 # O payload do E1 tem o SHA-256 registrado no metadata sobre os bytes com CRLF (gerado no Windows):
 # sem isto, o git converte para LF e a conferencia do artefato falha no Linux (Colab).
 models/e1/payload/* -text
+
+# reports/teste: os hashes do LACRE.json valem para os bytes gravados (LF); nao converter fim de linha.
+reports/teste/* -text
