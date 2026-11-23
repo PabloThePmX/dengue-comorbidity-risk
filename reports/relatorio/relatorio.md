@@ -178,7 +178,7 @@ A **razão de chances (OR)** do E1, ajustada por idade e sexo, é a principal fe
 
 ## 2.9 Reprodutibilidade
 
-Semente única (20261103), ambiente travado pelo `uv.lock`, SHA-256 dos dados, das dobras e dos modelos, experimentos no MLflow, verificações conferidas por SHA-256 (D-64) e lacre do teste com commit e hashes (Fonte: `reports/teste/LACRE.json`). Cronologia no Apêndice C.
+Semente única (20261103), ambiente travado pelo `uv.lock`, SHA-256 dos dados, das dobras e dos modelos, experimentos no MLflow, verificações conferidas por SHA-256 (D-64) e lacre do teste com commit e hashes (Fonte: `reports/teste/LACRE.json`). Para conferir a reprodução (NFR-02), a avaliação foi rodada de novo num clone limpo do commit `7fbe300` no Colab, com os modelos congelados e o lacre apagado só nessa cópia descartável. Os 14 arquivos de resultado saíram idênticos byte a byte aos de `reports/teste/`, e só o `LACRE.json` diferiu (commit e data); essa verificação não retreina os modelos do zero (Fonte: `reports/verificacao/T-7.3-nfr02.json`). Cronologia no Apêndice C.
 
 ## 2.10 Aspectos éticos
 
@@ -590,13 +590,14 @@ Extraída do Registro de execução (`specs/tasks/00-como-usar.md`); as execuç�
 | 2026-11-16 | População, dobras, descritiva, baselines e E1 | 2.453.208 casos, 3.985 eventos; dobras `09e29252…` | `reports/verificacao/T-2.1.json` a `T-3.6.json` |
 | 2026-11-18/19 | 5 modelos, seleção, SHAP e retreino (commits `2d66670`, `7ea1b9b`) | XGBoost; limiar 0,002155; artefato `394c0f19…` | `reports/verificacao/sessao-m1.json` |
 | 2026-11-23 | B0 e B1 congelados; avaliação única em 2024 (commit `91425ad`, semente 20261103) | 49 checks aprovados; SC-02 falhou | `reports/teste/LACRE.json`, `reports/verificacao/T-5.1.json` |
-| 2026-11-24 | Demonstração local; paridade no Colab (commit `bc6708c`) | mesmo hash das 419 árvores | `reports/verificacao/paridade-m1-demo.json` |
+| 2026-11-23 | Demonstração local (commit `97cca70`); paridade no Colab (clone do commit `bc6708c`) | mesmo hash das 419 árvores | `reports/verificacao/paridade-m1-demo.json` |
+| 2026-11-23 | Reprodução do teste (NFR-02), clone limpo do commit `7fbe300` | 14 arquivos de resultado idênticos; só o `LACRE.json` difere; sem retreino | `reports/verificacao/T-7.3-nfr02.json` |
 
 ---
 
 # APÊNDICE D – CHECKLIST TRIPOD+AI
 
-Organizado pelas seções do TRIPOD+AI (Collins et al., 2024). **A numeração oficial dos itens deve ser conferida no checklist TRIPOD+AI (Collins et al., 2024)** antes da entrega.
+A tabela agrupa os itens do TRIPOD+AI (Collins et al., 2024) por seção, sem a numeração dos itens. **A numeração oficial deve ser conferida no checklist TRIPOD+AI antes da entrega.** A revisão por profissional de saúde (FR-21) segue pendente.
 
 | Seção do TRIPOD+AI | O que cobre | Onde no relatório | Situação | Motivo |
 |---|---|---|---|---|
@@ -616,7 +617,7 @@ Organizado pelas seções do TRIPOD+AI (Collins et al., 2024). **A numeração o
 | Resultados: desempenho | Discriminação, calibração, utilidade, subgrupos, erros | 3.5 | Coberto | Teste único em 2024 com IC. |
 | Resultados: atualização do modelo | Recalibração ou atualização | 4.1, 5 | Não feito | Proibido depois do teste (D-36); proposto como trabalho futuro. |
 | Discussão | Interpretação, limitações e uso no cuidado | 4.1 a 4.3 | Parcial | Sem validação clínica; revisão por profissional de saúde (FR-21): `[VERIFY com o Programador: houve revisão?]`. |
-| Outras informações | Financiamento, conflitos, protocolo, disponibilidade de dados e código, envolvimento do público | 2.9 | Parcial | Dados públicos e código no repositório; `[PREENCHER: financiamento e conflitos de interesse]`; envolvimento de pacientes e público não feito. |
+| Outras informações | Financiamento, conflitos, protocolo, disponibilidade de dados e código, envolvimento do público | 2.1, 2.9 | Parcial | Dados: microdados abertos do SINAN (2.1). Código: repositório do projeto, `[PREENCHER: URL do repositório]`. Financiamento e conflitos: `[PREENCHER: financiamento e conflitos de interesse]`. Protocolo: documentos de especificação no repositório, sem registro em base pública. Envolvimento de pacientes e público: não feito. |
 
 <!-- MENSAGENS-CHAVE PARA OS SLIDES
 
