@@ -1,0 +1,13 @@
+{
+  "tarefa": "T-7.3 (NFR-02, reproducao das metricas de teste de 2024)",
+  "metodo": "clone limpo do commit 7fbe300 numa VM nova do Colab (8 vCPUs, 50 GB, T4); LACRE.json apagado so nesse clone descartavel; python -m dengue_sinan.evaluate com config_sessao.yaml e os modelos congelados do Drive (m1_final SHA-256 394c0f19e9384dc41e4e13b872a29ac8b8fb9de1d0f0413ba5c72321d0e9901a); saidas comparadas com as commitadas em reports/teste (91425ad). Resultado so anotado: nada foi reajustado (R2, D-36).",
+  "inicio_utc": "2026-11-23T18:58:10Z",
+  "fim_utc": "2026-11-23T19:13:48Z",
+  "exit": 0,
+  "arquivos_comparados": 17,
+  "iguais_byte_a_byte": 17,
+  "obs_iguais": "14 gerados pelo evaluate (metricas.md, metricas.json, criterios.md, erros.md e os CSVs) mais 3 PNGs que ja estavam no clone e nao sao regerados pelo evaluate",
+  "diferentes": ["LACRE.json (so os campos commit e gravado_em_utc)"],
+  "passou": true,
+  "limite": "reproduz a avaliacao com os modelos congelados e o mesmo pipeline; nao retreina do zero (busca, OOF, congelamento)"
+}
