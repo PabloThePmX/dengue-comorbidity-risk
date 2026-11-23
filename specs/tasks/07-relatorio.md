@@ -24,8 +24,7 @@ Inclui a antiga T-7.2 (D-60).
   - A: [registro de decisões](../research.md#registro-de-decisões), destacando D-22 a D-25;
   - B: fluxograma de exclusão e resultados do profiling;
   - C: "passos seguidos" — cronologia exportada do MLflow (config, hash dos dados, métricas por run);
-  - D: revisão do profissional de saúde (FR-21), se houver. Sugestões que mudariam o modelo viram
-    limitação, não retreino.
+  - D: revisão do profissional de saúde (FR-21): não houve (D-94); declarar como limitação.
 - **Pronto quando:** todas as seções e os apêndices A–C existem, com números vindos de
   `reports/` (nenhum digitado de memória).
 

@@ -99,7 +99,7 @@ Nenhum parâmetro de peso de classe (R3).
 - **Tentativa interrompida:** um reinício da sessão mata o processo no meio de uma tentativa, que
   fica marcada como "rodando" no estudo (D-64). Ao retomar, marque essas tentativas como falhas
   antes de continuar, para não travar a busca nem contá-las no orçamento.
-- **SQLite no Drive** `[VERIFY]`: a pasta do Drive no Colab não garante o travamento de arquivo de
+- **SQLite no Drive**: a pasta do Drive no Colab não garante o travamento de arquivo de
   que o SQLite precisa. Na checagem inicial (T-4.3b), crie, grave e reabra um estudo no Drive; se
   falhar, **🛑 PARE E PERGUNTE** (alternativa: SQLite em `/content` copiado para o Drive ao fim de
   cada tentativa).

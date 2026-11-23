@@ -404,7 +404,7 @@ A demonstração **não foi publicada**: roda localmente, por decisão do Progra
 - **Padrão "todas as 7 comorbidades":** influencia os OR das comorbidades raras (D-77).
 - **Supressão dedutível:** células "<10" podem ser deduzidas por subtração dos totais (D-75).
 - **Subgrupos:** por região, não por estado (exceto o Espírito Santo); grupos pequenos sem conclusão.
-- **Revisão por profissional de saúde (FR-21):** o escopo previa revisar só os resultados (D-34); situação `[VERIFY com o Programador: houve revisão?]`.
+- **Revisão por profissional de saúde (FR-21):** o escopo previa revisar só os resultados (D-34), mas o relatório e o modelo não passaram por revisão de profissional de saúde, e não há revisão prevista; qualquer uso clínico exigiria essa validação.
 - **TabFM fora:** inviável na GPU disponível; qualidade não medida (D-91).
 - **Lacre com árvore não limpa:** o `LACRE.json` registra `"arvore_limpa": false`, porque o clone no Colab tinha arquivos não rastreados pelo git no momento do lacre; nenhum arquivo rastreado estava modificado (`specs/tasks/00-como-usar.md`).
 - **Ensemble não adotado:** ganho de cerca de 1%, dentro do IC, e fora da regra de seleção (D-92).
@@ -426,7 +426,7 @@ A demonstração **não foi publicada**: roda localmente, por decisão do Progra
 3. *O aprendizado de máquina acrescenta algo?* Sobre a logística simples, sim (cerca do dobro da PR-AUC no teste). Sobre a regra do protocolo, só em parte: 46% menos alertas, mas recall abaixo do da regra, e o SC-02 falhou.
 4. *O risco é confiável?* A ordenação, sim (slope 0,945); o nível, não em 2024 (subestimação de cerca de 30%).
 
-**Trabalhos futuros:** recalibração periódica avaliada num ano não visto; atributos geográficos contínuos (por exemplo, incidência recente no município); revisão por profissional de saúde (FR-21); TabFM e ensemble num novo teste; sensibilidade de duplicatas (D-47).
+**Trabalhos futuros:** recalibração periódica avaliada num ano não visto; atributos geográficos contínuos (por exemplo, incidência recente no município); TabFM e ensemble num novo teste; sensibilidade de duplicatas (D-47).
 
 ---
 
@@ -597,7 +597,7 @@ Extraída do Registro de execução (`specs/tasks/00-como-usar.md`); as execuç�
 
 # APÊNDICE D – CHECKLIST TRIPOD+AI
 
-A tabela agrupa os itens do TRIPOD+AI (Collins et al., 2024) por seção, sem a numeração dos itens. **A numeração oficial deve ser conferida no checklist TRIPOD+AI antes da entrega.** A revisão por profissional de saúde (FR-21) segue pendente.
+A tabela agrupa os itens do TRIPOD+AI (Collins et al., 2024) por seção, sem a numeração dos itens. **A numeração oficial deve ser conferida no checklist TRIPOD+AI antes da entrega.** A revisão por profissional de saúde (FR-21) não foi feita e não está prevista.
 
 | Seção do TRIPOD+AI | O que cobre | Onde no relatório | Situação | Motivo |
 |---|---|---|---|---|
@@ -616,7 +616,7 @@ A tabela agrupa os itens do TRIPOD+AI (Collins et al., 2024) por seção, sem a 
 | Resultados: desenvolvimento e especificação | Comparação de modelos e modelo final | 3.2 a 3.4 | Parcial | E1 com coeficientes publicados; M1 (árvores) fora do repositório. |
 | Resultados: desempenho | Discriminação, calibração, utilidade, subgrupos, erros | 3.5 | Coberto | Teste único em 2024 com IC. |
 | Resultados: atualização do modelo | Recalibração ou atualização | 4.1, 5 | Não feito | Proibido depois do teste (D-36); proposto como trabalho futuro. |
-| Discussão | Interpretação, limitações e uso no cuidado | 4.1 a 4.3 | Parcial | Sem validação clínica; revisão por profissional de saúde (FR-21): `[VERIFY com o Programador: houve revisão?]`. |
+| Discussão | Interpretação, limitações e uso no cuidado | 4.1 a 4.3 | Parcial | Sem validação clínica; o relatório e o modelo não passaram por revisão de profissional de saúde (FR-21), e não há revisão prevista; qualquer uso clínico exigiria essa validação. |
 | Outras informações | Financiamento, conflitos, protocolo, disponibilidade de dados e código, envolvimento do público | 2.1, 2.9 | Parcial | Dados: microdados abertos do SINAN (2.1). Código: repositório do projeto, `[PREENCHER: URL do repositório]`. Financiamento e conflitos: `[PREENCHER: financiamento e conflitos de interesse]`. Protocolo: documentos de especificação no repositório, sem registro em base pública. Envolvimento de pacientes e público: não feito. |
 
 <!-- MENSAGENS-CHAVE PARA OS SLIDES

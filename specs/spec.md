@@ -1,11 +1,11 @@
 # Spec — Risco de desfecho grave em dengue por perfil de comorbidades
 
-**Criado**: 2026-10-19 | **Atualizado**: 2026-11-15 | **Status**: rascunho v0.19
+**Criado**: 2026-10-19 | **Atualizado**: 2026-11-23 | **Status**: rascunho v0.20 (Marcos 1 a 6 concluídos; D-91 a D-94)
 **Entrada**: pré-projeto enviado ao professor (Grupo 1, "Dengue e Comorbidades") e retorno do professor (2026-11-02).
 
 > **O quê e por quê.** Objetivo em [goal.md](goal.md); como fazer em [plan.md](plan.md); dados em
 > [data-model.md](data-model.md).
-> Marco 1 (dados e profiling) concluído; próximo: Marco 2 ([tasks/02-fundacao.md](tasks/02-fundacao.md)).
+> Marcos 1 a 6 concluídos (teste de 2024 avaliado uma vez em 2026-11-23, lacre gravado; demo local); Marco 7 (relatório) em andamento ([tasks/07-relatorio.md](tasks/07-relatorio.md)).
 > Números de dados, salvo indicação: 3ª execução do profiling (2026-11-03 04:21 UTC),
 > [profiling/RESULTADOS.md](../profiling/RESULTADOS.md).
 
@@ -95,7 +95,7 @@ do perfil e dos sintomas iniciais, e saber se ele passa do limiar de alto risco.
 - **Teste independente:** com o M1 congelado, gerar predições fora da dobra (2022–23) e no teste
   (2024) e compará-las com B0, B1 e B2, sem a demo.
 - **Cenários de aceitação:**
-  1. **Dado** o desenvolvimento 2022–23, **quando** os seis candidatos são avaliados nas mesmas
+  1. **Dado** o desenvolvimento 2022–23, **quando** os cinco candidatos (D-91) são avaliados nas mesmas
      dobras, **então** cada um tem PR-AUC por dobra e média, e um é escolhido pela
      [regra de seleção](plan.md#regra-de-seleção) sem ler 2024 (FR-07, FR-17).
   2. **Dado** o M1 congelado, **quando** é avaliado em 2024 uma única vez, **então** todas as
@@ -105,8 +105,7 @@ do perfil e dos sintomas iniciais, e saber se ele passa do limiar de alto risco.
 
 ### US3 — Demo para testar os modelos (Prioridade: P3)
 
-O professor ou um profissional de saúde quer testar os dois modelos pelo navegador, sem instalar
-nada.
+O professor ou um profissional de saúde quer testar os dois modelos pelo navegador, com o app rodando localmente (publicação adiada, D-94).
 
 - **Por que P3:** é entregável exigido (D-26), mas depende dos artefatos de US1 e US2.
 - **Teste independente:** com os artefatos serializados de E1 e M1, abrir a demo e consultar um
@@ -145,11 +144,11 @@ nada.
 - **FR-04** — O pipeline MUST treinar e avaliar os baselines B0, B1 e B2 ([Baselines](#baselines)).
 - **FR-05** — O pipeline MUST ajustar a regressão logística com interações 2 a 2 entre comorbidades ([plan › Modelagem](plan.md#modelagem)) e reportar, para cada par, a interação **multiplicativa** (OR) e a **aditiva** (RERI e AP), com IC 95% e correção para comparações múltiplas (D-40).
 - **FR-06** — O pipeline MUST gerar a [tabela de perfis](contracts/interfaces.md#tabela-de-perfis) com risco calibrado e IC 95% para cada perfil. Perfis (D-52): sem comorbidades, cada uma das 7 comorbidades sozinha, cada par que entrou no E1 e **todas** as combinações de 3+ com ≥ 10 casos em 2022–23.
-- **FR-07** — O pipeline MUST treinar e comparar, para M1, os seis candidatos ([plan › Modelagem](plan.md#modelagem)) nas mesmas dobras (D-32): logística elastic net, XGBoost, Random Forest, CatBoost, MLP e TabFM. A busca de hiperparâmetros é registrada no MLflow; o TabFM é zero-shot e não tem busca.
+- **FR-07** — O pipeline MUST treinar e comparar, para M1, os cinco candidatos ([plan › Modelagem](plan.md#modelagem)) nas mesmas dobras: logística elastic net, XGBoost, Random Forest, CatBoost e MLP. O TabFM, que o professor pediu (D-32), foi tentado e retirado do M1 por inviabilidade medida na GPU T4 (D-91): fica documentado como tentativa e o relatório explica. A busca de hiperparâmetros é registrada no MLflow.
 - **FR-08** — O pipeline MUST calibrar as probabilidades e escolher o limiar de decisão usando **apenas** dados de validação.
 - **FR-09** — O pipeline MUST avaliar o modelo final no conjunto de teste **uma única vez**, reportando as métricas do [Plano de avaliação](#plano-de-avaliação) com IC bootstrap e por subgrupo.
 - **FR-10** — O projeto MAY expor uma CLI que recebe um CSV no schema de [contracts › Entrada de casos](contracts/interfaces.md#entrada-de-casos) e grava um CSV de predições. Rebaixado de MUST em D-26: a demo cumpre o papel de testar o modelo.
-- **FR-11** — O projeto MUST publicar uma demo Streamlit (Streamlit Community Cloud), com aviso de uso acadêmico, em **duas abas** (D-27):
+- **FR-11** — O projeto MUST entregar uma demo Streamlit, que roda localmente, com aviso de uso acadêmico, em **duas abas** (D-27). A publicação (Streamlit Community Cloud, D-17) fica adiada por decisão do Programador (D-94) e MAY ser feita depois, só com o "ok" dele:
   - **Perfil:** risco de E1 para idade, sexo, gestação e comorbidades.
   - **Triagem:** risco calibrado de M1, com a classificação "alto risco" no limiar escolhido e os 5 fatores que mais aumentaram ou reduziram o risco daquele caso (SHAP local, D-35).
   - Detalhes em [contracts › Demo](contracts/interfaces.md#demo).
@@ -166,13 +165,13 @@ nada.
   - Células com < 10 casos não são publicadas (R7).
   - Os riscos brutos são descritivos. Eles **não** substituem E1 nem alimentam a tabela de perfis (D-10, D-20).
 - **FR-19** — O pipeline MUST gerar o **ranking de comorbidades** pelo OR ajustado de E1 (efeito principal, ajustado por idade e sexo), com IC 95% (D-23). Duas comorbidades cujos IC se sobrepõem são marcadas como **sem ordem definida** entre si.
-- **FR-20** — O projeto MUST entregar um relatório estruturado pelo checklist **TRIPOD+AI** ([Collins et al., BMJ 2024](https://doi.org/10.1136/bmj-2023-074819)) (D-28), com:
+- **FR-20** — O projeto MUST entregar um relatório estruturado pelo checklist **TRIPOD+AI** ([Collins et al., BMJ 2024](https://doi.org/10.1136/bmj-2023-078378)) (D-28), com:
   - processo, decisões e resultados de E1 e M1, incluindo baselines e a comparação logística vs Random Forest;
   - apêndice A: [registro de decisões](research.md#registro-de-decisões), com o que mudou desde o pré-projeto (D-22 a D-25);
   - apêndice B: fluxograma de exclusão (FR-02) e resultados do profiling;
   - apêndice C: "passos seguidos", uma cronologia das execuções exportada do MLflow (config, hash dos dados, métricas por execução);
-  - apêndice D: revisão do profissional de saúde (FR-21), se houver.
-- **FR-21** — O projeto SHOULD submeter os resultados a um profissional de saúde (médico, enfermeiro ou estudante da área) depois da avaliação no teste (Marco 5) (D-34). `[ASSUMPTION]` SHOULD, e não MUST, porque depende de conseguir alguém (Q-13).
+  - apêndice D: revisão do profissional de saúde (FR-21): não houve; registrada como limitação (D-94).
+- **FR-21** — ~~O projeto SHOULD submeter os resultados a um profissional de saúde~~ **Não cumprido, registrado como limitação (D-94).** Não houve revisão por profissional de saúde e não há previsão. O relatório MUST declarar isso como limitação (plausibilidade clínica de OR, ranking, tabela de perfis, falsos negativos e uso da demo não foi validada por profissional de saúde) e MAY ser cumprido depois. O que seria revisado e a regra de "sugestão que mudaria o modelo vira limitação, não retreino" (R2) continuam abaixo, para uso futuro.
   - O que é revisado: plausibilidade dos OR e do ranking de comorbidades (FR-19), tabela de perfis (FR-06), falsos negativos da análise de erros ([Plano de avaliação](#plano-de-avaliação)) e uso da demo (FR-11).
   - As observações entram no relatório (apêndice D), com quem revisou (função, sem dados pessoais) e quando.
   - **Regra:** sugestões que exigiriam mudar o modelo **não** são aplicadas, porque o teste de 2024 já foi usado (R2). Elas entram como limitação e trabalho futuro.
@@ -180,8 +179,8 @@ nada.
 
 ### Não funcionais
 
-- **NFR-01 (compute)** — Todo o pipeline MUST rodar tanto no Google Colab gratuito quanto no Colab Pro (D-44), com **orçamento de tempo por modelo** (D-42), e não um limite para o pipeline inteiro. Os 6 modelos rodam **numa sessão única**, com as mesmas dobras e a mesma semente, e são comparados no fim dela (D-53). Detalhes: [plan › Ambiente de execução e orçamento](plan.md#ambiente-de-execução-e-orçamento) (D-54).
-- **NFR-02 (reprodutibilidade)** — Partindo de um checkout limpo + snapshot de dados com o hash registrado, a reexecução MUST reproduzir as métricas de teste com as mesmas 3 casas decimais.
+- **NFR-01 (compute)** — Todo o pipeline MUST rodar tanto no Google Colab gratuito quanto no Colab Pro (D-44), com **orçamento de tempo por modelo** (D-42), e não um limite para o pipeline inteiro. Os 5 modelos rodam **numa sessão única**, com as mesmas dobras e a mesma semente, e são comparados no fim dela (D-53). Detalhes: [plan › Ambiente de execução e orçamento](plan.md#ambiente-de-execução-e-orçamento) (D-54).
+- **NFR-02 (reprodutibilidade)** — Partindo de um checkout limpo + snapshot de dados com o hash registrado, a reexecução MUST reproduzir as métricas de teste com as mesmas 3 casas decimais. Verificação feita sem reavaliar o teste do lacre original (T-7.3); o retreino do zero não foi reproduzido (limite aceito pelo Programador, D-94).
 - **NFR-03 (privacidade)** — Nenhum microdado (linha a linha) MUST ser versionado no repositório nem embarcado no app. O app MUST NOT armazenar as entradas do usuário.
 - **NFR-04 (ética)** — Dados públicos e desidentificados (sem nome, CPF, endereço nem data de nascimento completa, mas com ano de nascimento, idade, sexo e município; [data-model › Dados pessoais](data-model.md#dados-pessoais)). Nenhum trâmite de ética é previsto (D-30).
   - No relatório, a dispensa se apoia na Resolução CNS 510/2016, art. 1º, parágrafo único, inciso II ("informações de acesso público", Lei 12.527/2011), e não em "não haver coleta direta", como no pré-projeto. Os dados são chamados de "desidentificados", não "anonimizados".
@@ -196,7 +195,7 @@ Resultados mensuráveis. SC-01 a SC-04 são os critérios de aceitação do test
 `[ASSUMPTION]` a confirmar pelo grupo.
 
 - **SC-01** — O melhor M1 supera B0 em PR-AUC no teste, com IC 95% da diferença sem incluir 0.
-- **SC-02** — No limiar escolhido, o recall do M1 é ≥ ao da regra B2, com precisão maior.
+- **SC-02** — No limiar principal congelado (recall ≥ B2 nas predições fora da dobra, D-92), o recall do M1 no teste é ≥ ao da regra B2 no teste, com precisão maior. Resultado no teste de 2024: **falhou** (recall 0,6528 contra 0,6601; precisão 0,00975 contra 0,00529; `reports/teste/criterios.md`). Não se altera o critério depois do teste (D-36).
 - **SC-03** — O calibration slope do M1 no teste fica entre 0,8 e 1,2.
 - **SC-04** — A diferença de PR-AUC entre M1 e B1 é reportada com IC 95%, qualquer que seja o sinal.
   Superar B1 é desejável, mas não é condição de sucesso ([Problema e contexto](#problema-e-contexto)).
@@ -204,7 +203,7 @@ Resultados mensuráveis. SC-01 a SC-04 são os critérios de aceitação do test
   publicada tem < 10 casos (FR-05, NFR-03).
 - **SC-06** — A demo responde em < 1 s por consulta (NFR-06).
 - **SC-07** — A reexecução a partir de um checkout limpo reproduz as métricas de teste com 3 casas
-  decimais (NFR-02).
+  decimais (NFR-02). **Resultado (T-7.3, 2026-11-23): passou** para a reexecução da avaliação com os modelos congelados: 17 de 17 arquivos idênticos byte a byte (`reports/verificacao/T-7.3-nfr02.json`). Limite: não retreinou os modelos do zero.
 - **SC-08** — O relatório cobre todos os itens do checklist TRIPOD+AI (FR-20).
 
 ## Premissas
@@ -332,7 +331,7 @@ Todos obrigatórios (FR-04). Todos os modelos são julgados contra eles.
 - **Métricas no limiar (D-24, D-33):** acurácia, precisão, recall e F1 no limiar escolhido, prometidas no pré-projeto, e **F2**.
   - **F2 em vez de F0.5 (D-33):** o F2 prioriza o recall, como pede o custo de erro (D-14); o F0.5 sugerido pelo professor favorece a precisão. O relatório explica a escolha.
   - Na tabela de resultados, sempre ao lado de **B0** e **B2**.
-  - B0 no limiar prevê "ninguém agrava": acurácia ≈ 1 − prevalência, recall = 0. O relatório usa essa linha para mostrar por que a acurácia não serve como métrica de decisão com classe rara.
+  - B0 prevê a mesma probabilidade para todos; no limiar de recall ≥ B2 (0,001529 nas predições fora da dobra) isso marca **todos** os casos: recall 1,0000, acurácia 0,0021 (≈ prevalência de 0,213%), precisão 0,00213, 5.331.745 alertas (`reports/teste/metricas.md`). O relatório usa essa linha para mostrar por que acurácia e recall isolados não servem como métricas de decisão com classe rara: o B0 "ganha" no recall e "perde" na acurácia.
   - Não são critério de seleção de modelo (a [regra de seleção](plan.md#regra-de-seleção) usa PR-AUC).
 - **Limiar (D-92, complementa D-33):** escolhido nas predições calibradas fora da dobra (2022–23, FR-17) como o de **precisão máxima entre os limiares com recall ≥ ao da regra B2 nas mesmas predições**; empate: o maior limiar; sem folga. É fixado antes do teste e congelado com o modelo. No teste, o recall resultante é reportado e o SC-02 o compara com o da B2 no teste. O limiar de **F2 máximo** (D-33) continua calculado nas mesmas predições e é reportado como ponto secundário, sem entrar no modelo congelado.
 - **Utilidade clínica (D-39):** curva de decisão (*decision curve analysis*, net benefit) no teste para o melhor M1, B1 e a regra do protocolo (B2), contra "tratar todos" e "tratar ninguém", numa faixa de limiares de risco plausível para triagem `[ASSUMPTION]`, ajustada à prevalência observada de 0,16%–0,21%: **0,1%–5%**, ou seja, até ~30 vezes o risco médio. Os limiares principal (recall ≥ B2, D-92) e de F2 máximo (secundário, D-33) aparecem como pontos de operação marcados na curva, e nenhum deles é a única justificativa do limiar. Síntese das referências (Vickers & Holland 2021; benchmark com F2 + DCA) em `research/consensus-boas-praticas.md` (cópia local, fora do repositório: termos do Consensus).
@@ -357,20 +356,20 @@ Todos obrigatórios (FR-04). Todos os modelos são julgados contra eles.
 | Risco | Prob. | Impacto | Mitigação |
 |---|---|---|---|
 | Download do FTP do DataSUS lento ou instável | Média | Alto | Salvar Parquet no Drive; carregar só as colunas usadas. |
-| Poucos positivos em combinações raras de comorbidades | **Confirmada** | Médio | Só 3.985 eventos no desenvolvimento (prevalência ~0,16%) e comorbidades raras (~0,5% cada). Mínimo de eventos por célula; `[VERIFY]` eventos por par de comorbidades no Marco 2; considerar opção B de D-08 (mais anos). |
+| Poucos positivos em combinações raras de comorbidades | **Confirmada** | Médio | Só 3.985 eventos no desenvolvimento (prevalência ~0,16%) e comorbidades raras (~0,5% cada). Mínimo de eventos por célula; eventos por par de comorbidades (verificado no Marco 2: 15 de 21 pares com ≥ 10 eventos); considerar opção B de D-08 (mais anos). |
 | Diferença de sistema de origem no ES (`TP_SISTEMA`) | Média | Baixo | Registrar como limitação; olhar o ES na análise de erros. |
 | Códigos de `CLASSI_FIN`/`EVOLUCAO` mudam entre anos | Baixa | Alto | 2022–24 usam a mesma codificação ([Formulação](#formulação-do-problema)); validar domínio por ano (FR-03) e testes unitários da geração do alvo. |
 | Mudança de distribuição em 2024 (epidemia, sorotipo) | Alta | Médio | É o que o teste temporal mede; reportar e discutir, não esconder. |
 | Ruído no rótulo (encerramento clínico, variação por UF) | Média | Médio | Subgrupos por região; discutir no relatório. |
 | RAM insuficiente no Colab (RF, SHAP) | Média | Médio | Tipos enxutos, subamostra estratificada para RF/SHAP. |
-| Validação por região multiplica o tempo de treino (5 dobras × 6 modelos × trials) | Alta | Médio | Orçamento de tempo por modelo ajustado pela cronometragem, poda e busca retomável (NFR-01); subamostra estratificada na busca; sessão única com marcador por modelo concluído (D-53). |
+| Validação por região multiplica o tempo de treino (5 dobras × 5 modelos × trials) | Alta | Médio | Orçamento de tempo por modelo ajustado pela cronometragem, poda e busca retomável (NFR-01); subamostra estratificada na busca; sessão única com marcador por modelo concluído (D-53). |
 | Colab cai no meio da sessão única (~4 h) ou não oferece GPU | Alta | Médio | Marcador por modelo e estudo Optuna no Drive: a reexecução pula os concluídos e retoma o modelo em andamento (D-53); melhores pesos já salvos (FR-22); XGBoost e CatBoost também rodam em CPU; Kaggle como alternativa. |
-| TabFM não comporta o volume (limite de contexto, GPU, velocidade) ou conflita com o torch do lock | Média | Médio | Subamostra estratificada como contexto; `tabfm` instalado só na sessão do Colab se o torch conflitar (D-69); registrar a restrição. |
-| Melhor M1 (ex.: TabFM ou MLP) pesado demais para a demo, sem SHAP rápido ou impedido pela licença | Média | Médio | A demo usa o melhor modelo que couber, e o relatório explica (D-70). O TabFM nunca vai para a demo (D-69). |
-| Profissional de saúde sugere mudança depois do teste | Média | Baixo | Não retreinar (teste já usado); registrar como limitação (FR-21). |
+| ~~TabFM não comporta o volume (limite de contexto, GPU, velocidade) ou conflita com o torch do lock~~ | **Confirmada** | Médio | Materializou-se: OOM com 10.000 linhas de contexto e inviável em tempo na T4 (D-91). TabFM fora do M1; reativação só pelo config (D-91). |
+| Melhor M1 (ex.: MLP) pesado demais para a demo, sem SHAP rápido ou impedido pela licença | Média | Médio | A demo usa o melhor modelo que couber, e o relatório explica (D-70). O TabFM nunca vai para a demo (D-69). |
+| Falta de revisão por profissional de saúde | **Confirmada** | Médio | Registrada como limitação no relatório (FR-21, D-94); sugestões futuras não retreinam o modelo (R2). |
 | Região com poucos eventos numa dobra | **Confirmada** | Médio | Norte com 121 eventos no desenvolvimento e 110 no teste ([Tamanho do teste](#tamanho-do-teste-e-das-dobras)): reportar com aviso de IC largo. |
 | ML não supera logística/regra | Média | Baixo | Resultado válido e reportável ([Problema e contexto](#problema-e-contexto)). |
-| Uso indevido do app público como ferramenta clínica | Baixa | Alto | Aviso fixo; sem recomendações de conduta. |
+| Uso indevido do app como ferramenta clínica (se for publicado no futuro) | Baixa | Alto | Aviso fixo; sem recomendações de conduta; sem publicação por ora (D-94). |
 | Professor questiona o alvo diferente do pré-projeto (D-22) | Média | Médio | Parágrafo de justificativa no relatório ([Formulação](#formulação-do-problema)); se o professor exigir o alvo amplo, reabrir D-22. |
 
 ## Marcos
@@ -387,10 +386,10 @@ pelas tarefas `T-N.x` do arquivo `tasks/0N-…md` (D-60).
 | **1 — Dados e profiling** | Ter os dados baixados, versionados e entendidos antes de qualquer modelo. | FR-01, FR-02, FR-03 | **Concluído em 2026-11-03** (3 execuções do [roteiro](../profiling/ROTEIRO.md)). Pendências que não bloqueiam: significado de `NDUPLIC_N` e `TP_SISTEMA` no dicionário. |
 | **2 — Descrição, split e baselines** | Descrever a população e fixar o piso que todo modelo precisa superar. | FR-18, FR-04, FR-17 | Análise descritiva gerada. Dobras leave-one-region-out construídas. Métricas fora da dobra de B0, B1 e B2 registradas no MLflow. Eventos por par de comorbidades contados (decide quais interações o E1 estima). Teste de 2024 ainda intocado. |
 | **3 — Modelo explicativo (E1)** | Responder à pergunta central: quais comorbidades e combinações estão associadas a maior risco. | FR-05, FR-06, FR-19 | OR com IC 95% e correção de Benjamini-Hochberg. Interações reportadas só com ≥ 10 eventos. Ranking de comorbidades com empates marcados. Tabela de perfis com células < 10 suprimidas. |
-| **4 — Modelos preditivos (M1)** | Treinar, comparar e escolher o modelo de triagem. | FR-07, FR-08, FR-12, FR-13 | Os seis candidatos de FR-07 avaliados nas mesmas dobras, com busca registrada no MLflow (espaço de busca definido na T-4.0, D-68; limites do TabFM verificados). Melhores pesos por dobra e melhor tentativa de cada modelo salvos no MLflow (FR-22). Calibrador e limiar ajustados nas predições fora da dobra. Modelo final escolhido pela [regra de seleção](plan.md#regra-de-seleção) **antes** de tocar no teste. E1 e M1 serializados com metadados. |
+| **4 — Modelos preditivos (M1)** | Treinar, comparar e escolher o modelo de triagem. | FR-07, FR-08, FR-12, FR-13 | Os cinco candidatos de FR-07 avaliados nas mesmas dobras, com busca registrada no MLflow (espaço de busca definido na T-4.0, D-68); TabFM tentado e retirado por inviabilidade medida (D-91). Melhores pesos por dobra e melhor tentativa de cada modelo salvos no MLflow (FR-22). Calibrador e limiar ajustados nas predições fora da dobra. Modelo final escolhido pela [regra de seleção](plan.md#regra-de-seleção) **antes** de tocar no teste. E1 e M1 serializados com metadados. |
 | **5 — Avaliação final no teste** | Medir o desempenho real, uma única vez, em 2024. | FR-09 | Teste usado uma vez, com o modelo congelado do Marco 4. Todas as métricas do [Plano de avaliação](#plano-de-avaliação) com IC bootstrap. Subgrupos e análise de erros feitos. Calibração de E1 em 2024 checada. Resultado registrado mesmo se pior que B1/B2. |
-| **6 — Demo** | Permitir testar os dois modelos. | FR-11 | Demo pública com as abas Perfil e Triagem, usando os artefatos serializados (Marcos 3 e 4). Aviso de uso acadêmico nas duas abas. Nenhum microdado embarcado (NFR-03). Resposta < 1 s por perfil (NFR-06). |
-| **7 — Relatório** | Explicar processo, decisões, resultados e passos seguidos. | FR-20, FR-21 | Checklist TRIPOD+AI preenchido. Apêndices A–C presentes. Revisão do profissional de saúde registrada no apêndice D, se houver. Justificativa do alvo (D-22) incluída. [checklists/requirements.md](checklists/requirements.md) passando. |
+| **6 — Demo** | Permitir testar os dois modelos. | FR-11 | Demo local com as abas Perfil e Triagem, usando os artefatos serializados (Marcos 3 e 4); publicação adiada (D-94). Aviso de uso acadêmico nas duas abas. Nenhum microdado embarcado (NFR-03). Resposta < 1 s por perfil (NFR-06). |
+| **7 — Relatório** | Explicar processo, decisões, resultados e passos seguidos. | FR-20, FR-21 | Checklist TRIPOD+AI preenchido. Apêndices A–C presentes. Apêndice D declara que não houve revisão por profissional de saúde (D-94). Justificativa do alvo (D-22) incluída. [checklists/requirements.md](checklists/requirements.md) passando. |
 
 **Regras entre marcos**
 - **O teste fica isolado até o Marco 5.** Nenhum marco anterior olha para 2024.
@@ -404,7 +403,7 @@ pelas tarefas `T-N.x` do arquivo `tasks/0N-…md` (D-60).
 | Exigência | O que o projeto entrega | Onde |
 |---|---|---|
 | Um modelo | E1 (perfil) e M1 (triagem), serializados com metadados | [plan › Modelagem](plan.md#modelagem), FR-05, FR-07, FR-12 |
-| Uma demo para testá-lo | App Streamlit público com duas abas | [contracts › Demo](contracts/interfaces.md#demo), FR-11, D-17, D-27 |
+| Uma demo para testá-lo | App Streamlit com duas abas, executado localmente (publicação adiada, D-94) | [contracts › Demo](contracts/interfaces.md#demo), FR-11, D-17, D-27 |
 | Relatório: processo | Relatório TRIPOD+AI (D-28) | FR-20; [Formulação](#formulação-do-problema), [data-model › Dados](data-model.md#dados), [Split e vazamento](#split-e-vazamento), [plan › Features](plan.md#features-e-pré-processamento) |
 | Relatório: decisões | Apêndice A | FR-20; [research › Registro de decisões](research.md#registro-de-decisões) |
 | Relatório: resultados | Seções de resultados | FR-20; [Plano de avaliação](#plano-de-avaliação), FR-06, FR-18, FR-19 |
@@ -433,18 +432,18 @@ Python, notebooks de profiling, explicação e avaliação, e MLflow. CLI só co
 
 | Comentário do professor | Onde | Situação |
 |---|---|---|
-| Testar mais modelos (XGBoost, MLP, TabFM, logística elastic net, CatBoost) | [plan › Modelagem](plan.md#modelagem), FR-07, D-32 | Coberto: os seis são obrigatórios em M1. |
+| Testar mais modelos (XGBoost, MLP, TabFM, logística elastic net, CatBoost) | [plan › Modelagem](plan.md#modelagem), FR-07, D-32 | Parcial: cinco candidatos em M1; o TabFM foi tentado e retirado por inviabilidade medida na T4 (D-91), com o relatório explicando. |
 | Cuidar com vazamento de dados | [Revisão de vazamento](#revisão-de-vazamento) (campo a campo, vazamento por completude), profiling passo 4 | Coberto. |
-| Validar preditores e resultados com alguém da área da saúde | FR-21, D-34 | Parcial, por decisão do grupo: só os resultados. |
+| Validar preditores e resultados com alguém da área da saúde | FR-21, D-34 | Não cumprido por ora (D-94): sem revisão por profissional de saúde; limitação declarada no relatório. |
 | Trabalhar a explicabilidade do modelo | [Interpretabilidade](#interpretabilidade-e-equidade), FR-13, FR-19, D-35 | Coberto: OR, ranking, perfis, SHAP global e SHAP local na demo. |
 | Usar F0.5 ("F1 mais inclinado para o recall") | [Plano de avaliação](#plano-de-avaliação), D-33 | Ajustado: F2, que é o que favorece o recall, reportado como ponto secundário depois do D-92; o relatório explica. |
 | Desenvolver um app legal para profissionais da saúde | [contracts › Demo](contracts/interfaces.md#demo), FR-11, D-27, D-35 | Coberto: demo com abas Perfil e Triagem, com explicação por caso. |
 
 ## Perguntas em aberto
 
-- **Resolvidas ou retiradas:** Q-01 e Q-02 (entrega e apresentação; D-26), Q-03 (D-33), Q-04 (D-47), Q-05 (D-48), Q-06 (D-49), Q-07 (D-32), Q-09 (D-29), Q-10 (papéis do grupo, fora do spec), Q-11 e Q-12 (D-30).
+- **Resolvidas ou retiradas:** Q-01 e Q-02 (entrega e apresentação; D-26), Q-03 (D-33), Q-04 (D-47), Q-05 (D-48), Q-06 (D-49), Q-07 (D-32), Q-09 (D-29), Q-10 (papéis do grupo, fora do spec), Q-11 e Q-12 (D-30), Q-13 (D-94).
 - ~~**Q-08** Espaço de busca de hiperparâmetros.~~ Delegado ao agente na T-4.0 (D-68).
-- **Q-13** `[OPEN QUESTION]` Quem será o profissional de saúde da revisão (FR-21)? Quem responde: grupo.
+- ~~**Q-13** Quem será o profissional de saúde da revisão (FR-21)?~~ Respondida no D-94: não houve revisão e não haverá por ora; registrada como limitação.
 - ~~**Q-14** Modelo da demo se o melhor M1 não couber nela.~~ Resolvida no D-70: o melhor que couber, com o motivo no relatório.
 
 ## Glossário

@@ -37,10 +37,9 @@ Fundida na T-6.1 (D-60).
 
 Fundida na T-6.1 (D-60).
 
-### [~] T-6.4 [US3] — Verificação e publicação
+### [~] T-6.4 [US3] — Verificação (publicação adiada, D-94)
 
 - Teste: o app sobe (`streamlit run`) e as duas abas respondem em < 1 s (NFR-06) para 20 perfis.
 - Conferir que nenhum arquivo de dados está no repositório (R7).
-- Publicar no Streamlit Community Cloud **só depois do "ok" do Programador** (é publicação pública).
-- **Pronto quando:** os 20 perfis respondem em < 1 s com os artefatos congelados e o app está
-  publicado com o "ok".
+- ~~Publicar no Streamlit Community Cloud~~ Adiado por decisão do Programador (D-94). Se um dia for publicar, só com o "ok" dele (é publicação pública); o `.streamlit/config.toml` e a ausência de microdados já estão prontos.
+- **Pronto quando:** os 20 perfis respondem em < 1 s com os artefatos congelados (app local) e nenhum arquivo de dados está no repositório. A publicação não faz parte do critério.

@@ -68,7 +68,7 @@ Aplicações diretas dos princípios. Esta tabela é a única fonte das regras (
 
 | # | Regra | Princípio | Origem |
 |---|---|---|---|
-| R1 | **Os dados de 2024 (teste) não são lidos antes da T-5.1.** Nenhuma função de treino, tuning, calibração, limiar, seleção ou gráfico usa 2024. | P2 | [Split](spec.md#split-e-vazamento), FR-09 |
+| R1 | **Os dados de 2024 (teste) não são lidos antes da T-5.1.** Nenhuma função de treino, tuning, calibração, limiar, seleção ou gráfico usa 2024. A leitura e a previsão do ano de teste só passam pela porta `guard.leitura_do_teste()` (estado por thread, aninhável, aberta só por `evaluate.py`; dentro dela só o ano de teste é aceito); fora dela o guard recusa o ano de teste (D-94). | P2 | [Split](spec.md#split-e-vazamento), FR-09 |
 | R2 | O teste é avaliado **uma única vez**. A T-5.1 grava um "lacre"; uma segunda execução deve falhar. | P2 | FR-09, D-36 |
 | R3 | **Sem correção de desbalanceamento**: nada de `class_weight`, `scale_pos_weight`, `is_unbalance`, `auto_class_weights`, `pos_weight`, SMOTE ou undersampling. Única exceção: subamostra de negativos do Random Forest por falta de memória, com correção de probabilidade (T-4.4). | P5 | D-38 |
 | R4 | Features permitidas são **só** as do [data-model › Dicionário de features](data-model.md#dicionário-de-features). Nada de UF, região, município, unidade, ano, semana, raça/cor, escolaridade, `ALRM_*`, `GRAV_*`, exames, `HOSPITALIZ`, `CRITERIO` etc. | P3 | [Vazamento](spec.md#revisão-de-vazamento), D-21, D-48 |
@@ -115,4 +115,4 @@ Quem implementa **para e pergunta** antes de:
 - **IDs estáveis:** P, R, US, FR, NFR, SC, D, Q e T nunca são renumerados. Item removido fica
   ~~riscado~~. Seções são citadas pelo nome, com link (D-60).
 
-**Versão**: 1.3 | **Ratificada**: 2026-11-04 | **Última emenda**: 2026-11-15 (D-66, D-67, D-68, D-69, D-70: decisões reservadas antecipadas ou delegadas; sem mudança de princípio ou regra R1–R10)
+**Versão**: 1.4 | **Ratificada**: 2026-11-04 | **Última emenda**: 2026-11-23 (D-94: R1 passa a descrever a porta `guard.leitura_do_teste()`, sem mudança de princípio; antes: D-66, D-67, D-68, D-69, D-70)

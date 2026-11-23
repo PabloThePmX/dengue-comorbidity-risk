@@ -26,8 +26,7 @@ grave ou óbito pelo agravo**, usando os dados do SINAN (DataSUS) de 2022–2024
 2. Produzir uma **tabela de perfis**: risco estimado para pacientes-tipo (ex.: sem comorbidades, só
    hipertensão, diabetes + renal, 3+ comorbidades), por faixa etária (US1; FR-06).
 3. Treinar e comparar modelos preditivos para o momento do primeiro atendimento (US2; FR-07).
-4. Entregar o que o professor exige (D-26): os modelos serializados (E1 e M1), uma demo pública com
-   duas abas (US3; FR-11) e um relatório TRIPOD+AI (FR-20), apoiados por um pipeline reprodutível.
+4. Entregar o que o professor exige (D-26): os modelos serializados (E1 e M1), uma demo Streamlit com duas abas, executada localmente por ora e publicável depois (US3; FR-11; D-94) e um relatório TRIPOD+AI (FR-20), apoiados por um pipeline reprodutível.
 
 ## Mapa dos artefatos
 

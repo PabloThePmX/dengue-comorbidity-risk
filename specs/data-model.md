@@ -77,7 +77,7 @@ Regra do alvo: [spec › Formulação do problema](spec.md#formulação-do-probl
 - Contagens: `CLASSI_FIN` = 12 em 1.548 / 1.686 / 8.831; `EVOLUCAO` = 2 em 1.056 / 1.192 / 6.337 (2022 / 2023 / 2024, todas as notificações).
 - `CLASSI_FIN` = 0 (8.442 linhas: 330 em 2022 e 8.112 em 2023) tem `ALRM_*` e `GRAV_*` preenchidos em 100% das linhas: código anômalo, fora da população.
 - Nas notas do portal, o MS define "casos graves" como **dengue com sinais de alarme + dengue grave**. O alvo deste projeto (D-02) é mais estrito (só dengue grave + óbito). Ao comparar com números oficiais no relatório, explicitar essa diferença.
-- **`ALRM_*` por classe (restrição do M2):** algum `ALRM_*` está preenchido em **99,8%** dos casos 11, **92,9%** dos 12 e só **3,3%** dos 10 (todos os anos). `[VERIFY]` Na implementação do M2: quais valores aparecem nos 3,3% dos casos 10.
+- **`ALRM_*` por classe (restrição do M2):** algum `ALRM_*` está preenchido em **99,8%** dos casos 11, **92,9%** dos 12 e só **3,3%** dos 10 (todos os anos). (M2 não implementado, D-94: não aplicável)
 
 ### Comorbidades e sinais clínicos
 
