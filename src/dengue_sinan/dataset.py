@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
-from dengue_sinan import checks
+from dengue_sinan import checks, guard
 from dengue_sinan.profiling import (
     COMORBIDADES,
     SINAIS,
@@ -40,13 +40,23 @@ def parquet_path(cfg: dict, ano: int) -> Path:
     return Path(cfg["caminhos"]["dados"]) / "parquet" / f"dengue_{ano}.parquet"
 
 
-def _validar_anos(cfg: dict, anos: list[int]) -> None:
+def _validar_anos(cfg: dict, anos: list[int], teste: bool = False) -> None:
     if not anos:
         raise ValueError("anos vazio: informe os anos explicitamente")
     if len(set(anos)) != len(anos):
         raise ValueError(f"anos repetidos: {anos}")
     # R1: o ano de teste não pode entrar em nenhuma carga de desenvolvimento.
-    # Validado antes de abrir qualquer arquivo.
+    # Validado antes de abrir qualquer arquivo. A única exceção é a avaliação final (teste=True),
+    # que aceita só o ano de teste: 2022–23 continua recusado nesse caminho.
+    if teste:
+        if not guard.leitura_do_teste_aberta():
+            raise RuntimeError("teste=True só funciona dentro de guard.leitura_do_teste() "
+                               "(R1, R2): "
+                               "a porta do teste está fechada")
+        if list(anos) != [cfg["ano_teste"]]:
+            raise RuntimeError(f"teste=True só carrega o ano de teste ({cfg['ano_teste']}) "
+                               f"(R1): recebi {anos}")
+        return
     if cfg["ano_teste"] in anos:
         raise RuntimeError(f"{cfg['ano_teste']} é teste congelado (R1)")
 
@@ -67,14 +77,15 @@ def _ler_ano(cfg: dict, ano: int) -> pd.DataFrame:
 
 
 def load_population_with_flow(
-    cfg: dict, anos: list[int]
+    cfg: dict, anos: list[int], *, teste: bool = False
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.DataFrame]]:
     """Carrega a população e devolve também o fluxograma e os motivos de exclusão.
 
     Devolve (população com derivadas, fluxograma por ano, motivos por ano). Os fluxogramas são
     contados antes do filtro de população, linha a linha, como em profiling.exclusion_flow.
+    `teste=True` é o único caminho que aceita o ano de teste, e só ele (ver `_validar_anos`).
     """
-    _validar_anos(cfg, anos)
+    _validar_anos(cfg, anos, teste)
     populacoes, fluxos = [], []
     motivos: dict[str, list[pd.DataFrame]] = {}
     for ano in anos:
@@ -97,13 +108,15 @@ def load_population_with_flow(
     return populacao, flow, reasons
 
 
-def load_population(cfg: dict, anos: list[int]) -> pd.DataFrame:
+def load_population(cfg: dict, anos: list[int], *, teste: bool = False) -> pd.DataFrame:
     """População (D-45) dos anos pedidos, com y, idade, faixa, região e gestante.
 
-    Também grava o fluxograma em `reports/fluxograma.md` (FR-02).
+    Também grava o fluxograma em `reports/fluxograma.md` (FR-02). Com `teste=True` (só o ano de
+    teste, T-5.1), não grava nada: a avaliação final só grava ao terminar (D-93).
     """
-    populacao, flow, reasons = load_population_with_flow(cfg, anos)
-    write_fluxograma(cfg, flow, reasons)
+    populacao, flow, reasons = load_population_with_flow(cfg, anos, teste=teste)
+    if not teste:
+        write_fluxograma(cfg, flow, reasons)
     return populacao
 
 

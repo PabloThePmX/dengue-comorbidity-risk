@@ -5,6 +5,7 @@ import pytest
 from populacao_sintetica import cfg_sintetico, dados_sinteticos, gravar, linha
 
 from dengue_sinan import dataset as ds
+from dengue_sinan import guard
 
 
 @pytest.fixture
@@ -112,3 +113,65 @@ def test_load_population_traz_ano_inteiro_e_linha_do_arquivo(dados):
     assert pop.loc[pop["ANO"] == 2022, "LINHA"].is_unique
     assert set(pop.loc[pop["ANO"] == 2022, "LINHA"]) <= set(range(7))
     assert set(pop.loc[pop["ANO"] == 2023, "LINHA"]) <= set(range(1))
+
+
+def test_load_population_teste_carrega_2024_e_nao_grava_fluxograma(cfg):
+    gravar(cfg, 2024, [linha(DT_SIN_PRI="20240110", DT_NOTIFIC="20240112")])
+    with guard.leitura_do_teste():
+        populacao = ds.load_population(cfg, [2024], teste=True)
+    assert len(populacao) == 1 and int(populacao["ANO"].iloc[0]) == 2024
+    assert not (Path(cfg["caminhos"]["relatorios"]) / "fluxograma.md").exists()
+
+
+def test_load_population_teste_recusa_2022_antes_de_abrir_arquivo(cfg, monkeypatch):
+    def nao_deve_abrir(*args, **kwargs):
+        raise AssertionError("abriu arquivo de 2022 com teste=True")
+
+    monkeypatch.setattr(ds, "_ler_ano", nao_deve_abrir)
+    with guard.leitura_do_teste(), pytest.raises(RuntimeError, match="só carrega o ano de teste"):
+        ds.load_population(cfg, [2022], teste=True)
+
+
+def test_load_population_teste_recusa_2024_junto_de_outro_ano(cfg):
+    with guard.leitura_do_teste(), pytest.raises(RuntimeError, match="só carrega o ano de teste"):
+        ds.load_population(cfg, [2023, 2024], teste=True)
+
+
+def test_load_population_sem_teste_continua_recusando_2024(cfg):
+    with pytest.raises(RuntimeError, match="2024 é teste congelado"):
+        ds.load_population(cfg, [2024])
+
+
+def test_load_population_teste_recusa_ano_que_nao_e_o_de_teste_nem_dev(cfg):
+    # 2025 não é de desenvolvimento nem o ano de teste (2024): teste=True recusa antes de ler.
+    with guard.leitura_do_teste(), pytest.raises(RuntimeError, match="só carrega o ano de teste"):
+        ds.load_population(cfg, [2025], teste=True)
+
+
+def test_carga_do_teste_fora_da_porta_e_recusada_antes_de_abrir_arquivo(cfg, monkeypatch):
+    def nao_deve_abrir(*args, **kwargs):
+        raise AssertionError("abriu arquivo com a porta fechada")
+
+    monkeypatch.setattr(ds, "_ler_ano", nao_deve_abrir)
+    with pytest.raises(RuntimeError, match="porta do teste está fechada"):
+        ds.load_population(cfg, [2024], teste=True)
+    with pytest.raises(RuntimeError, match="porta do teste está fechada"):
+        ds.load_population_with_flow(cfg, [2024], teste=True)
+
+
+def test_carga_do_teste_na_porta_aberta_de_outra_thread_continua_recusada(cfg):
+    import threading
+
+    erros = []
+
+    def tenta():
+        try:
+            ds.load_population(cfg, [2024], teste=True)
+        except RuntimeError as e:
+            erros.append(str(e))
+
+    with guard.leitura_do_teste():  # porta aberta SÓ nesta thread
+        fio = threading.Thread(target=tenta)
+        fio.start()
+        fio.join()
+    assert erros and "porta do teste está fechada" in erros[0]

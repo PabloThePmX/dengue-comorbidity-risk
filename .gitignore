@@ -37,5 +37,9 @@ Thumbs.db
 models/m1_final*
 models/m1_demo*
 
+# Baselines congelados antes do teste (T-5.0, D-93): ajustados em 2022–23, ficam no Drive
+models/b1_final*
+models/b0_final*
+
 # Área de passagem do download do Drive (retorno do Colab): nunca versionar (R7, D-85)
 retorno-m1/

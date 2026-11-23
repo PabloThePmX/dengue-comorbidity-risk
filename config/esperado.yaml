@@ -57,3 +57,22 @@ cv:
       Nordeste: 0.00724
       Norte: 0.01026
     tolerancia_dobra: 0.000005
+
+# T-5.1 (D-93): avaliação de 2024. Conferida ANTES de qualquer cálculo (evaluate.conferir_populacao);
+# divergência aborta sem gravar nada. Fonte: specs/data-model.md › Tamanho e prevalência (população
+# final e eventos de 2024) e › Eventos por região e subgrupo (eventos por região no teste). R1: só a
+# T-5.1 lê 2024. Mesmo formato da seção desenvolvimento.
+teste:
+  anos: [2024]
+  populacao_por_ano: {2024: 5331745}
+  eventos_por_ano: {2024: 11338}
+  populacao_total: 5331745
+  eventos_total: 11338
+  eventos_por_regiao:
+    Centro-Oeste: 1682
+    Nordeste: 942
+    Norte: 110
+    Sudeste: 6510
+    Sul: 2094
+  # D-64/T-5.1: número de reamostras do plano (spec › Plano de avaliação; plan › Incerteza e comparação).
+  bootstrap: {metricas: 1000, calibracao: 2000}
