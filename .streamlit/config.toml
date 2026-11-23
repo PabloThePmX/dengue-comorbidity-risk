@@ -1,0 +1,6 @@
+# Demo (T-6.1, NFR-03): sem analytics e sem coleta de uso.
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = true

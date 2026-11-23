@@ -7,7 +7,7 @@ Spec: FR-11, NFR-03, NFR-06, D-27, D-35. Contrato completo da demo:
 [contracts › Demo](../contracts/interfaces.md#demo). Critério de saída:
 [spec › Marcos](../spec.md#marcos).
 
-### [ ] T-6.1 [US3] — App com as abas Perfil e Triagem (`src/app/streamlit_app.py`)
+### [x] T-6.1 [US3] — App com as abas Perfil e Triagem (`src/app/streamlit_app.py`)
 
 Inclui as antigas T-6.2 e T-6.3 (D-60).
 
@@ -37,7 +37,7 @@ Fundida na T-6.1 (D-60).
 
 Fundida na T-6.1 (D-60).
 
-### [ ] T-6.4 [US3] — Verificação e publicação
+### [~] T-6.4 [US3] — Verificação e publicação
 
 - Teste: o app sobe (`streamlit run`) e as duas abas respondem em < 1 s (NFR-06) para 20 perfis.
 - Conferir que nenhum arquivo de dados está no repositório (R7).
