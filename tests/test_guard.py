@@ -138,3 +138,94 @@ def test_porta_aberta_em_outra_thread_nao_abre_esta():
     finally:
         fechar.set()
         fio.join()
+
+
+# --- Ano de comparação (D-97): 2025, segunda porta, mesma disciplina do teste --------------------
+
+CFG_COMPARACAO = {"ano_teste": 2024, "ano_comparacao": 2025}
+
+
+@pytest.fixture
+def com_comparacao(monkeypatch):
+    monkeypatch.setattr(guard, "load_config", lambda: CFG_COMPARACAO)
+
+
+def test_ano_de_comparacao_e_recusado_no_desenvolvimento(com_comparacao):
+    with pytest.raises(RuntimeError, match="2025 é ano de comparação congelado"):
+        guard.assert_dev_only(pd.DataFrame({"ANO": [2022, 2025]}))
+    with pytest.raises(RuntimeError, match="2024 é teste congelado"):  # o teste segue igual
+        guard.assert_dev_only(pd.DataFrame({"ANO": [2024]}))
+    guard.assert_dev_only(pd.DataFrame({"ANO": [2022, 2023]}))
+
+
+def test_sem_ano_de_comparacao_no_config_nada_muda(monkeypatch):
+    monkeypatch.setattr(guard, "load_config", lambda: {"ano_teste": 2024})
+    guard.assert_dev_only(pd.DataFrame({"ANO": [2025]}))  # sem a chave, 2025 não é tratado
+
+
+def test_porta_de_comparacao_aceita_so_2025(com_comparacao):
+    with guard.leitura_do_ano_de_comparacao():
+        assert guard.leitura_da_comparacao_aberta()
+        guard.assert_dev_only(pd.DataFrame({"ANO": [2025, 2025]}))
+        for anos in ([2022], [2024], [2023, 2025], [2024, 2025]):
+            with pytest.raises(RuntimeError, match="só entram linhas de 2025"):
+                guard.assert_dev_only(pd.DataFrame({"ANO": anos}))
+    assert not guard.leitura_da_comparacao_aberta()
+
+
+def test_porta_de_comparacao_recusa_dataframe_vazio(com_comparacao):
+    vazio = pd.DataFrame({"ANO": pd.Series([], dtype="int64")})
+    with guard.leitura_do_ano_de_comparacao(), pytest.raises(RuntimeError, match="vazio"):
+        guard.assert_dev_only(vazio)
+
+
+def test_porta_de_comparacao_sem_ano_no_config_recusa(monkeypatch):
+    monkeypatch.setattr(guard, "load_config", lambda: {"ano_teste": 2024})
+    with guard.leitura_do_ano_de_comparacao(), pytest.raises(RuntimeError, match="ano_comparacao"):
+        guard.assert_dev_only(pd.DataFrame({"ANO": [2025]}))
+
+
+def test_porta_do_teste_nao_libera_2025(com_comparacao):
+    with guard.leitura_do_teste():
+        guard.assert_dev_only(pd.DataFrame({"ANO": [2024]}))
+        with pytest.raises(RuntimeError, match="só entram linhas de 2024"):
+            guard.assert_dev_only(pd.DataFrame({"ANO": [2025]}))
+
+
+def test_as_duas_portas_abertas_juntas_sao_recusadas(com_comparacao):
+    with guard.leitura_do_teste(), guard.leitura_do_ano_de_comparacao():
+        with pytest.raises(RuntimeError, match="as duas portas"):
+            guard.assert_dev_only(pd.DataFrame({"ANO": [2025]}))
+
+
+def test_porta_de_comparacao_restaura_o_estado_e_e_aninhavel(com_comparacao):
+    with pytest.raises(ZeroDivisionError):
+        with guard.leitura_do_ano_de_comparacao():
+            raise ZeroDivisionError
+    assert not guard.leitura_da_comparacao_aberta()
+    with guard.leitura_do_ano_de_comparacao():
+        with guard.leitura_do_ano_de_comparacao():
+            pass
+        assert guard.leitura_da_comparacao_aberta()  # o externo continua aberto
+    with pytest.raises(RuntimeError, match="2025 é ano de comparação congelado"):
+        guard.assert_dev_only(pd.DataFrame({"ANO": [2025]}))
+
+
+def test_porta_de_comparacao_e_por_thread(com_comparacao):
+    import threading
+
+    resultado = {}
+
+    def outra_thread():
+        resultado["aberta"] = guard.leitura_da_comparacao_aberta()
+        try:
+            guard.assert_dev_only(pd.DataFrame({"ANO": [2025]}))
+        except RuntimeError as e:
+            resultado["erro"] = str(e)
+
+    with guard.leitura_do_ano_de_comparacao():
+        fio = threading.Thread(target=outra_thread)
+        fio.start()
+        fio.join()
+    assert resultado["aberta"] is False
+    assert "2025 é ano de comparação congelado" in resultado["erro"]

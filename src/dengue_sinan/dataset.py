@@ -40,7 +40,10 @@ def parquet_path(cfg: dict, ano: int) -> Path:
     return Path(cfg["caminhos"]["dados"]) / "parquet" / f"dengue_{ano}.parquet"
 
 
-def _validar_anos(cfg: dict, anos: list[int], teste: bool = False) -> None:
+def _validar_anos(cfg: dict, anos: list[int], teste: bool = False,
+                  comparacao: bool = False) -> None:
+    if teste and comparacao:
+        raise ValueError("teste e comparacao não podem ser pedidos juntos (R1, D-97)")
     if not anos:
         raise ValueError("anos vazio: informe os anos explicitamente")
     if len(set(anos)) != len(anos):
@@ -57,8 +60,23 @@ def _validar_anos(cfg: dict, anos: list[int], teste: bool = False) -> None:
             raise RuntimeError(f"teste=True só carrega o ano de teste ({cfg['ano_teste']}) "
                                f"(R1): recebi {anos}")
         return
+    if comparacao:
+        if not guard.leitura_da_comparacao_aberta():
+            raise RuntimeError("comparacao=True só funciona dentro de "
+                               "guard.leitura_do_ano_de_comparacao() (R1, R2, D-97): "
+                               "a porta da comparação está fechada")
+        ano = cfg.get("ano_comparacao")
+        if ano is None:
+            raise RuntimeError("comparacao=True sem `ano_comparacao` no config (R1, D-97)")
+        if list(anos) != [ano]:
+            raise RuntimeError(f"comparacao=True só carrega o ano de comparação ({ano}) "
+                               f"(R1, D-97): recebi {anos}")
+        return
     if cfg["ano_teste"] in anos:
         raise RuntimeError(f"{cfg['ano_teste']} é teste congelado (R1)")
+    ano_comparacao = cfg.get("ano_comparacao")
+    if ano_comparacao is not None and ano_comparacao in anos:
+        raise RuntimeError(f"{ano_comparacao} é ano de comparação congelado (R1, D-97)")
 
 
 def _ler_ano(cfg: dict, ano: int) -> pd.DataFrame:
@@ -77,15 +95,16 @@ def _ler_ano(cfg: dict, ano: int) -> pd.DataFrame:
 
 
 def load_population_with_flow(
-    cfg: dict, anos: list[int], *, teste: bool = False
+    cfg: dict, anos: list[int], *, teste: bool = False, comparacao: bool = False
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.DataFrame]]:
     """Carrega a população e devolve também o fluxograma e os motivos de exclusão.
 
     Devolve (população com derivadas, fluxograma por ano, motivos por ano). Os fluxogramas são
     contados antes do filtro de população, linha a linha, como em profiling.exclusion_flow.
-    `teste=True` é o único caminho que aceita o ano de teste, e só ele (ver `_validar_anos`).
+    `teste=True` é o único caminho que aceita o ano de teste, e só ele; `comparacao=True`, o único
+    que aceita o ano de comparação (ver `_validar_anos`).
     """
-    _validar_anos(cfg, anos, teste)
+    _validar_anos(cfg, anos, teste, comparacao)
     populacoes, fluxos = [], []
     motivos: dict[str, list[pd.DataFrame]] = {}
     for ano in anos:
@@ -108,14 +127,17 @@ def load_population_with_flow(
     return populacao, flow, reasons
 
 
-def load_population(cfg: dict, anos: list[int], *, teste: bool = False) -> pd.DataFrame:
+def load_population(cfg: dict, anos: list[int], *, teste: bool = False,
+                    comparacao: bool = False) -> pd.DataFrame:
     """População (D-45) dos anos pedidos, com y, idade, faixa, região e gestante.
 
     Também grava o fluxograma em `reports/fluxograma.md` (FR-02). Com `teste=True` (só o ano de
-    teste, T-5.1), não grava nada: a avaliação final só grava ao terminar (D-93).
+    teste, T-5.1), não grava nada: a avaliação final só grava ao terminar (D-93). O mesmo vale
+    para `comparacao=True` (só o ano de comparação, dentro da porta própria, D-97).
     """
-    populacao, flow, reasons = load_population_with_flow(cfg, anos, teste=teste)
-    if not teste:
+    populacao, flow, reasons = load_population_with_flow(
+        cfg, anos, teste=teste, comparacao=comparacao)
+    if not teste and not comparacao:
         write_fluxograma(cfg, flow, reasons)
     return populacao
 

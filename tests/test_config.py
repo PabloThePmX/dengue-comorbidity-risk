@@ -34,3 +34,26 @@ def test_recusa_arquivo_sem_chave_obrigatoria(tmp_path):
     incompleto.write_text("seed: 1\n", "utf-8")
     with pytest.raises(ValueError, match="faltam"):
         load_config(incompleto)
+
+
+def test_ano_de_comparacao_do_projeto_e_2025_e_nao_se_mistura_com_dev_nem_teste():
+    cfg = load_config()
+    assert cfg["ano_comparacao"] == 2025
+    assert cfg["ano_comparacao"] not in cfg["anos_dev"]
+    assert cfg["ano_comparacao"] != cfg["ano_teste"]
+
+
+def test_ano_de_comparacao_em_anos_dev_ou_igual_ao_teste_e_recusado(tmp_path):
+    base = "seed: 1\nanos_dev: [2022, 2023]\nano_teste: 2024\ncaminhos: {}\nambiente: {}\n"
+    for ano, trecho in ((2023, "anos_dev"), (2024, "ano_teste")):
+        arquivo = tmp_path / f"c{ano}.yaml"
+        arquivo.write_text(base + f"ano_comparacao: {ano}\n", "utf-8")
+        with pytest.raises(ValueError, match=trecho):
+            load_config(arquivo)
+
+
+def test_ano_de_comparacao_e_opcional(tmp_path):
+    arquivo = tmp_path / "c.yaml"
+    arquivo.write_text(
+        "seed: 1\nanos_dev: [2022, 2023]\nano_teste: 2024\ncaminhos: {}\nambiente: {}\n", "utf-8")
+    assert "ano_comparacao" not in load_config(arquivo)

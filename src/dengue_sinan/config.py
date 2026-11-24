@@ -20,4 +20,11 @@ def load_config(path: str | Path = CONFIG_PADRAO) -> dict:
     # R1: o ano de teste nunca entra no desenvolvimento.
     if cfg["ano_teste"] in cfg["anos_dev"]:
         raise ValueError(f"{path}: ano_teste={cfg['ano_teste']} está em anos_dev (R1)")
+    # D-97: o ano de comparação (opcional) também fica fora do desenvolvimento e do teste.
+    ano_comparacao = cfg.get("ano_comparacao")
+    if ano_comparacao is not None:
+        if ano_comparacao in cfg["anos_dev"]:
+            raise ValueError(f"{path}: ano_comparacao={ano_comparacao} está em anos_dev (R1)")
+        if ano_comparacao == cfg["ano_teste"]:
+            raise ValueError(f"{path}: ano_comparacao={ano_comparacao} é o ano_teste (R1)")
     return cfg

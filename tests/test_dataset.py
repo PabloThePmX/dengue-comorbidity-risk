@@ -175,3 +175,58 @@ def test_carga_do_teste_na_porta_aberta_de_outra_thread_continua_recusada(cfg):
         fio.start()
         fio.join()
     assert erros and "porta do teste está fechada" in erros[0]
+
+
+# --- Ano de comparação (D-97) ------------------------------------------------------------------
+
+def _cfg_comparacao(cfg: dict) -> dict:
+    return {**cfg, "ano_comparacao": 2025}
+
+
+def test_comparacao_carrega_2025_dentro_da_porta_e_nao_grava_fluxograma(cfg):
+    cfg = _cfg_comparacao(cfg)
+    gravar(cfg, 2025, [linha(DT_SIN_PRI="20250110", DT_NOTIFIC="20250112")])
+    with guard.leitura_do_ano_de_comparacao():
+        populacao = ds.load_population(cfg, [2025], comparacao=True)
+    assert len(populacao) == 1 and int(populacao["ANO"].iloc[0]) == 2025
+    assert not (Path(cfg["caminhos"]["relatorios"]) / "fluxograma.md").exists()
+
+
+def test_comparacao_exige_a_porta_aberta(cfg):
+    with pytest.raises(RuntimeError, match="leitura_do_ano_de_comparacao"):
+        ds.load_population(_cfg_comparacao(cfg), [2025], comparacao=True)
+
+
+def test_comparacao_recusa_outro_ano_antes_de_abrir_arquivo(cfg, monkeypatch):
+    def nao_deve_abrir(*args, **kwargs):
+        raise AssertionError("abriu arquivo com comparacao=True e ano errado")
+
+    monkeypatch.setattr(ds, "_ler_ano", nao_deve_abrir)
+    cfg = _cfg_comparacao(cfg)
+    with guard.leitura_do_ano_de_comparacao():
+        for anos in ([2022], [2024], [2023, 2025]):
+            with pytest.raises(RuntimeError, match="só carrega o ano de comparação"):
+                ds.load_population(cfg, anos, comparacao=True)
+
+
+def test_comparacao_sem_ano_no_config_e_recusada(cfg):
+    with guard.leitura_do_ano_de_comparacao(), pytest.raises(RuntimeError, match="ano_comparacao"):
+        ds.load_population(cfg, [2025], comparacao=True)
+
+
+def test_carga_normal_recusa_2025_quando_ele_e_o_ano_de_comparacao(cfg):
+    with pytest.raises(RuntimeError, match="2025 é ano de comparação congelado"):
+        ds.load_population(_cfg_comparacao(cfg), [2025])
+    with guard.leitura_do_ano_de_comparacao(), pytest.raises(
+            RuntimeError, match="2025 é ano de comparação congelado"):
+        ds.load_population(_cfg_comparacao(cfg), [2025])  # a porta aberta não basta sem o flag
+
+
+def test_teste_e_comparacao_juntos_sao_recusados(cfg):
+    with guard.leitura_do_teste(), pytest.raises(ValueError, match="teste e comparacao"):
+        ds.load_population(_cfg_comparacao(cfg), [2024], teste=True, comparacao=True)
+
+
+def test_teste_true_nao_libera_2025(cfg):
+    with guard.leitura_do_teste(), pytest.raises(RuntimeError, match="só carrega o ano de teste"):
+        ds.load_population(_cfg_comparacao(cfg), [2025], teste=True)

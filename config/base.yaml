@@ -4,6 +4,7 @@
 seed: 20261103
 anos_dev: [2022, 2023]
 ano_teste: 2024          # R1: só a T-5.1 lê este ano
+ano_comparacao: 2025     # R1/D-97: só o módulo de comparação lê este ano (porta própria)
 caminhos:
   dados: "data"            # no Colab: /content/drive/MyDrive/dengue-comorbidity-risk/data
   mlruns: "mlruns"
