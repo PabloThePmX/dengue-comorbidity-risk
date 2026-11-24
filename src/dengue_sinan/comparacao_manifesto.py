@@ -42,3 +42,19 @@ def carregar_manifesto(path: str | Path = MANIFESTO_PADRAO, cfg: dict | None = N
         if fora["id"] in ids:
             raise ValueError(f"manifesto: {fora['id']} está dentro e fora do conjunto")
     return m
+
+
+def exportar_json(destino: str | Path, path: str | Path = MANIFESTO_PADRAO,
+                  cfg: dict | None = None) -> Path:
+    """Grava o manifesto validado em JSON, para ambientes sem PyYAML (o worktree da branch).
+
+    Passa por `carregar_manifesto`: só sai o que o YAML validado diz, sem edição à mão.
+    """
+    import json
+
+    m = carregar_manifesto(path, cfg)
+    destino = Path(destino)
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    destino.write_text(json.dumps(m, indent=2, ensure_ascii=False, default=str) + "\n",
+                       encoding="utf-8")
+    return destino
