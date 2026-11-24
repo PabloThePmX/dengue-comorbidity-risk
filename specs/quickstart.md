@@ -44,8 +44,8 @@ Marco 4 (modelos) e Marco 5 (teste); os Marcos 2 e 3 rodam no PC local (D-66).
    commitado e no GitHub antes; o orquestrador faz o commit e o push (D-66).
 3. Conferir a GPU (Colab Pro, ou gratuito se houver):
    `nvidia-smi` e `python -c "import torch; print(torch.__version__, torch.cuda.is_available())"`.
-   Se der `False` numa VM com GPU, **🛑 pare e pergunte**: o lock usa torch com CUDA 13 (ver o
-   `[VERIFY]` em [plan › Ambiente](plan.md#ambiente-de-execução-e-orçamento)).
+   Se der `False` numa VM com GPU, **🛑 pare e pergunte**: o lock usa torch com CUDA 13 (ver a
+   nota em [plan › Ambiente](plan.md#ambiente-de-execução-e-orçamento)).
 4. Apontar `caminhos.dados` e `caminhos.mlruns` de `config/base.yaml` para a pasta do Drive
    (após T-2.0).
 5. Rodar os notebooks, que só chamam funções de `src/` (NFR-05):

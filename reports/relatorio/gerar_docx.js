@@ -9,7 +9,7 @@
  *  - A4; margens 3 cm (sup., esq.) e 2 cm (inf., dir.); Times New Roman 12; justificado;
  *    espaçamento 1,5; recuo de 1,25 cm na primeira linha.
  *  - Legendas, fontes, notas, tabelas e referências em fonte 10 e espaçamento simples.
- *  - Pré-textuais (capa, folha de rosto, resumo, abstract, sumário) sem número de página;
+ *  - Pré-textuais (capa só com o título, resumo, abstract, sumário) sem número de página;
  *    a numeração (canto superior direito) começa na introdução, contando as pré-textuais.
  *  - Sumário como campo TOC do Word (atualiza ao abrir).
  *  - Marcadores [PREENCHER ...] e [VERIFY ...] com realce amarelo.
@@ -377,31 +377,8 @@ const C = (text, extra = {}) => P({ alignment: AlignmentType.CENTER, spacing: { 
 
 function capa() {
   const it = pre["Capa"];
-  const [inst, curso, autor, titulo, cidade, ano] = it.map((b) => b.text);
-  return [
-    C(inst), C(curso), C(autor),
-    C(titulo, { spacing: { line: L15, before: 3800, after: 0 } }),
-    C(cidade, { spacing: { line: L15, before: 7300, after: 0 } }),
-    C(ano),
-  ];
-}
-
-function folhaRosto() {
-  const it = pre["Folha de rosto"];
-  const [autor, titulo, natureza, prof, cidade, ano] = it.map((b) => b.text);
-  const nat = (t, before) =>
-    P({
-      alignment: AlignmentType.JUSTIFIED, indent: { left: 4536 }, spacing: { line: L10, before, after: 0 },
-      children: inline(t, { size: 20 }),
-    });
-  return [
-    C(autor, { pageBreakBefore: true }),
-    C(titulo, { spacing: { line: L15, before: 3200, after: 0 } }),
-    nat(natureza, 2400),
-    nat(prof, 240),
-    C(cidade, { spacing: { line: L15, before: 5000, after: 0 } }),
-    C(ano),
-  ];
+  const [titulo] = it.map((b) => b.text);
+  return [C(titulo, { spacing: { line: L15, before: 5200, after: 0 } })];
 }
 
 function resumoSec(name, title) {
@@ -415,7 +392,6 @@ function resumoSec(name, title) {
 
 const preChildren = [
   ...capa(),
-  ...folhaRosto(),
   ...resumoSec("Resumo", "RESUMO"),
   ...resumoSec("Abstract", "ABSTRACT"),
   P({ style: "PreTitulo", pageBreakBefore: true, children: [new TextRun({ text: "SUMÁRIO", bold: true, font: FONT })] }),

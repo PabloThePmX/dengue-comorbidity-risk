@@ -6,7 +6,7 @@
 Spec: FR-20, FR-21, D-22, D-28. Critério de saída: [spec › Marcos](../spec.md#marcos). Pode ser
 escrito ao longo do projeto; fecha depois dos Marcos 5 e 6.
 
-### [ ] T-7.1 — Relatório e apêndices
+### [x] T-7.1 — Relatório e apêndices
 
 Inclui a antiga T-7.2 (D-60).
 
@@ -32,7 +32,7 @@ Inclui a antiga T-7.2 (D-60).
 
 Fundida na T-7.1 (D-60).
 
-### [ ] T-7.3 — Checklist final
+### [x] T-7.3 — Checklist final
 
 - Rodar o [checklists/requirements.md](../checklists/requirements.md) e o TRIPOD+AI; listar o que falhou.
 - Confirmar NFR-02: rodar de novo do zero e obter as métricas de teste com as mesmas 3 casas

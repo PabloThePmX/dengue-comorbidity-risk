@@ -180,6 +180,12 @@ def _perfis_20():
     } for i in range(20)]
 
 
+def test_os_20_perfis_da_medicao_sao_distintos():
+    perfis = {(p["idade"], p["sexo"], p["comorbidades"], p["sintomas"], p["dias"])
+              for p in _perfis_20()}
+    assert len(perfis) == 20
+
+
 def _aplicar(at: AppTest, p: dict, triagem: bool) -> None:
     at.number_input(key="perfil_idade").set_value(p["idade"])
     at.radio(key="perfil_sexo").set_value(p["sexo"])

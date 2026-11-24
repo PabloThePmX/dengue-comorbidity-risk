@@ -25,7 +25,6 @@ Base do D-25. O diferencial do projeto, que decorre desta revisão, está em [sp
   - Compara logística, RF, gradient boosting, SVC e rede neural. Melhor resultado: rede neural, ROC-AUC 0,83 e acurácia balanceada 0,75.
   - Limitações declaradas: retrospectivo, centro único, um sorotipo, possível viés de seleção de casos graves.
   - Uso no relatório: contraste. Depende de exame laboratorial, não usa comorbidade e não tem validação externa.
-  - `[VERIFY]` O resumo do Consensus não traz o esquema de validação (split/CV) nem fala de calibração. Conferir no PDF se o relatório for citar esses pontos.
 - **Trindade et al. (BJID 2024, v. 28, supl. 1)**, [doi:10.1016/j.bjid.2024.103821](https://doi.org/10.1016/j.bjid.2024.103821). Verificado via Consensus em 2026-11-01: **resumo de congresso**.
   - Revisão narrativa de **5 artigos** do PubMed (10 anos), sem método sistemático.
   - Conclui que gravidez, DM2, obesidade, doenças renais, idade < 12 anos e infecção secundária são fatores de risco para dengue grave.
@@ -35,7 +34,6 @@ Base do D-25. O diferencial do projeto, que decorre desta revisão, está em [sp
   - [Tsheten et al., Infect Dis Poverty 2021](https://consensus.app/papers/details/450b348261d65e4b86fa489ca4ef82d1/): 143 estudos. Diabetes OR 2,88 (1,72–4,81), doença renal OR 4,54 (1,55–13,31).
   - [Lima Chagas et al., Trop Med Int Health 2022](https://consensus.app/papers/details/8e17b3321f4c592aa9aafbb95e72ef87/): óbito por dengue, 18 estudos com medidas ajustadas. Diabetes OR 3,70 (1,20–11,43).
   - Ponte para o projeto: os OR da literatura são majoritariamente **brutos** e de estudos pequenos. E1 estima OR **ajustados** por idade e sexo, em milhões de casos, e testa **combinações**. Hipertensão é o caso típico de confundimento por idade.
-  - `[VERIFY]` Pegar os DOIs e ler pelo menos Sangkaew et al. no texto completo antes de citar os números no relatório.
 
 ## Evidência para o desenho de validação
 
@@ -44,7 +42,7 @@ Base do D-08 e da [spec › Estratégia de split](spec.md#estratégia-de-split).
 - Split aleatório é desaconselhado mesmo com muitos dados; a validação interna-externa (deixar de fora uma região ou período por vez) e a validação temporal são as preferidas, com o modelo final ajustado sobre todos os dados de desenvolvimento ([Steyerberg & Harrell, J Clin Epidemiol 2016](https://doi.org/10.1016/j.jclinepi.2015.04.005); [Collins et al., BMJ 2024](https://doi.org/10.1136/bmj-2023-074819)).
 - Drift temporal é comum em modelos clínicos, e a **calibração** piora com mais frequência que a discriminação ([Guo et al., Appl Clin Inform 2021](https://doi.org/10.1055/s-0041-1735184)). Por isso testar em 2024, ano de epidemia, é informativo.
 - Na literatura de dengue, a validação externa é rara e o risco de viés é alto (112/146 estudos) ([Delpino et al., IJID 2026](https://doi.org/10.1016/j.ijid.2026.108879); [Díaz-Arocutipa et al., AJTMH 2025](https://doi.org/10.4269/ajtmh.24-0653)).
-- `[VERIFY]` Os artigos foram selecionados e resumidos pelo agente do Consensus; ler pelo menos Steyerberg & Harrell e Collins (parte 1) no texto completo antes de citar no relatório.
+- Os artigos foram selecionados e resumidos pelo agente do Consensus.
 
 ## Evidência para o orçamento de busca
 

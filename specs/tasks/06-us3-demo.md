@@ -37,7 +37,7 @@ Fundida na T-6.1 (D-60).
 
 Fundida na T-6.1 (D-60).
 
-### [~] T-6.4 [US3] — Verificação (publicação adiada, D-94)
+### [x] T-6.4 [US3] — Verificação (publicação adiada, D-94)
 
 - Teste: o app sobe (`streamlit run`) e as duas abas respondem em < 1 s (NFR-06) para 20 perfis.
 - Conferir que nenhum arquivo de dados está no repositório (R7).

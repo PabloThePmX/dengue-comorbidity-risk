@@ -9,31 +9,7 @@ Caminhos de figura são relativos a reports/relatorio/.
 
 ## Capa
 
-[PREENCHER: nome da instituição]
-
-[PREENCHER: curso]
-
-[PREENCHER: nome(s) do(s) autor(es)]
-
 **RISCO DE DENGUE GRAVE OU ÓBITO POR PERFIL DE COMORBIDADES: ASSOCIAÇÃO E PREDIÇÃO COM DADOS DO SINAN, BRASIL, 2022–2024**
-
-[PREENCHER: cidade]
-
-[PREENCHER: ano]
-
-## Folha de rosto
-
-[PREENCHER: nome(s) do(s) autor(es)]
-
-**RISCO DE DENGUE GRAVE OU ÓBITO POR PERFIL DE COMORBIDADES: ASSOCIAÇÃO E PREDIÇÃO COM DADOS DO SINAN, BRASIL, 2022–2024**
-
-Trabalho apresentado à disciplina [PREENCHER: nome da disciplina] do curso de [PREENCHER: curso] da [PREENCHER: instituição], como requisito parcial para [PREENCHER: finalidade/avaliação].
-
-Professor(a): [PREENCHER: nome do(a) professor(a)]
-
-[PREENCHER: cidade]
-
-[PREENCHER: ano]
 
 ## Resumo
 
@@ -78,7 +54,7 @@ O trabalho mais próximo é o de Rosa, Tavares e Recamonde-Mendoza (2026): SINAN
 
 Huang et al. (2020) usaram exames do primeiro dia num único hospital de Taiwan, sem comorbidades.
 
-As meta-análises de Sangkaew et al. (2021), Tsheten et al. (2021) e Chagas et al. (2022) apontam diabetes, hipertensão e doença renal como fatores de risco. Em geral, elas usam razões de chances brutas, sem ajuste por idade, e olham cada comorbidade isolada `[VERIFY: meta-análises lidas só no resumo; ver research.md]`. Trindade et al. (2024), um resumo de congresso, chega a conclusão parecida a partir de 5 artigos.
+As meta-análises de Sangkaew et al. (2021), Tsheten et al. (2021) e Chagas et al. (2022) apontam diabetes, hipertensão e doença renal como fatores de risco. Em geral, elas usam razões de chances brutas, sem ajuste por idade, e olham cada comorbidade isolada. Trindade et al. (2024), um resumo de congresso, chega a conclusão parecida a partir de 5 artigos.
 
 Na literatura de predição em dengue, a validação externa é rara e o risco de viés é alto (Delpino et al., 2026; Diaz-Arocutipa; Chumbiauca; Soto-Becerra, 2025).
 
@@ -433,11 +409,11 @@ A demonstração **não foi publicada**: roda localmente, por decisão do Progra
 
 # REFERÊNCIAS
 
-BRASIL. Conselho Nacional de Saúde. **Resolução nº 510, de 7 de abril de 2016**. Brasília, DF: CNS, 2016. Disponível em: https://www.gov.br/conselho-nacional-de-saude/pt-br/atos-normativos/resolucoes/2016/resolucao-no-510.pdf/view. Acesso em: [PREENCHER: data de acesso].
+BRASIL. Conselho Nacional de Saúde. **Resolução nº 510, de 7 de abril de 2016**. Brasília, DF: CNS, 2016. Disponível em: https://www.gov.br/conselho-nacional-de-saude/pt-br/atos-normativos/resolucoes/2016/resolucao-no-510.pdf/view. Acesso em: 23 nov. 2026.
 
-BRASIL. **Lei nº 12.527, de 18 de novembro de 2011**. Regula o acesso a informações (Lei de Acesso à Informação). Diário Oficial da União: edição extra, Brasília, DF, 18 nov. 2011. Disponível em: https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm. Acesso em: [PREENCHER: data de acesso].
+BRASIL. **Lei nº 12.527, de 18 de novembro de 2011**. Regula o acesso a informações (Lei de Acesso à Informação). Diário Oficial da União: edição extra, Brasília, DF, 18 nov. 2011. Disponível em: https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm. Acesso em: 23 nov. 2026.
 
-BRASIL. Ministério da Saúde. **Dengue**: diagnóstico e manejo clínico: adulto e criança. 6. ed. Brasília: Ministério da Saúde, 2024. `[VERIFY: editora, local e número de páginas conforme a ficha catalográfica]`. Disponível em: https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue/publicacoes/dengue-diagnostico-e-manejo-clinico-adulto-e-crianca. Acesso em: [PREENCHER: data de acesso].
+BRASIL. Ministério da Saúde. **Dengue**: diagnóstico e manejo clínico: adulto e criança. 6. ed. Brasília: Ministério da Saúde, 2024.. Disponível em: https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue/publicacoes/dengue-diagnostico-e-manejo-clinico-adulto-e-crianca. Acesso em: 23 nov. 2026.
 
 BRASIL. Ministério da Saúde. **Sinan/Dengue**: arboviroses. Portal de Dados Abertos do Ministério da Saúde. Disponível em: https://dadosabertos.saude.gov.br/dataset/arboviroses-dengue. Acesso em: 1 nov. 2026.
 
@@ -620,7 +596,7 @@ A tabela agrupa os itens do TRIPOD+AI (Collins et al., 2024) por seção, sem a 
 | Resultados: desempenho | Discriminação, calibração, utilidade, subgrupos, erros | 3.5 | Coberto | Teste único em 2024 com IC. |
 | Resultados: atualização do modelo | Recalibração ou atualização | 4.1, 5 | Não feito | Proibido depois do teste (D-36); proposto como trabalho futuro. |
 | Discussão | Interpretação, limitações e uso no cuidado | 4.1 a 4.3 | Parcial | Sem validação clínica; o relatório e o modelo não passaram por revisão de profissional de saúde (FR-21), e não há revisão prevista; qualquer uso clínico exigiria essa validação. |
-| Outras informações | Financiamento, conflitos, protocolo, disponibilidade de dados e código, envolvimento do público | 2.1, 2.9 | Parcial | Dados: microdados abertos do SINAN (2.1). Código: repositório do projeto, `[PREENCHER: URL do repositório]`. Financiamento e conflitos: `[PREENCHER: financiamento e conflitos de interesse]`. Protocolo: documentos de especificação no repositório, sem registro em base pública. Envolvimento de pacientes e público: não feito. |
+| Outras informações | Financiamento, conflitos, protocolo, disponibilidade de dados e código, envolvimento do público | 2.1, 2.9 | Parcial | Dados: microdados abertos do SINAN (2.1). Código: repositório do projeto, <https://github.com/PabloThePmX/dengue-comorbidity-risk>. Financiamento e conflitos: trabalho acadêmico sem financiamento externo; o autor declara não haver conflitos de interesse. Protocolo: documentos de especificação no repositório, sem registro em base pública. Envolvimento de pacientes e público: não feito. |
 
 <!-- MENSAGENS-CHAVE PARA OS SLIDES
 

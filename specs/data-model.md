@@ -104,7 +104,7 @@ Desde 2020 o estado usa o e-SUS Vigilância em Saúde, e o portal considera para
 
 - **A hipótese de sub-representação não se confirmou**: a taxa do ES foi 236 / 2.855 / 3.053 casos por 100 mil (2022 / 2023 / 2024), contra 132 / 237 / 1.419 de mediana entre BA, MG e RJ (população do Censo 2022). O ES é o maior da vizinhança em 2023.
 - **Idade no ES em 2022:** `NU_IDADE_N` vem em anos simples ("33"), sem o dígito de unidade: 11.175 dos 11.241 registros. Esses anos concordam 100% com ano dos sintomas − `ANO_NASC` (verificado em 2026-11-03 numa leitura temporária do arquivo de 2022, já apagada). Sem correção, o filtro de idade excluiria o ES 2022 inteiro (D-50). Com o fallback, o ES de 2022 tem 9.062 casos na população.
-- O que difere é a **origem do registro**: no ES (2022–24), `TP_SISTEMA` é "0" (116.208) ou branco (119.121), com 206 "2" e 25 "/"; em MG, RJ e BA é quase sempre "2". Diferença de sistema pode significar diferença de preenchimento. Fica como limitação e como subgrupo a olhar na análise de erros. `[VERIFY]` Significado dos códigos de `TP_SISTEMA` no dicionário.
+- O que difere é a **origem do registro**: no ES (2022–24), `TP_SISTEMA` é "0" (116.208) ou branco (119.121), com 206 "2" e 25 "/"; em MG, RJ e BA é quase sempre "2". Diferença de sistema pode significar diferença de preenchimento. Fica como limitação e como subgrupo a olhar na análise de erros. Conferido em 2026-11-23: `TP_SISTEMA` **não consta** no dicionário oficial do SINAN Online para dengue e chikungunya (Ministério da Saúde, revisado em 21/10/2015, 65 campos; [cópia da SES-ES](https://app.wiki.saude.es.gov.br/vigilancia/microdados/dic_dados_dengue.pdf)), então o significado dos códigos não tem fonte oficial e fica como limitação: o campo não é feature e só serve para olhar subgrupos.
 
 ### Ausência de dados
 
@@ -117,7 +117,7 @@ Desde 2020 o estado usa o e-SUS Vigilância em Saúde, e o portal considera para
 D-47. Os microdados não trazem `DT_NASC`, só `ANO_NASC`.
 
 - Pela chave composta (ano de nascimento + idade + sexo + município de residência + data de sintomas), os grupos "duplicados" somam **17,3% (2022), 21,1% (2023) e 42,4% (2024)** da população. Isso é implausível como duplicidade real: num ano de epidemia, pessoas diferentes da mesma cidade, com mesmo sexo, idade e dia de sintomas, são comuns. Remover pela chave apagaria ~1,6 milhão de casos de 2024 (1.594.148 linhas excedentes).
-- `NDUPLIC_N` (marcação do próprio SINAN), na população final: em branco em 99,9% / 99,85% / 97,6% das linhas; "1" em 1.304 / 1.918 / 12.491; "0" em 116.455 (só 2024); "/" em 26 (só 2023). `[VERIFY]` Significado dos códigos no dicionário antes de usar.
+- `NDUPLIC_N` (marcação do próprio SINAN), na população final: em branco em 99,9% / 99,85% / 97,6% das linhas; "1" em 1.304 / 1.918 / 12.491; "0" em 116.455 (só 2024); "/" em 26 (só 2023). Conferido em 2026-11-23: `NDUPLIC_N` também **não consta** no dicionário oficial citado acima (busca de texto no PDF inteiro, sem resultado). O significado dos códigos não tem fonte oficial; o campo não é usado para filtrar nem como feature, e as duplicatas seguem declaradas como limitação.
 
 ### Vieses conhecidos
 

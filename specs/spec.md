@@ -191,8 +191,8 @@ Entidades (notificação, caso, perfil, dobra, modelo, predição): [data-model 
 
 ## Critérios de sucesso
 
-Resultados mensuráveis. SC-01 a SC-04 são os critérios de aceitação do teste; todos são
-`[ASSUMPTION]` a confirmar pelo grupo.
+Resultados mensuráveis. SC-01 a SC-04 são os critérios de aceitação do teste; foram ratificados
+em bloco pelo Programador (D-95).
 
 - **SC-01** — O melhor M1 supera B0 em PR-AUC no teste, com IC 95% da diferença sem incluir 0.
 - **SC-02** — No limiar principal congelado (recall ≥ B2 nas predições fora da dobra, D-92), o recall do M1 no teste é ≥ ao da regra B2 no teste, com precisão maior. Resultado no teste de 2024: **falhou** (recall 0,6528 contra 0,6601; precisão 0,00975 contra 0,00529; `reports/teste/criterios.md`). Não se altera o critério depois do teste (D-36).
@@ -376,7 +376,7 @@ Todos obrigatórios (FR-04). Todos os modelos são julgados contra eles.
 
 Marcos sem datas (D-31): cada um tem um objetivo, os FRs que completa e critérios de saída
 verificáveis. A ordem é a de dependência; datas e prazos ficam fora do spec (D-29). Composição e
-critérios `[ASSUMPTION]`, a revisar pelo grupo.
+critérios confirmados pelo Programador em 2026-11-23, como estão.
 
 Os marcos se chamam **Marco 1…7** para não confundir com os modelos M1/M2. O Marco N é executado
 pelas tarefas `T-N.x` do arquivo `tasks/0N-…md` (D-60).
