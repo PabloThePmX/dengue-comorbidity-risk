@@ -86,7 +86,7 @@ modelos:
     treino_anos: [2022, 2023]     # config/base.yaml da branch (anos_dev)
     validacao: "PR-AUC média: mlp 0,0284, xgboost 0,0283, catboost 0,0271, elastic net 0,0266 (congelado por desempate técnico); mlp e xgboost não têm artefato commitado, e o congelado foi mantido por decisão do Programador"
     variaveis: "M1_FEATURES de preprocess.py da branch; a conferir na carga"
-    limiar: {valor: 0.0230, regra: "F2 máximo (reports/teste/metricas.md da branch)"}
+    limiar: {valor: 0.023047375160051217, regra: "F2 máximo (valor exato do artefato; a branch publica 0,0230)"}
 
 fora_do_conjunto:
   - id: m1_ricardo
