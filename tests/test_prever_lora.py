@@ -227,8 +227,9 @@ def test_adaptador_cobre_exatamente_o_dicionario_do_projeto():
     assert set(pl.ADAPTADOR) == set(FEATURES_PERMITIDAS)
 
 
-def test_categorias_sao_as_da_branch():
-    # dataset._tres_niveis da branch: Sim, Não, Ausente; build_feature_frame: F, M, I.
+def test_categorias_do_script_seguem_o_quadro_comum_da_main():
+    # dataset._tres_niveis da main: Sim, Não, Ausente; build_feature_frame: F, M, I. A branch usa
+    # Não, Sim, Ausente, mas o one-hot casa por valor (paridade com a rota nativa, diferença 0,0).
     assert pl.NIVEL3 == ("Sim", "Não", "Ausente")
     assert pl.SEXO_CATEGORIAS == ("F", "M", "I")
 

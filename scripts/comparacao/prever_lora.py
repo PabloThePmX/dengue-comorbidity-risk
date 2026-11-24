@@ -49,7 +49,8 @@ NOMES_R3_NOS_PARAMETROS = ("class_weight", "scale_pos_weight", "is_unbalance",
                            "auto_class_weights", "pos_weight")
 
 SEXO_CATEGORIAS = ("F", "M", "I")  # ordem de dataset.build_feature_frame da branch
-NIVEL3 = ("Sim", "Não", "Ausente")  # ordem de dataset._tres_niveis da branch
+NIVEL3 = ("Sim", "Não", "Ausente")  # ordem de dataset._tres_niveis da main (a branch usa
+# Não, Sim, Ausente; o one-hot dela casa por valor, então a ordem não muda a probabilidade)
 COMORBIDADES = ("DIABETES", "HEMATOLOG", "HEPATOPAT", "RENAL", "HIPERTENSA", "ACIDO_PEPT",
                 "AUTO_IMUNE")
 SINAIS = ("FEBRE", "MIALGIA", "CEFALEIA", "EXANTEMA", "VOMITO", "NAUSEA", "DOR_COSTAS",
