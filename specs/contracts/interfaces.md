@@ -125,8 +125,27 @@ D-97, FR-23. Só agregados saem para o git (R7); previsões por caso ficam em `d
 - **Porta por variável de ambiente:** os scripts de `scripts/comparacao/` só aceitam o ano de comparação com
   `DENGUE_PORTA_COMPARACAO=1`. É um contrato, e não uma barreira: quem a define é só o avaliador
   (`comparar.executar`), depois das checagens go/no-go (manifesto commitado e limpo, lacre ausente, SHA-256).
-- **Agregados** (`reports/comparacao/`): `metricas.md|json`, `diferencas.md|json`, `conformidade.md`,
-  `orcamentos.md` e as figuras `.png`. Células com < 10 casos suprimidas.
+- **Agregados** (`reports/comparacao/`): `metricas.json` (fonte única, formato abaixo) e, geradas dele,
+  `metricas.md`, `diferencas.md`, `orcamentos.md`, `conformidade.md` e as figuras `.png`. Células com < 10
+  casos suprimidas.
+- **`metricas.json`** (escrito por `comparar.py`, lido por `comparar_graficos.py`; só agregados, R7). Chaves:
+  - `ano` (int), `reamostras` (int), `semente` (int), `modelos` (lista de `id`, na ordem do manifesto) e
+    `modelo_de_referencia` (`"m1_main"`).
+  - `populacoes`: `{"principal": {"nome", "casos", "eventos", "prevalencia"}, "completa": {...}}`. A principal é
+    o subconjunto que o E1 estima (D-99); a completa é informação.
+  - `metricas[<populacao>][<id>]`: para cada uma de `pr_auc`, `roc_auc`, `brier`, `calibration_slope`,
+    `calibration_intercepto`, `obs_esp`: `{"valor": float, "ic95": [inf, sup]}` (ou `null` se o modelo não
+    estima a população, p. ex. E1 na completa).
+  - `diferencas_pr_auc_vs_referencia[<populacao>][<id>]`: `{"valor", "ic95", "leitura"}`, com `leitura` em
+    `"melhor"`, `"pior"` ou `"sem diferença detectável"` (o IC exclui 0 ou não, SC-09).
+  - `orcamentos[<populacao>][<id>]["0.05" | "0.10" | "0.14"]`: `{"alertas": int, "recall": {"valor",
+    "ic95"}, "precisao": {"valor", "ic95"}}` (recall e precisão entre os X% de maior risco).
+  - `no_limiar_proprio[<id>]`: `{"limiar", "alertas", "recall", "precisao"}` (só informação; `null` sem limiar).
+  - `curva_decisao`: `{"limiares": [floats em fração], "<id>": [net benefit por limiar]}` (população principal).
+  - `calibracao[<id>]`: lista de caixas por quantil `{"previsto", "observado", "ic95", "casos"}`; caixa com
+    menos de 10 casos ou eventos suprimida (R7).
+  - `conformidade[<id>]`: `{"r3_sem_correcao": bool, "r4_variaveis_no_dicionario": bool,
+    "treino_sem_ano_de_comparacao": bool, "versoes_diferentes_do_treino": bool|null, "externo": bool}`.
 
 ## Relatório de verificação
 
