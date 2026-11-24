@@ -264,7 +264,8 @@ teste de 2024 (R2).
   junto com a porta do teste, recusado). Fora dela, `assert_dev_only` e `dataset.load_population` recusam 2025.
 - O **manifesto** (`config/comparacao/manifesto.yaml`) é commitado antes: conjunto fechado, SHA-256, anos
   de treino e limiar próprio de cada modelo. O avaliador confere que ele está commitado e sem alteração
-  local, e grava o hash dele no **lacre** (`reports/comparacao/LACRE.json`), escrito por último.
+  local, e grava o hash dele no **lacre** (`reports/comparacao/LACRE.json`), escrito logo depois dos agregados
+  e antes das figuras (que só dependem dos agregados e podem ser regeneradas sem reler 2025).
 - Nada é escolhido pelo resultado de 2025. O "melhor modelo" de cada branch é o congelado por ela.
 
 **Fluxo:**
@@ -283,7 +284,7 @@ manifesto (commitado) -> checagens go/no-go -> porta aberta -> exportar_entrada(
                                   |
    comparar.py: alinha p com y (ANO, LINHA) -> métricas -> bootstrap pareado
                                   |
-        reports/comparacao/*.md|json|png  ->  LACRE (por último)
+        reports/comparacao/metricas.json|md  ->  LACRE  ->  figuras .png (só dos agregados)
 ```
 
 **Isolamento de modelos externos:** `joblib` executa código ao carregar. Cada branch roda em um worktree

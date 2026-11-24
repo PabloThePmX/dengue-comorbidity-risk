@@ -40,6 +40,17 @@ def _carregar_script():
 pp = _carregar_script()
 
 
+def test_primitivo_serializa_inf_e_nan_como_texto_e_mantem_o_resto():
+    assert pp._primitivo(float("inf")) == "inf"
+    assert pp._primitivo(float("nan")) == "nan"
+    assert pp._primitivo(np.float64("inf")) == "inf"
+    assert pp._primitivo(np.float64(0.5)) == 0.5
+    assert pp._primitivo(np.int64(3)) == 3
+    assert pp._primitivo(None) is None and pp._primitivo(True) is True and pp._primitivo("x") == "x"
+    texto = json.dumps({"C": pp._primitivo(float("inf"))}, allow_nan=False)
+    assert json.loads(texto) == {"C": "inf"}
+
+
 # ------------------------------------------------------------------ fixtures e helpers
 @pytest.fixture
 def espiao_carga(monkeypatch):
@@ -525,3 +536,72 @@ def test_conformidade_so_nomes_parametros_e_agregados(tmp_path, sem_porta):
                 yield from _listas(item)
 
     assert all(len(lista) <= 30 for lista in _listas(conf))
+
+
+# ----------------------------------------------- B0 e B1 reais (payload copiado do Drive)
+PAYLOAD_B0 = RAIZ / "models" / "b0_final" / "payload" / "b0.json"
+PAYLOAD_B1 = RAIZ / "models" / "b1_final" / "payload" / "b1.joblib"
+MOTIVO_B0 = "models/b0_final/payload/b0.json ausente (cópia do Drive pendente)"
+MOTIVO_B1 = "models/b1_final/payload/b1.joblib ausente (cópia do Drive pendente)"
+
+
+@pytest.mark.skipif(not PAYLOAD_B0.is_file(), reason=MOTIVO_B0)
+def test_b0_real_prevê_a_prevalencia_do_json():
+    """B0 real: p constante, igual à prevalência gravada no b0.json (sem metadata.json)."""
+    from dengue_sinan import baselines_final
+
+    obj = baselines_final._carregar_b0(PAYLOAD_B0.parent)
+    prevalencia = json.loads(PAYLOAD_B0.read_text(encoding="utf-8"))["prevalencia"]
+    p, est = pp.prever_bloco("b0_main", obj, _quadro(2022, n=20))
+    assert est is None and np.all(p == prevalencia)
+    assert obj.limiar == json.loads(PAYLOAD_B0.read_text(encoding="utf-8"))["limiar"]
+
+
+@pytest.mark.skipif(not PAYLOAD_B1.is_file(), reason=MOTIVO_B1)
+@pytest.mark.skipif(not AMOSTRA_2022.is_file(), reason="amostra de 2022 ausente (smoke_2022)")
+def test_b1_real_paridade_com_o_pipeline_carregado_direto_na_amostra_2022():
+    """B1 real: mesma probabilidade que o pipeline lido direto pelo joblib (rota independente do
+    script), 1e-12, e sem NaN. O evaluate não serve aqui: exige o metadata.json, que não existe."""
+    import joblib
+
+    from dengue_sinan import baselines_final
+
+    obj = baselines_final._carregar_b1(PAYLOAD_B1.parent)
+    cru = joblib.load(PAYLOAD_B1)
+    df = pd.read_parquet(AMOSTRA_2022)
+    p, _ = pp.prever_bloco("b1_main", obj, df)
+    direta = cru["modelo"].predict_proba(df[baselines.COLUNAS_B1])[:, 1]
+    assert np.nanmax(np.abs(p - direta)) <= 1e-12
+    pp.validar_p("b1_main", p, None)
+    assert obj.limiar == cru["limiar"]
+
+
+@pytest.mark.skipif(not PAYLOAD_B0.is_file(), reason=MOTIVO_B0)
+@pytest.mark.skipif(not PAYLOAD_B1.is_file(), reason=MOTIVO_B1)
+@pytest.mark.skipif(not AMOSTRA_2022.is_file(), reason="amostra de 2022 ausente (smoke_2022)")
+def test_fumaca_2022_com_todos_os_modelos_sem_metadata_para_b0_e_b1(tmp_path, sem_porta):
+    """Os cinco modelos na amostra de 2022: B0 e B1 ok sem metadata.json, sem NaN, p em [0,1]."""
+    saida = tmp_path / "out"
+    pp.main(["--entrada", str(AMOSTRA_2022), "--saida-dir", str(saida),
+             "--modelos", "b0_main", "b1_main", "b2_regra"])
+    resumo = json.loads((saida / "prever_projeto_2022.resumo.json").read_text(encoding="utf-8"))
+    assert {m: v["status"] for m, v in resumo["modelos"].items()} == {
+        "b0_main": "ok", "b1_main": "ok", "b2_regra": "ok"}
+    for mid in ("b0_main", "b1_main"):
+        frame = pd.read_parquet(saida / f"p_{mid}_2022.parquet")
+        assert frame["p"].notna().all() and frame["p"].between(0, 1).all()
+        assert frame["ANO"].eq(2022).all() and frame["LINHA"].is_unique
+        conf = json.loads((saida / f"p_{mid}_2022.conformidade.json").read_text(encoding="utf-8"))
+        assert conf["metadata_json_presente"] is False
+        assert conf["sha256_no_metadados_confere"] is None
+        assert conf["sha256_do_artefato_conferido"] == _sha_manifesto(mid)
+
+
+def _sha_manifesto(mid: str) -> str:
+    return pp.modelo_do_manifesto(_manifesto(), mid)["artefato"]["sha256"]
+
+
+def test_sem_metadata_o_script_nao_inventa_metadado(tmp_path):
+    """Sem metadata.json, `_tem_metadados` é falso e o caminho do payload é o único usado."""
+    plano = pp.Plano("b0_main", tmp_path / "payload" / "b0.json", tmp_path, "0" * 64)
+    assert pp._tem_metadados(plano) is False

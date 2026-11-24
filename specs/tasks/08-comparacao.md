@@ -92,20 +92,21 @@ validação dela (decisão do Programador, 2026-11-24).
   linhas, diferença 0,0). **Atenção R7:** o pickle da branch guarda 20 linhas de microdados de 2022–23
   (`background_df`); a cópia só existe no worktree local, e as cópias temporárias foram apagadas.
 
-### [ ] T-8.6 — Previsões do próprio projeto dentro da porta (`m1_main`, `e1_main`, `b0_main`, `b1_main`, `b2_regra`)
+### [x] T-8.6 — Previsões do próprio projeto dentro da porta (`m1_main`, `e1_main`, `b0_main`, `b1_main`, `b2_regra`)
 
 - `scripts/comparacao/prever_projeto.py` (roda com o `.venv` da main): lê a entrada comum e grava
   `p` (ANO, LINHA) de M1, E1, B0 e B1 com os artefatos congelados; a B2 é a regra
   (`baselines.rule_b2`) sobre a mesma entrada. Mesma recusa de ano, mesma ordem de checagens
   (SHA-256 contra o manifesto **antes** de carregar), mesmo contrato de saída.
-- **Estado (2026-11-24): parcial.** `prever_projeto.py` e `tests/test_prever_projeto.py` (37 testes) existem; M1
-  roda pelo carregador tolerante da demo (`app.servico.carregar_bundle_m1`, o XGBoost do `.venv` não lê o
-  booster gravado no Colab); E1 e B2 rodam; **B0 e B1 aguardam a cópia do Drive**. E1: decisão **A** (D-99),
-  população principal = casos que o E1 estima (0,16% dos casos e 0,23% dos eventos de 2022–23 ficam de fora).
-- 🛑 **Pare e peça ao Programador:** `models/b0_final` e `models/b1_final` estão só no Drive (o lacre
-  de 2024 aponta caminhos do Drive). Copiar para `models/` (ignorado pelo git) e conferir o SHA-256
-  contra o manifesto. Sem isso, B0 e B1 ficam de fora e o manifesto precisa de nova versão **antes**
-  do lacre.
+- **Feita em 2026-11-24.** `prever_projeto.py` e `tests/test_prever_projeto.py` (42 testes); o M1 roda pelo
+  carregador tolerante da demo (`app.servico.carregar_bundle_m1`; o XGBoost do `.venv` não lê o booster
+  gravado no Colab); E1 e B2 rodam; B0 e B1, copiados do Drive pelo Programador, rodam (SHA-256 `b6e4ad9c…` e
+  `9271ca6f…` conferidos). Só o payload veio, sem `metadata.json`: o script usa os codecs de `baselines_final`
+  depois do SHA-256 e a conformidade registra `metadata_json_presente: false`, sem inventar valores. E1:
+  decisão **A** (D-99), população principal = casos que o E1 estima (0,16% dos casos e 0,23% dos eventos de
+  2022–23 ficam de fora).
+- ~~🛑 Copiar `models/b0_final` e `models/b1_final` do Drive~~ Cumprido pelo Programador; os arquivos estão em
+  `models/` (ignorado pelo git).
 - **Atenção:** `evaluate.predizer` só abre a porta do **teste**; não serve para 2025. O
   `prever_projeto.py` abre `guard.leitura_do_ano_de_comparacao()` e recusa 2024 sempre. Os limiares de B0 e
   B1 do manifesto agora são os exatos de `reports/teste/metricas.json` (`0.0015293309772438427` e
@@ -153,13 +154,19 @@ validação dela (decisão do Programador, 2026-11-24).
   **único** que define `DENGUE_PORTA_COMPARACAO=1` (a variável é um contrato, não uma porta: teste que
   ela não está definida fora do avaliador); (2) abre a porta e exporta a entrada de 2025; (3) roda os scripts
   isolados com `DENGUE_PORTA_COMPARACAO=1` (subprocess, só o python de cada worktree) e o do projeto;
-  (4) alinha, calcula e grava os agregados e as figuras; (5) grava o **lacre por último**
-  (`reports/comparacao/LACRE.json`: commit, hash do manifesto, SHA-256 dos artefatos, das previsões e
-  dos dados, semente, reamostras). Uma segunda execução **falha** (R2).
+  (4) alinha, calcula e grava `metricas.json` e os `.md`; (5) grava o **lacre logo depois dos
+  agregados e antes das figuras** (`reports/comparacao/LACRE.json`: commit, hash do manifesto, SHA-256
+  dos artefatos, das previsões, dos agregados e dos dados, semente, reamostras); (6) gera as figuras só dos
+  agregados (idempotente: pode repetir com `--so-graficos` sem reler 2025). Se qualquer script falhar
+  **antes** das métricas, nada foi visto e não há lacre; se falhar depois, o lacre já existe e vale.
+  Uma segunda execução **falha** (R2).
 - **Modo ensaio (`--ensaio`):** a mesma cadeia com um **ano sintético** num diretório temporário (sem
   tocar 2025 nem 2024), para provar a cadeia inteira antes da execução real.
+- Código novo em `src/dengue_sinan/comparar_executar.py` (o `comparar.py` não pode importar `guard`: há teste
+  estático). A execução real exige o argumento `--confirmo-execucao-unica-em-2025`; `--so-checagens` roda só o
+  go/no-go (para a T-8.10).
 - **Pronto quando:** o ensaio ponta a ponta passa nos testes (inclusive "segunda execução falha",
-  "manifesto alterado recusa", "manifesto sem commit recusa", "lacre só no fim", "script externo falha
+  "manifesto alterado recusa", "manifesto sem commit recusa", "lacre depois dos agregados e antes das figuras", "script externo falha
   → nada de lacre", "SHA-256 de artefato divergente recusa", "variável de ambiente só no avaliador"); nada em
   `data/` entra no git; `ruff` limpo.
 

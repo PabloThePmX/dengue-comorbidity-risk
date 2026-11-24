@@ -118,7 +118,7 @@ D-97, FR-23. Só agregados saem para o git (R7); previsões por caso ficam em `d
   (R4), parâmetros do estimador e a busca por correção de desbalanceamento (R3), anos de treino, versões do
   ambiente de execução e de treino, estatísticas de `p` (mínimo, máximo, média, nº de 0 e de 1, NaN). Sem
   nenhum valor de linha.
-- **Lacre** (`reports/comparacao/LACRE.json`, escrito por último): `commit`, `sha256` do manifesto,
+- **Lacre** (`reports/comparacao/LACRE.json`, escrito logo depois dos agregados e antes das figuras): `commit`, `sha256` do manifesto,
   `arvore_limpa`, SHA-256 de cada artefato e de cada previsão, SHA-256 do `.dbc` de 2025
   (`87831a1ee61d03d0f83dcb788c23b1a5cfd938ec22f7e44313833e9eb6445d29`), `semente`, `reamostras`,
   `gravado_em_utc`. Existir impede nova execução (R2).

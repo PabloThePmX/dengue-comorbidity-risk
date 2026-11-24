@@ -150,8 +150,26 @@ def carregar(plano: Plano):
         from app import servico
 
         return servico.carregar_bundle_m1(plano.pasta)
+    if plano.id in ("b0_main", "b1_main") and not _tem_metadados(plano):
+        return _carregar_payload_baseline(plano)
     _registrar_tipos()
     return artifacts.load_bundle(plano.pasta)
+
+
+def _tem_metadados(plano: Plano) -> bool:
+    return (plano.pasta / artifacts.NOME_METADATA).is_file()
+
+
+def _carregar_payload_baseline(plano: Plano):
+    """B0 e B1 sem `metadata.json` (o Programador copiou só o payload do Drive). O `load_bundle`
+    exige o metadata; aqui se usa o codec do próprio `baselines_final` sobre o payload, que é o
+    que o `load_bundle` chama depois das suas checagens. O SHA-256 do payload já foi conferido
+    contra o manifesto (antes da carga). Não se inventa metadado."""
+    from dengue_sinan import baselines_final
+
+    if plano.id == "b0_main":
+        return baselines_final._carregar_b0(plano.arquivo.parent)
+    return baselines_final._carregar_b1(plano.arquivo.parent)
 
 
 def features_do_modelo(mid: str, obj) -> list[str]:
@@ -255,10 +273,16 @@ def _concatenar(partes: list[np.ndarray], tipo: str) -> np.ndarray:
 
 # --------------------------------------------------------------------------- conformidade (R7)
 def _primitivo(valor):
-    if valor is None or isinstance(valor, bool | int | float | str):
-        return valor
+    """Valor de parâmetro em JSON estrito: número finito, texto ou booleano; o resto vira texto
+    (inclusive Infinity e NaN, que o JSON padrão não aceita)."""
     if isinstance(valor, np.integer | np.floating):
-        return valor.item()
+        valor = valor.item()
+    if valor is None or isinstance(valor, bool | str):
+        return valor
+    if isinstance(valor, int):
+        return valor
+    if isinstance(valor, float) and np.isfinite(valor):
+        return valor
     return str(valor)
 
 
@@ -331,7 +355,8 @@ def estatisticas(p: np.ndarray, estimavel: np.ndarray | None) -> dict:
 def conformidade(plano: Plano, obj, features: list[str], dicionario: list[str], ano: int,
                  ano_comparacao: int, manifesto_modelo: dict, estat: dict) -> dict:
     fora = checar_dicionario(features, dicionario)
-    meta = artifacts.ler_metadados(plano.pasta) if plano.pasta is not None else {}
+    tem_meta = plano.pasta is not None and _tem_metadados(plano)
+    meta = artifacts.ler_metadados(plano.pasta) if tem_meta else {}
     treino = list(manifesto_modelo["treino_anos"])
     limiar_manifesto = (manifesto_modelo.get("limiar") or {}).get("valor")
     limiar_artefato = getattr(obj, "limiar", None)
@@ -340,9 +365,10 @@ def conformidade(plano: Plano, obj, features: list[str], dicionario: list[str], 
         "papel": manifesto_modelo["papel"],
         "status": "ok",
         "sha256_do_artefato_conferido": plano.sha_conferido,
+        "metadata_json_presente": tem_meta if plano.arquivo is not None else None,
         "sha256_no_metadados_confere": (
             meta.get("payload", {}).get(plano.arquivo.name) == plano.sha_declarado
-            if plano.arquivo is not None else None),
+            if tem_meta else None),
         "variaveis": features,
         "n_variaveis": len(features),
         "variaveis_fora_do_dicionario_do_projeto": fora,
