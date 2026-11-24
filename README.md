@@ -40,6 +40,7 @@ uv run streamlit run src/app/streamlit_app.py
 não embarca microdados.
 
 **Resultado do teste de 2024 (sem eufemismo):** o critério SC-02 (recall do M1 igual ou maior que o
-da regra B2, com precisão maior) **não foi atendido**, e o modelo **subestimou o risco em cerca de
-30%** (o observado foi maior que o previsto). O sinal "alto risco" tem baixa precisão: cerca de 99%
+da regra B2, com precisão maior) **não foi atendido**: o recall do M1 foi 0,6528 contra 0,6601 da regra (diferença de −0,0072, IC de
+−0,0151 a 0,0005, que mal inclui zero), com precisão maior (0,00975 contra 0,00529) e 46% menos alertas.
+O modelo também **subestimou o risco em cerca de 30%** (o observado foi maior que o previsto). O sinal "alto risco" tem baixa precisão: cerca de 99%
 dos casos marcados não evoluíram para grave ou óbito. Detalhes em `reports/teste/`.

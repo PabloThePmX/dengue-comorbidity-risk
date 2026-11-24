@@ -2,7 +2,7 @@
 
 > Adaptado do Spec Kit para projeto acadêmico de ML. Refazer a cada mudança relevante do spec e
 > antes da entrega (T-7.3).
-> **Última avaliação:** 2026-11-23 (T-7.3), spec v0.20 e plan v0.19 (Marcos 1 a 6 concluídos; teste de 2024 avaliado uma vez; Marco 7 em andamento). Pendências: da seção do relatório TRIPOD+AI, no fim deste arquivo.
+> **Última avaliação:** 2026-11-23 (T-7.3), spec v0.20 e plan v0.19 (Marcos 1 a 7 concluídos; teste de 2024 avaliado uma vez). Sem itens abertos.
 
 ## Requisitos
 
@@ -24,7 +24,7 @@
 - [x] [Baselines](../spec.md#baselines) definidos e critérios de sucesso relativos a eles (SC-01, SC-02, SC-04).
 - [x] Métrica primária justificada pelo custo dos erros ([spec › Usuários e custo dos erros](../spec.md#usuários-e-custo-dos-erros), [Plano de avaliação](../spec.md#plano-de-avaliação)); incerteza com IC bootstrap.
 - [x] Avaliação por subgrupo planejada, com aviso para subgrupos com < 100 eventos.
-- [x] **Resultado final reprodutível a partir de semente, config e versão dos dados.** Verificado em 2026-11-23 (T-7.3): 17 de 17 arquivos idênticos byte a byte, sem reavaliar o lacre original (`reports/verificacao/T-7.3-nfr02.json`). Ressalva: reproduz a avaliação com os modelos congelados; não retreinou do zero.
+- [x] **Resultado final reprodutível a partir de semente, config e versão dos dados.** Verificado em 2026-11-23 (T-7.3): os 14 arquivos regerados pelo `evaluate` saíram idênticos byte a byte (mais 3 PNGs que já estavam no clone e não são regerados; só o `LACRE.json` difere, em `commit` e `gravado_em_utc`), sem reavaliar o lacre original (`reports/verificacao/T-7.3-nfr02.json`). Ressalva: reproduz a avaliação com os modelos congelados; não retreinou do zero.
 
 ## Marcadores e decisões
 
@@ -40,7 +40,7 @@
 ## Marcos
 
 - [x] [Marcos](../spec.md#marcos) cobrem todos os FR com MUST e têm critérios de saída
-  verificáveis. Prazos ficam fora do spec (D-29, D-31). Marcos 5 e 6 concluídos; o teste cumpriu SC-01, SC-03 e SC-04 e falhou em SC-02 (reportado). Ressalva (T-7.3): o critério de saída do Marco 7 exige este checklist passando; ainda não passa, por causa das pendências deste arquivo.
+  verificáveis. Prazos ficam fora do spec (D-29, D-31). Marcos 5 e 6 concluídos; o teste cumpriu SC-01, SC-03 e SC-04 e falhou em SC-02 (reportado). Marco 7 concluído em 2026-11-23: este checklist passa, sem itens abertos.
 
 ## Relatório TRIPOD+AI (T-7.3, 2026-11-23)
 
