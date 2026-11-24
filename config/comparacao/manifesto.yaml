@@ -51,14 +51,14 @@ modelos:
     artefato: {caminho: "models/b1_final/payload/b1.joblib", fora_do_git: true,
                sha256: "9271ca6f2d4c45134ce6a2a5292878d7a989d0cc35293cda195c0a65ea6e6504"}
     treino_anos: [2022, 2023]
-    limiar: {valor: 0.001140, regra: "recall >= B2 nas predições brutas fora da dobra"}
+    limiar: {valor: 0.0011404326369948274, regra: "recall >= B2 nas predições brutas fora da dobra (reports/teste/metricas.json)"}
   - id: b0_main
     papel: baseline B0 (prevalência)
     origem: {branch: main, commit: "91425adf9a3c2a614cecc10650a2f75678aeb9b0"}
     artefato: {caminho: "models/b0_final/payload/b0.json", fora_do_git: true,
                sha256: "b6e4ad9c92adfc63561d69fff52e3a25eaf62eb21fe83a26ec13edfa94b32ee3"}
     treino_anos: [2022, 2023]
-    limiar: {valor: 0.001529, regra: "recall >= B2 (marca todos os casos)"}
+    limiar: {valor: 0.0015293309772438427, regra: "recall >= B2 (marca todos os casos; reports/teste/metricas.json)"}
   - id: b2_regra
     papel: regra do protocolo do Ministério (grupo B, B2); não treina
     origem: {branch: main}

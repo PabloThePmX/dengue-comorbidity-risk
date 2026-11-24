@@ -96,6 +96,35 @@ Streamlit, FR-11, D-27.
 - **Modos (D-96):** seletor no topo, **Normal** por padrão e **Pro**. O Pro mostra tudo o que está acima. O Normal usa os mesmos campos e modelos, mas diz o risco como frequência ("cerca de 1 em N"), explica os fatores em palavras e não mostra IC, OR, log-odds, limiar, regra B2 nem o rótulo "alto risco". O aviso fixo e o aviso de subestimativa valem nos dois.
 - Nenhum microdado embarcado; nenhuma entrada armazenada (NFR-03).
 
+## Comparação em 2025
+
+D-97, FR-23. Só agregados saem para o git (R7); previsões por caso ficam em `data/comparacao/` (ignorado).
+
+- **Manifesto** (`config/comparacao/manifesto.yaml`, validado por `comparacao_manifesto.carregar_manifesto`):
+  `versao`, `ano_comparacao` (igual ao do config), `comparacao` (métricas, orçamentos de alertas, reamostras),
+  `modelo_por_branch`, `saidas`, `verificacoes_na_carga`, `modelos` e `fora_do_conjunto`. Cada modelo tem `id`,
+  `papel`, `origem` (`branch`, `commit`), `artefato` (`caminho`, `sha256` de 64 hex; `null` para a regra B2),
+  `treino_anos` (sem o ano de comparação), `limiar` (`valor` e `regra`, ou `null`) e, se houver, `validacao`.
+- **Entrada comum** (`data/comparacao/entrada_<ano>.parquet` + `.json`): uma linha por caso da população
+  (D-45); colunas `ANO` (int64), `LINHA` (int64, nº da linha no parquet do ano) e as features do
+  [dicionário](../data-model.md#dicionário-de-features). O `.json` traz o ano, o número de linhas e o SHA-256
+  do parquet. O `y` **não** vai na entrada; vem do lado da `main`, com a mesma `LINHA`.
+- **Previsões** (`data/comparacao/p_<id>_<ano>.parquet`): `ANO`, `LINHA` e `p` (float64, em [0, 1], sem NaN),
+  uma linha por linha da entrada, na mesma ordem e sem repetição. Um modelo com linha faltando é recusado.
+- **Conformidade** (`.conformidade.json`, por modelo): `sha256` conferido, `variaveis` e se estão no dicionário
+  (R4), parâmetros do estimador e a busca por correção de desbalanceamento (R3), anos de treino, versões do
+  ambiente de execução e de treino, estatísticas de `p` (mínimo, máximo, média, nº de 0 e de 1, NaN). Sem
+  nenhum valor de linha.
+- **Lacre** (`reports/comparacao/LACRE.json`, escrito por último): `commit`, `sha256` do manifesto,
+  `arvore_limpa`, SHA-256 de cada artefato e de cada previsão, SHA-256 do `.dbc` de 2025
+  (`87831a1ee61d03d0f83dcb788c23b1a5cfd938ec22f7e44313833e9eb6445d29`), `semente`, `reamostras`,
+  `gravado_em_utc`. Existir impede nova execução (R2).
+- **Porta por variável de ambiente:** os scripts de `scripts/comparacao/` só aceitam o ano de comparação com
+  `DENGUE_PORTA_COMPARACAO=1`. É um contrato, e não uma barreira: quem a define é só o avaliador
+  (`comparar.executar`), depois das checagens go/no-go (manifesto commitado e limpo, lacre ausente, SHA-256).
+- **Agregados** (`reports/comparacao/`): `metricas.md|json`, `diferencas.md|json`, `conformidade.md`,
+  `orcamentos.md` e as figuras `.png`. Células com < 10 casos suprimidas.
+
 ## Relatório de verificação
 
 D-56. `reports/verificacao/<tarefa>.json`, gerado por `verify.write_report` no PC local (Marcos 2 e 3) ou no Colab (Marcos 4 e 5), conforme o D-66. Só agregados (R7).

@@ -2,7 +2,7 @@
 
 > Adaptado do Spec Kit para projeto acadêmico de ML. Refazer a cada mudança relevante do spec e
 > antes da entrega (T-7.3).
-> **Última avaliação:** 2026-11-23 (T-7.3), spec v0.20 e plan v0.19 (Marcos 1 a 7 concluídos; teste de 2024 avaliado uma vez). Sem itens abertos.
+> **Última avaliação:** 2026-11-24, spec v0.21 e plan v0.20 (Marcos 1 a 7 concluídos; teste de 2024 avaliado uma vez). A seção "Comparação em 2025 (Marco 8)", no fim, tem itens abertos de propósito.
 
 ## Requisitos
 
@@ -50,3 +50,17 @@
 - [x] "Outras informações": financiamento e conflitos declarados pelo Programador em 2026-11-23 (sem financiamento externo, sem conflitos); o usuário do GitHub na URL do repositório foi autorizado por ele.
 - [x] Capa: por decisão do Programador (2026-11-23), o relatório não tem capa com instituição e autor nem folha de rosto; a capa traz só o título da pesquisa. Nenhum `[PREENCHER]` no `.md` nem no `.docx`.
 - [x] `[VERIFY]` no relatório: nenhum aberto.
+
+## Comparação em 2025 (Marco 8)
+
+- [x] FR-23, SC-09 e US4 existem no spec com IDs novos, sem renumerar, e a seção do plan e o contrato
+  correspondentes (T-8.0). Os `[ASSUMPTION]` novos (orçamentos de alertas 5%, 10% e 14%; 1.000 reamostras; regra de
+  "melhor" pelo IC da diferença) aguardam a revisão do Programador.
+- [x] Constituição 1.5 (R1 e R2 com o ano de comparação) e D-97 registrados; porta, config e manifesto com testes
+  (T-8.1 a T-8.3).
+- [x] Scripts isolados da `soneca` e da `lora` validados, sem leitura de 2024 nem de 2025 (T-8.4 e T-8.5).
+- [ ] Previsões do próprio projeto dentro da porta (T-8.6); B0 e B1 finais copiados do Drive.
+- [ ] Avaliador, gráficos e orquestrador com ensaio ponta a ponta em ano sintético (T-8.7 a T-8.9).
+- [ ] "Ok" do Programador e execução única em 2025, com lacre (T-8.10 e T-8.11).
+- [ ] Relatório e README atualizados com o resultado real (T-8.12).
+- [ ] Auditoria do marco e limpeza dos worktrees (T-8.13).

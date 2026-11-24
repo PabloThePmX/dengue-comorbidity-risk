@@ -1,6 +1,6 @@
 # Plano técnico — Risco de desfecho grave em dengue por perfil de comorbidades
 
-**Data**: 2026-11-23 | **Status**: v0.19 (D-91 a D-94)
+**Data**: 2026-11-24 | **Status**: v0.20 (D-91 a D-98)
 
 > **Como** o projeto é construído. Requisitos em [spec.md](spec.md); princípios em
 > [constitution.md](constitution.md); motivos das escolhas em [research.md](research.md).
@@ -97,6 +97,13 @@ Módulos de `src/dengue_sinan/`:
 | `runner.py` | `run_all_models`: sessão única com retomada; grava `sessao-m1.json`; entrada `python -m` para rodar em segundo plano | D-53, D-57, D-64 | T-4.3b |
 | `mlp.py` | MLP em PyTorch com interface do scikit-learn | D-51 | T-4.6b |
 | `evaluate.py` | `evaluate_test_once` + lacre | FR-09, R2 | T-5.1 |
+| `comparacao_manifesto.py` | Carrega e valida o manifesto da comparação (`config/comparacao/manifesto.yaml`); `exportar_json` | FR-23, D-97 | T-8.3 |
+| `comparacao_entrada.py` | `exportar_entrada`: quadro de features comum (ANO, LINHA) de um ano, sem ou com a porta de 2025 | FR-23, R1 | T-8.4 |
+| `comparar.py` | Avaliador comparativo: alinhar previsões com y, métricas sem limiar, recall em orçamento de alertas, bootstrap pareado, conformidade, lacre e `executar` | FR-23, R2 | T-8.7, T-8.9 |
+| `comparar_graficos.py` | Figuras comparativas a partir dos agregados | FR-23, R7 | T-8.8 |
+
+Os scripts de previsão de cada modelo ficam em `scripts/comparacao/` (`prever_soneca.py`, `prever_lora.py`,
+`prever_projeto.py`): não fazem parte do pacote, porque rodam com o python de outro worktree (Marco 8).
 
 A demo fica em `src/app/streamlit_app.py` (T-6.1) e só importa `dengue_sinan` e os artefatos
 serializados; não lê microdados (NFR-03).
@@ -245,6 +252,56 @@ FR-22.
 - Empate (diferença < 0,005 ou ICs sobrepostos; regra mantida em D-53) → menor Brier.
 - Persistindo → o modelo mais simples, na ordem: elastic net < Random Forest < XGBoost/CatBoost < MLP `[ASSUMPTION]`. A ordem cobre só os cinco modelos reais (o TabFM saiu, D-91); na seleção real o desempate foi pelo menor Brier (D-95).
 - Calibrador e limiar: [spec › Plano de avaliação](spec.md#plano-de-avaliação); a escolha entre isotônica e Platt é a de menor Brier fora da dobra `[ASSUMPTION]`.
+
+## Comparação em 2025
+
+Marco 8 (FR-23, D-97, D-98). Responde "o M1 é melhor que os modelos das outras branches?" sem reabrir o
+teste de 2024 (R2).
+
+**Garantias** (constituição R1 e R2, versão 1.5):
+- `config/base.yaml` tem `ano_comparacao: 2025`, fora de `anos_dev` e diferente de `ano_teste`.
+- 2025 só é lido dentro de `guard.leitura_do_ano_de_comparacao()` (por thread, só 2025, vazio recusado;
+  junto com a porta do teste, recusado). Fora dela, `assert_dev_only` e `dataset.load_population` recusam 2025.
+- O **manifesto** (`config/comparacao/manifesto.yaml`) é commitado antes: conjunto fechado, SHA-256, anos
+  de treino e limiar próprio de cada modelo. O avaliador confere que ele está commitado e sem alteração
+  local, e grava o hash dele no **lacre** (`reports/comparacao/LACRE.json`), escrito por último.
+- Nada é escolhido pelo resultado de 2025. O "melhor modelo" de cada branch é o congelado por ela.
+
+**Fluxo:**
+
+```
+manifesto (commitado) -> checagens go/no-go -> porta aberta -> exportar_entrada(2025)
+                                                                  |
+                      data/comparacao/entrada_2025.parquet  <-----+
+                         |                |                |
+          prever_projeto.py    prever_soneca.py    prever_lora.py
+          (.venv da main)      (worktree + venv    (worktree + venv
+                                da soneca; SHA-256  da lora; SHA-256
+                                antes do load)      antes do load)
+                         |                |                |
+              data/comparacao/p_<id>_2025.parquet (ANO, LINHA, p)
+                                  |
+   comparar.py: alinha p com y (ANO, LINHA) -> métricas -> bootstrap pareado
+                                  |
+        reports/comparacao/*.md|json|png  ->  LACRE (por último)
+```
+
+**Isolamento de modelos externos:** `joblib` executa código ao carregar. Cada branch roda em um worktree
+fora do repositório (`..\_comparacao\<branch>`, detached no commit do manifesto), com ambiente próprio
+criado pelo Programador (`uv sync --frozen` só no terminal dele, ver quickstart), e o script confere o
+interpretador, o SHA-256 e o ano **antes** de carregar. O ambiente de referência é o `uv.lock` da branch; as
+versões de treino diferentes ficam registradas.
+
+**Métricas** (comparáveis entre modelos com limiares diferentes): PR-AUC, ROC-AUC, Brier, calibration slope e
+intercepto, observado/esperado e net benefit, mais recall e precisão entre os 5%, 10% e 14% de maior risco
+`[ASSUMPTION]`. O recall no limiar próprio de cada modelo é só informação (as branches usam o F2 máximo; o M1,
+o recall ≥ B2, D-92). Diferenças contra o M1 por bootstrap pareado, 1.000 reamostras `[ASSUMPTION]`, semente única.
+
+**Poder estatístico:** 2025 tem 1.389.509 casos e 3.436 eventos (`reports/perfil_2025.md`), cerca de 30% dos
+eventos de 2024. Diferenças pequenas entre modelos próximos provavelmente saem como "sem diferença detectável".
+
+**Conformidade (reporta, não exclui):** variáveis dentro do dicionário (R4), sem correção de desbalanceamento
+(R3), anos de treino sem 2025, versões de bibliotecas. O JSON de cada script só tem nomes, parâmetros e agregados.
 
 ## Reprodutibilidade
 

@@ -1,11 +1,11 @@
 # Spec — Risco de desfecho grave em dengue por perfil de comorbidades
 
-**Criado**: 2026-10-19 | **Atualizado**: 2026-11-23 | **Status**: rascunho v0.20 (Marcos 1 a 6 concluídos; D-91 a D-94)
+**Criado**: 2026-10-19 | **Atualizado**: 2026-11-24 | **Status**: rascunho v0.21 (Marcos 1 a 7 concluídos; Marco 8 em planejamento; D-91 a D-98)
 **Entrada**: pré-projeto enviado ao professor (Grupo 1, "Dengue e Comorbidades") e retorno do professor (2026-11-02).
 
 > **O quê e por quê.** Objetivo em [goal.md](goal.md); como fazer em [plan.md](plan.md); dados em
 > [data-model.md](data-model.md).
-> Marcos 1 a 6 concluídos (teste de 2024 avaliado uma vez em 2026-11-23, lacre gravado; demo local); Marco 7 (relatório) em andamento ([tasks/07-relatorio.md](tasks/07-relatorio.md)).
+> Marcos 1 a 6 concluídos (teste de 2024 avaliado uma vez em 2026-11-23, lacre gravado; demo local); Marco 7 (relatório) concluído; Marco 8 (comparação em 2025, D-97) em planejamento ([tasks/08-comparacao.md](tasks/08-comparacao.md)).
 > Números de dados, salvo indicação: 3ª execução do profiling (2026-11-03 04:21 UTC),
 > [profiling/RESULTADOS.md](../profiling/RESULTADOS.md).
 
@@ -118,6 +118,24 @@ O professor ou um profissional de saúde quer testar os dois modelos pelo navega
   3. **Dado** qualquer uso, **então** o aviso de projeto acadêmico aparece e nenhuma entrada é
      armazenada (NFR-03).
 
+### US4 — Comparar o M1 com modelos de outras branches (Prioridade: P4)
+
+O Programador quer saber se o M1 é melhor que os modelos gerados, para o mesmo problema, nas outras
+branches do repositório (`feat/soneca`, `feat/lora`; `feat/ricardo` ainda sem artefato).
+
+- **Por que P4:** é uma pergunta nova, posterior ao teste de 2024 (que está lacrado, R2). Não muda o M1
+  nem os critérios SC-01 a SC-04.
+- **Teste independente:** com o manifesto commitado e as previsões de cada modelo, gerar a tabela e os
+  gráficos comparativos de um ano que nenhum modelo viu.
+- **Cenários de aceitação:**
+  1. **Dado** o manifesto commitado e o lacre ausente, **quando** a comparação roda, **então** o ano de
+     comparação (2025) é lido uma única vez e o lacre é gravado por último (R1, R2).
+  2. **Dado** o lacre, **quando** a comparação roda de novo, **então** falha (R2).
+  3. **Dado** um modelo treinado em 2025, ou sem SHA-256 válido, **então** o manifesto é recusado.
+  4. **Dado** o resultado, **então** cada modelo tem PR-AUC com IC 95% e a diferença pareada contra o
+     M1 com IC; "melhor" só se o IC da diferença exclui 0, senão "sem diferença detectável" `[ASSUMPTION]`.
+  5. **Dado** qualquer modelo externo, **então** a conformidade com R3 a R6 é reportada, sem excluí-lo (D-97 f).
+
 ### Casos-limite
 
 - Óbito pelo agravo com classificação "dengue" (10) → `y = 1` ([Formulação](#formulação-do-problema)).
@@ -176,6 +194,18 @@ O professor ou um profissional de saúde quer testar os dois modelos pelo navega
   - As observações entram no relatório (apêndice D), com quem revisou (função, sem dados pessoais) e quando.
   - **Regra:** sugestões que exigiriam mudar o modelo **não** são aplicadas, porque o teste de 2024 já foi usado (R2). Elas entram como limitação e trabalho futuro.
 - **FR-22** — O pipeline MUST guardar os melhores pesos encontrados **na validação** (D-36, D-37), nunca no teste: o melhor ponto de cada modelo iterativo por dobra e a melhor tentativa de cada busca ficam salvos no MLflow. O teste de 2024 nunca escolhe peso; resultado pior no teste é reportado como resultado (drift). Como fazer: [plan › Early stopping e melhores pesos](plan.md#early-stopping-e-melhores-pesos).
+- **FR-23** — O projeto SHOULD comparar o M1 e os baselines (B0, B1, B2, E1) com os modelos congelados das
+  outras branches em um ano que nenhum deles viu (2025, o **ano de comparação**), nas condições do
+  [D-97](research.md#registro-de-decisões) e da [constituição](constitution.md) R1 e R2 (1.5):
+  - conjunto fechado de modelos declarado em um **manifesto commitado antes** de 2025 ser lido, com SHA-256
+    de cada artefato, anos de treino e limiar próprio; modelo acrescentado depois é exploratório;
+  - 2025 lido **uma única vez**, pela porta `guard.leitura_do_ano_de_comparacao()`, com lacre próprio;
+    nenhum modelo é escolhido, ajustado ou substituído pelo resultado;
+  - modelos externos rodam só em worktree e ambiente isolados (o `joblib` executa código ao carregar);
+  - métricas sem limiar (PR-AUC, ROC-AUC, Brier, calibração, curva de decisão) e recall e precisão entre os
+    5%, 10% e 14% de maior risco `[ASSUMPTION]`, com bootstrap pareado de 1.000 reamostras `[ASSUMPTION]`;
+  - previsões por caso ficam fora do git (R7); só agregados vão para `reports/comparacao/`.
+  Como fazer: [plan › Comparação em 2025](plan.md#comparação-em-2025). Tarefas: [tasks/08-comparacao.md](tasks/08-comparacao.md).
 
 ### Não funcionais
 
@@ -205,6 +235,10 @@ em bloco pelo Programador (D-95).
 - **SC-07** — A reexecução a partir de um checkout limpo reproduz as métricas de teste com 3 casas
   decimais (NFR-02). **Resultado (T-7.3, 2026-11-23): passou** para a reexecução da avaliação com os modelos congelados: 17 de 17 arquivos idênticos byte a byte (`reports/verificacao/T-7.3-nfr02.json`). Limite: não retreinou os modelos do zero.
 - **SC-08** — O relatório cobre todos os itens do checklist TRIPOD+AI (FR-20).
+- **SC-09** — A comparação em 2025 roda **uma única vez**, com o manifesto commitado antes, grava o lacre e
+  reporta, para cada modelo do conjunto, a PR-AUC com IC 95% e a diferença pareada contra o M1 com IC
+  95%. Passa se a execução cumpre as condições do FR-23, **qualquer que seja o resultado** (empate ou
+  M1 pior também passam). Não é critério de desempenho do M1.
 
 ## Premissas
 
@@ -378,7 +412,7 @@ Marcos sem datas (D-31): cada um tem um objetivo, os FRs que completa e critéri
 verificáveis. A ordem é a de dependência; datas e prazos ficam fora do spec (D-29). Composição e
 critérios confirmados pelo Programador em 2026-11-23, como estão.
 
-Os marcos se chamam **Marco 1…7** para não confundir com os modelos M1/M2. O Marco N é executado
+Os marcos se chamam **Marco 1…8** para não confundir com os modelos M1/M2. O Marco N é executado
 pelas tarefas `T-N.x` do arquivo `tasks/0N-…md` (D-60).
 
 | Marco | Objetivo | FRs | Critérios de saída |
@@ -390,11 +424,13 @@ pelas tarefas `T-N.x` do arquivo `tasks/0N-…md` (D-60).
 | **5 — Avaliação final no teste** | Medir o desempenho real, uma única vez, em 2024. | FR-09 | Teste usado uma vez, com o modelo congelado do Marco 4. Todas as métricas do [Plano de avaliação](#plano-de-avaliação) com IC bootstrap. Subgrupos e análise de erros feitos. Calibração de E1 em 2024 checada. Resultado registrado mesmo se pior que B1/B2. |
 | **6 — Demo** | Permitir testar os dois modelos. | FR-11 | Demo local com as abas Perfil e Triagem, usando os artefatos serializados (Marcos 3 e 4); publicação adiada (D-94). Aviso de uso acadêmico nas duas abas. Nenhum microdado embarcado (NFR-03). Resposta < 1 s por perfil (NFR-06). |
 | **7 — Relatório** | Explicar processo, decisões, resultados e passos seguidos. | FR-20, FR-21 | Checklist TRIPOD+AI preenchido. Apêndices A–C presentes. Apêndice D declara que não houve revisão por profissional de saúde (D-94). Justificativa do alvo (D-22) incluída. [checklists/requirements.md](checklists/requirements.md) passando. |
+| **8 — Comparação em 2025** | Saber se o M1 supera os modelos das outras branches num ano que nenhum modelo viu, sem reabrir o teste de 2024. | FR-23 | Manifesto commitado antes da leitura de 2025. Porta e lacre do ano de comparação (R1, R2 1.5). Previsões de cada modelo do conjunto por script isolado, com SHA-256 conferido. Execução única, com agregados, figuras e conformidade R3 a R6. SC-09 registrado com o resultado real, qualquer que seja. Relatório e README atualizados. [checklists/requirements.md](checklists/requirements.md) passando. |
 
 **Regras entre marcos**
 - **O teste fica isolado até o Marco 5.** Nenhum marco anterior olha para 2024.
 - **Extras que são modelos entram antes do Marco 5.** M2 (FR-14) precisa ser treinado e comparado até o Marco 4. Se entrarem depois, o teste passa a ser usado mais de uma vez, e isso deixa o resultado otimista. A análise de sensibilidade (FR-16) e a CLI (FR-10) podem vir depois.
 - **Trabalho em paralelo:** o esqueleto da demo pode começar no Marco 2 com modelos fictícios, e o relatório pode ser escrito ao longo dos marcos. Os critérios de saída dos Marcos 6 e 7 dependem dos artefatos finais.
+- **Comparar com outros modelos usa um ano separado (D-97).** Modelos de outras branches não entram no teste de 2024 (R2): são avaliados no ano de comparação (2025), com manifesto prévio, uma única vez, no Marco 8. O Marco 8 não altera o M1 nem os critérios SC-01 a SC-04.
 
 ## Mapeamento acadêmico
 
