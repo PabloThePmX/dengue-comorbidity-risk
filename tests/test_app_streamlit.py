@@ -16,7 +16,7 @@ from app_sintetico import CONTRATO_COMORBIDADES, CONTRATO_SINAIS
 from streamlit.testing.v1 import AppTest
 from test_app_servico import _escritas, _sem_rede, precisa_m1
 
-from app import servico
+from app import linguagem, servico
 from dengue_sinan import explain
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -25,12 +25,16 @@ AVISO = "Projeto acadêmico. Não é ferramenta clínica nem substitui avaliaç�
 LIMITE_S = 1.0  # NFR-06
 
 
-def _app(monkeypatch=None, modelos=None, relatorios=None) -> AppTest:
+def _app(monkeypatch=None, modelos=None, relatorios=None, modo="pro") -> AppTest:
+    """A tela abre no modo Normal (D-96); os testes do modo Pro pedem `modo="pro"` (padrão aqui)."""
     if modelos is not None:
         monkeypatch.setenv(servico.ENV_MODELOS, str(modelos))
     if relatorios is not None:
         monkeypatch.setenv(servico.ENV_RELATORIOS, str(relatorios))
-    return AppTest.from_file(str(SCRIPT), default_timeout=120)
+    at = AppTest.from_file(str(SCRIPT), default_timeout=120)
+    if modo is not None:
+        at.session_state["modo"] = modo
+    return at
 
 
 def _textos(at: AppTest) -> str:
@@ -279,4 +283,91 @@ def test_so_o_estado_dos_campos_fica_em_session_state(so_e1):
     at = _app().run()
     at.number_input(key="perfil_idade").set_value(61).run()
     chaves = set(at.session_state.keys())
-    assert chaves and all(k.startswith(("perfil_", "triagem_")) for k in chaves), chaves
+    assert chaves and all(k == "modo" or k.startswith(("perfil_", "triagem_")) for k in chaves), \
+        chaves
+
+
+# --- Modos Normal e Pro (D-96) -----------------------------------------------------------------
+
+JARGAO = ("IC 95%", "OR", "log-odds", "SHAP", "recall", "precisão", "limiar", "calibrado",
+          "E1", "M1", "SC-02", "B2", "grupo B", "razão de chances", "método delta")
+
+
+def _jargao_na_tela(at: AppTest) -> list[str]:
+    texto = _textos(at) + "\n" + "\n".join(
+        [m.label + " " + str(m.value) for m in at.metric]
+        + [str(c) for t in at.table for c in t.value.columns]
+        + [str(v) for t in at.table for v in t.value.to_numpy().ravel()]
+        + [e.label for e in at.expander] + [t.label for t in at.tabs])
+    return [j for j in JARGAO if re.search(rf"(?<![\wÀ-ú]){re.escape(j)}(?![\wÀ-ú])", texto)]
+
+
+def test_o_app_abre_no_modo_normal_por_padrao(so_e1):
+    at = _app(modo=None).run()
+    assert not at.exception
+    assert at.radio(key="modo").value == "normal"
+    assert [t.label for t in at.tabs] == ["Perfil", "Triagem"]
+
+
+def test_modo_normal_do_perfil_fala_em_frequencia_e_sem_jargao(so_e1):
+    at = _app(modo="normal").run()
+    at.number_input(key="perfil_idade").set_value(60)
+    at.checkbox(key="perfil_diabetes").check().run()
+    assert not at.exception
+    e1 = servico.carregar_artefatos(RAIZ / "models").e1
+    direto = explain.risco_perfil(e1, 60, "F", 0, ("DIABETES",))
+    assert _metricas(at)["Risco estimado"] == linguagem.um_em(direto["risco"])
+    assert "Risco estimado (E1)" not in _metricas(at) and len(at.table) == 0
+    assert "vezes maior" in _textos(at)
+    assert AVISO in _textos(at)
+    assert _jargao_na_tela(at) == []
+
+
+def test_modo_normal_do_perfil_sem_estimativa_diz_em_palavras(so_e1):
+    at = _app(modo="normal").run()
+    for campo, _ in CONTRATO_COMORBIDADES[:5]:
+        at.checkbox(key=f"perfil_{campo}").check()
+    at.run()
+    assert not at.exception
+    assert any(linguagem.SEM_ESTIMATIVA in w.value for w in at.warning)
+    assert "Risco estimado" not in _metricas(at)
+
+
+def test_trocar_para_pro_mostra_os_detalhes_e_voltar_esconde(so_e1):
+    at = _app(modo="normal").run()
+    at.checkbox(key="perfil_diabetes").check().run()
+    assert "Risco estimado (E1)" not in _metricas(at)
+    at.radio(key="modo").set_value("pro").run()
+    assert "Risco estimado (E1)" in _metricas(at) and len(at.table) == 1
+    assert [t.label for t in at.tabs] == ["Perfil (E1)", "Triagem (M1)"]
+    at.radio(key="modo").set_value("normal").run()
+    assert "Risco estimado (E1)" not in _metricas(at)
+
+
+@precisa_m1
+def test_modo_normal_da_triagem_nao_mostra_alto_risco_nem_regra_nem_jargao():
+    at = _app(modo="normal").run()
+    at.number_input(key="triagem_idade").set_value(70)
+    at.selectbox(key="triagem_hipertensao").select("sim")
+    at.selectbox(key="triagem_febre").select("sim").run()
+    assert not at.exception
+    metricas = _metricas(at)
+    assert "Risco estimado" in metricas and "Alto risco" not in metricas
+    assert "Regra do protocolo (grupo B)" not in metricas
+    tabela = at.table[-1].value
+    assert len(tabela) == servico.N_FATORES
+    assert set(tabela["Efeito"]) <= {"aumenta o risco neste caso", "diminui o risco neste caso"}
+    assert "contribuição no modelo, não causa" in _textos(at)
+    assert AVISO in "\n".join(w.value for w in at.warning)  # aviso em destaque nos dois modos
+    assert _jargao_na_tela(at) == []
+
+
+def test_painel_do_teste_em_modo_normal_usa_palavras_simples_e_os_numeros_do_arquivo():
+    if not (RAIZ / "reports" / "teste" / "metricas.json").is_file():
+        pytest.skip("reports/teste/metricas.json não existe")
+    at = _app(modo="normal").run()
+    [painel] = [e for e in at.expander if e.label == "Como o programa se saiu no teste"]
+    texto = "\n".join(m.value for m in painel.markdown)
+    assert "5.331.745" in texto and "subestimou o risco" in texto
+    assert "O programa não alcançou essa regra" in texto
+    assert _jargao_na_tela(at) == []

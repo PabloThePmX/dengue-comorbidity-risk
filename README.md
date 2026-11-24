@@ -11,6 +11,9 @@ decisões e as tarefas estão em `specs/`.
 Duas abas: **Perfil** (modelo explicativo E1: o risco de quem tem certas condições) e **Triagem**
 (modelo preditivo M1: o risco de um paciente, com sintomas, agora).
 
+Seletor no topo: **Normal** (padrão, linguagem simples, sem termos técnicos nem o rótulo "alto risco") e
+**Pro** (IC, razões de chances, fatores em log-odds, limiar e regra B2).
+
 **Instalar e rodar**
 
 ```

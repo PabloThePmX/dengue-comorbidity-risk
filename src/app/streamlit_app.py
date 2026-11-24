@@ -1,4 +1,4 @@
-"""Demo Streamlit (US3, FR-11, D-27): abas Perfil (E1) e Triagem (M1).
+"""Demo Streamlit (US3, FR-11, D-27): abas Perfil (E1) e Triagem (M1); modos Normal e Pro (D-96).
 
     streamlit run src/app/streamlit_app.py
 
@@ -26,7 +26,7 @@ if _SRC not in sys.path:  # roda também sem instalar o pacote (ex.: Streamlit C
 
 import streamlit as st  # noqa: E402
 
-from app import entrada, servico  # noqa: E402
+from app import entrada, linguagem, servico  # noqa: E402
 
 AVISO = "Projeto acadêmico. Não é ferramenta clínica nem substitui avaliação médica."
 FRASE_PERFIL = "Esta aba responde: **qual o risco de quem tem estas condições** (sem sintomas)."
@@ -47,12 +47,14 @@ def _ic(ic: tuple[float, float]) -> str:
     return f"[{servico.porcentagem(ic[0])}; {servico.porcentagem(ic[1])}]"
 
 
-def _painel_teste(a: servico.Artefatos) -> None:
+def _painel_teste(a: servico.Artefatos, pro: bool) -> None:
     """Bloco fixo com os agregados do teste de 2024; some se o arquivo não existir."""
     if a.painel is None:
         return
-    with st.expander("O que o teste de 2024 mostrou", expanded=True):
-        for linha in servico.linhas_painel(a.painel):
+    rotulo = "O que o teste de 2024 mostrou" if pro else "Como o programa se saiu no teste"
+    linhas = servico.linhas_painel(a.painel) if pro else linguagem.linhas_painel(a.painel)
+    with st.expander(rotulo, expanded=True):
+        for linha in linhas:
             st.markdown(linha)
 
 
@@ -63,12 +65,21 @@ def _mostrar_erros(erro: entrada.EntradaInvalida) -> None:
 
 # --- Aba Perfil --------------------------------------------------------------------------------
 
-def aba_perfil(a: servico.Artefatos) -> None:
+def _resultado_perfil_normal(a: servico.Artefatos, res: servico.ResultadoPerfil,
+                             tem_comorbidade: bool) -> None:
+    st.metric("Risco estimado", linguagem.um_em(res.risco))
+    st.markdown(linguagem.frase_risco(res.risco))
+    st.markdown(linguagem.frase_comparacao(res.risco, res.risco_base, res.razao, tem_comorbidade))
+    aviso = linguagem.aviso_subestimado(a.painel)
+    if aviso:
+        st.caption(aviso)
+
+def aba_perfil(a: servico.Artefatos, pro: bool) -> None:
     st.info(AVISO)
     st.markdown(FRASE_PERFIL)
-    st.caption(RISCO_DE_QUE)
+    st.caption(RISCO_DE_QUE if pro else linguagem.COMO_LER)
     if a.e1 is None:
-        st.warning(a.erro_e1)
+        st.warning(a.erro_e1 if pro else linguagem.ABA_INDISPONIVEL)
         return
 
     col_a, col_b, col_c = st.columns(3)
@@ -97,7 +108,13 @@ def aba_perfil(a: servico.Artefatos) -> None:
     res = servico.avaliar_perfil(a.e1, perfil)
     st.divider()
     if not res.estimavel:
-        st.warning(f"Sem estimativa para este perfil: {res.motivo}.")
+        if pro:
+            st.warning(f"Sem estimativa para este perfil: {res.motivo}.")
+        else:
+            st.warning(linguagem.SEM_ESTIMATIVA)
+        return
+    if not pro:
+        _resultado_perfil_normal(a, res, bool(perfil.comorbidades))
         return
 
     col1, col2 = st.columns(2)
@@ -131,13 +148,28 @@ def _seletor(rotulo: str, chave: str, container) -> str:
     return container.selectbox(rotulo, list(NIVEIS), index=1, format_func=NIVEIS.get, key=chave)
 
 
-def aba_triagem(a: servico.Artefatos) -> None:
+def _resultado_triagem_normal(a: servico.Artefatos, res: servico.ResultadoTriagem) -> None:
+    st.metric("Risco estimado", linguagem.um_em(res.risco))
+    st.markdown(linguagem.frase_risco(res.risco))
+    aviso = linguagem.aviso_subestimado(a.painel)
+    if aviso:
+        st.caption(aviso)
+    if res.explicacao_indisponivel:
+        st.info(linguagem.EXPLICACAO_INDISPONIVEL)
+        return
+    st.markdown("**O que mais pesou neste caso**")
+    st.table([{"Fator": f.rotulo, "O que foi informado": f.valor,
+               "Efeito": linguagem.efeito(f.aumenta)} for f in res.fatores])
+    st.caption(linguagem.NAO_E_CAUSA)
+
+
+def aba_triagem(a: servico.Artefatos, pro: bool) -> None:
     st.warning(f"**{AVISO}** Esta aba se parece com uma ferramenta clínica, mas não é: o "
                "resultado não deve orientar conduta.")
     st.markdown(FRASE_TRIAGEM)
-    st.caption(RISCO_DE_QUE)
+    st.caption(RISCO_DE_QUE if pro else linguagem.COMO_LER)
     if a.m1 is None:
-        st.info(a.erro_m1)
+        st.info(a.erro_m1 if pro else linguagem.ABA_INDISPONIVEL)
         return
 
     st.markdown("**Perfil**")
@@ -172,6 +204,9 @@ def aba_triagem(a: servico.Artefatos) -> None:
 
     res = servico.avaliar_caso(a.m1, caso)
     st.divider()
+    if not pro:
+        _resultado_triagem_normal(a, res)
+        return
     col1, col2, col3 = st.columns(3)
     col1.metric("Risco estimado (M1, calibrado)", servico.porcentagem(res.risco))
     col2.metric("Alto risco", "Sim" if res.alto_risco else "Não")
@@ -203,12 +238,17 @@ def principal() -> None:
     st.set_page_config(page_title="Risco de dengue grave: demo acadêmica", layout="wide")
     st.title("Risco de dengue grave ou óbito por comorbidades")
     a = _artefatos(str(servico.pasta_modelos()), str(servico.pasta_relatorios()))
-    perfil, triagem = st.tabs(["Perfil (E1)", "Triagem (M1)"])
+    modo = st.radio("Modo de exibição", list(linguagem.MODOS), format_func=linguagem.MODOS.get,
+                    horizontal=True, key="modo")
+    pro = modo == linguagem.MODO_PRO
+    rotulos = ["Perfil (E1)", "Triagem (M1)"] if pro else [linguagem.ABA_PERFIL,
+                                                           linguagem.ABA_TRIAGEM]
+    perfil, triagem = st.tabs(rotulos)
     with perfil:
-        aba_perfil(a)
+        aba_perfil(a, pro)
     with triagem:
-        aba_triagem(a)
-    _painel_teste(a)
+        aba_triagem(a, pro)
+    _painel_teste(a, pro)
 
 
 principal()

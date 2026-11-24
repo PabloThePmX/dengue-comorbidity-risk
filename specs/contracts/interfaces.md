@@ -93,6 +93,7 @@ Streamlit, FR-11, D-27.
   - Sem IC por predição: a maioria dos candidatos de M1 não tem IC analítico por caso, e a escolha do modelo só sai no Marco 4. A incerteza do modelo fica no relatório (IC bootstrap das métricas).
 - As duas abas explicam, em uma frase, a diferença entre elas: Perfil responde "qual o risco de quem tem estas condições"; Triagem responde "qual o risco deste paciente, com estes sintomas, agora".
 - Aviso fixo nas duas abas: "Projeto acadêmico. Não é ferramenta clínica nem substitui avaliação médica." Na aba Triagem, o aviso fica em destaque, porque ela se parece mais com uma ferramenta clínica.
+- **Modos (D-96):** seletor no topo, **Normal** por padrão e **Pro**. O Pro mostra tudo o que está acima. O Normal usa os mesmos campos e modelos, mas diz o risco como frequência ("cerca de 1 em N"), explica os fatores em palavras e não mostra IC, OR, log-odds, limiar, regra B2 nem o rótulo "alto risco". O aviso fixo e o aviso de subestimativa valem nos dois.
 - Nenhum microdado embarcado; nenhuma entrada armazenada (NFR-03).
 
 ## Relatório de verificação
