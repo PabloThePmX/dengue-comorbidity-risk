@@ -128,7 +128,8 @@ D-97, FR-23. Só agregados saem para o git (R7); previsões por caso ficam em `d
   `.dbc`, sem o parquet bruto e sem `exportar_entrada`. Falha **antes** da fase 0 (um script externo, ou
   alinhamento inválido) não deixa lacre nem agregados: nenhuma métrica foi vista, e nova tentativa é permitida. A
   única janela que resta é a falha de escrita da própria fase 0. Campos: `commit`, `sha256` do manifesto,
-  `arvore_limpa`, SHA-256 de cada artefato e de cada previsão, SHA-256 do `.dbc` de 2025
+  `arvore_limpa`, SHA-256 de cada artefato, de cada previsão e do JSON de conformidade de cada modelo
+  (`sha256_conformidade`, conferido no `--retomar`), SHA-256 do `.dbc` de 2025
   (`87831a1ee61d03d0f83dcb788c23b1a5cfd938ec22f7e44313833e9eb6445d29`), `semente`, `reamostras`,
   `gravado_em_utc`. Existir impede nova execução (R2).
 - **Porta por variável de ambiente:** os scripts de `scripts/comparacao/` só aceitam o ano de comparação com

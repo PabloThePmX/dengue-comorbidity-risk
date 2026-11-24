@@ -502,6 +502,11 @@ def _gravar_lacre(caminho: Path, dados: dict) -> Path:
     return _gravar_json_atomico(caminho, dados)
 
 
+def _conformidade_de(previsao: Path) -> Path:
+    """JSON de conformidade ao lado de cada previsão (mesmo nome, `.conformidade.json`)."""
+    return previsao.with_name(previsao.stem + ".conformidade.json")
+
+
 def _lacre_base(*, cfg: dict, ano: int, manifesto: dict, caminhos: Caminhos,
                 caminho_manifesto: Path, entrada: Path, previsoes: dict[str, Path],
                 sha_dbc: str | None, estado: dict, reamostras: int | None) -> dict:
@@ -517,6 +522,8 @@ def _lacre_base(*, cfg: dict, ano: int, manifesto: dict, caminhos: Caminhos,
         "sha256_entrada": _sha_arquivo(entrada),
         "sha256_artefatos": artefatos,
         "sha256_previsoes": {mid: _sha_arquivo(p) for mid, p in previsoes.items()},
+        "sha256_conformidade": {mid: _sha_arquivo(_conformidade_de(p))
+                                for mid, p in previsoes.items()},
         "sha256_dbc": sha_dbc,
         "semente": int(cfg["seed"]),
         "reamostras": n,
@@ -638,7 +645,7 @@ def _conformidade_das_previsoes(ids: list[str], ano: int, pasta: Path) -> dict:
 
 
 def retomar(cfg: dict, manifesto: dict, caminhos: Caminhos, *, caminho_manifesto: Path,
-            processos: int = 4) -> dict:
+            processos: int = 4, ensaio: bool = False) -> dict:
     """Retoma a partir do lacre `previsoes_geradas`: confere o SHA-256 da entrada e das previsões
     contra o lacre, recalcula com a mesma semente (mesmo resultado) e fecha a fase 2. Não lê o .dbc
     nem o parquet bruto, não chama `exportar_entrada`, e abre a porta só em volta da leitura."""
@@ -668,6 +675,9 @@ def retomar(cfg: dict, manifesto: dict, caminhos: Caminhos, *, caminho_manifesto
         p = caminhos.comparacao / f"p_{mid}_{ano}.parquet"
         if not p.is_file() or _sha_arquivo(p) != sha:
             divergentes.append(f"previsão {mid}")
+        conf = _conformidade_de(p)
+        if not conf.is_file() or _sha_arquivo(conf) != lacre["sha256_conformidade"].get(mid):
+            divergentes.append(f"conformidade {mid}")
         previsoes[mid] = p
     if divergentes:
         raise ErroExecucao("--retomar recusado: SHA-256 divergente do lacre em "
@@ -686,7 +696,7 @@ def retomar(cfg: dict, manifesto: dict, caminhos: Caminhos, *, caminho_manifesto
     resultado = cmp.calcular(alinhado, manifesto, cfg_com_caminhos(cfg, caminhos), conformidade,
                              reamostras=lacre["reamostras"], processos=processos, ano_esperado=ano)
     base = {k: v for k, v in lacre.items() if k not in ("status", "sha256_metricas")}
-    return _fases_de_gravacao(caminhos, base, resultado, ensaio=False)
+    return _fases_de_gravacao(caminhos, base, resultado, ensaio=ensaio)
 
 
 def regenerar_graficos(caminhos: Caminhos) -> list[Path]:

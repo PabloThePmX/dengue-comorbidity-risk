@@ -717,3 +717,65 @@ def test_r7_com_dois_alertas_no_limiar_proprio_passa_no_retomar(mundo, monkeypat
                         caminho_manifesto=mundo.manifesto_path, processos=1)
     assert resumo["passou"] is True
     _checa_r7(mundo)
+
+
+# --- Conformidade no lacre, manifesto divergente, calcular quebrado, ensaio no retomar (T-8.9) ---
+
+def test_lacre_de_fase_0_registra_sha_da_conformidade_de_cada_modelo(mundo, monkeypatch):
+    _em_previsoes_geradas(mundo, monkeypatch)
+    lacre = _lacre(mundo)
+    assert set(lacre["sha256_conformidade"]) == {m["id"] for m in mundo.manifesto["modelos"]}
+    conf = mundo.caminhos.comparacao / "p_m1_main_2025.conformidade.json"
+    assert lacre["sha256_conformidade"]["m1_main"] == _sha(conf.read_bytes())
+
+
+def test_retomar_recusa_conformidade_alterada_antes_da_porta(mundo, monkeypatch):
+    _em_previsoes_geradas(mundo, monkeypatch)
+    conf = mundo.caminhos.comparacao / "p_m1_main_2025.conformidade.json"
+    conf.write_text(conf.read_text(encoding="utf-8").replace("false", "true"), encoding="utf-8")
+    _proibe_porta_e_exportacao(monkeypatch)
+    with pytest.raises(cx.ErroExecucao, match="divergente.*conformidade m1_main"):
+        cx.retomar(mundo.cfg, mundo.manifesto, mundo.caminhos,
+                   caminho_manifesto=mundo.manifesto_path, processos=1)
+    assert _lacre(mundo)["status"] == cx.PREVISOES_GERADAS
+
+
+def test_retomar_recusa_manifesto_divergente_antes_da_porta(mundo, monkeypatch):
+    _em_previsoes_geradas(mundo, monkeypatch)
+    mundo.manifesto_path.write_text(mundo.manifesto_path.read_text(encoding="utf-8") + "\n# x\n",
+                                    encoding="utf-8")
+    _proibe_porta_e_exportacao(monkeypatch)
+    with pytest.raises(cx.ErroExecucao, match="divergente.*manifesto"):
+        cx.retomar(mundo.cfg, mundo.manifesto, mundo.caminhos,
+                   caminho_manifesto=mundo.manifesto_path, processos=1)
+    assert _lacre(mundo)["status"] == cx.PREVISOES_GERADAS
+
+
+def test_calcular_quebrado_deixa_previsoes_geradas_e_retomar_conclui(mundo, monkeypatch):
+    original = cmp.calcular
+
+    def quebrado(*args, **kwargs):
+        raise RuntimeError("calcular quebrado (simulado)")
+
+    monkeypatch.setattr(cmp, "calcular", quebrado)
+    with pytest.raises(RuntimeError, match="calcular quebrado"):
+        _rodar(mundo)
+    assert _lacre(mundo)["status"] == cx.PREVISOES_GERADAS
+    assert not (mundo.caminhos.agregados / "metricas.json").exists()
+    chamadas = []
+    monkeypatch.setattr(ce, "exportar_entrada", lambda *a, **k: chamadas.append(a))
+    with pytest.raises(cx.ErroExecucao, match="--retomar"):
+        _rodar(mundo)
+    assert chamadas == []
+    monkeypatch.setattr(cmp, "calcular", original)
+    resumo = cx.retomar(mundo.cfg, mundo.manifesto, mundo.caminhos,
+                        caminho_manifesto=mundo.manifesto_path, processos=1)
+    assert _lacre(mundo)["status"] == cx.CONCLUIDO and resumo["passou"]
+
+
+def test_retomar_de_ensaio_grava_o_relatorio_T_8_9(mundo, monkeypatch):
+    _em_previsoes_geradas(mundo, monkeypatch)
+    cx.retomar(mundo.cfg, mundo.manifesto, mundo.caminhos,
+               caminho_manifesto=mundo.manifesto_path, processos=1, ensaio=True)
+    assert (mundo.caminhos.verificacao / "T-8.9.json").is_file()
+    assert not (mundo.caminhos.verificacao / "T-8.11.json").exists()
