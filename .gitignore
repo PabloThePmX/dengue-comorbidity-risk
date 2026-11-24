@@ -47,3 +47,6 @@ retorno-m1/
 # Area de passagem do download do Drive (resultados do Colab): nunca versionar.
 retorno-m5/
 retorno-mlruns/
+
+# Arquivos de bloqueio do Word (abrir o relatório cria ~$relatorio.docx)
+~$*

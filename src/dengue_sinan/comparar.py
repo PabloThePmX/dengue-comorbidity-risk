@@ -189,6 +189,27 @@ def marcar_orcamento(p: np.ndarray, linha: np.ndarray, k: int) -> np.ndarray:
 
 # --- Blocos do contrato -------------------------------------------------------------------------
 
+SUPRIMIDA = "<10"
+
+
+def _publicar_contagem(n: int) -> int | str:
+    """R7 na PUBLICAÇÃO: contagem de 1 a 9 sai como "<10"; 0 e 10 ou mais continuam numéricos.
+    Chamada só depois de calcular as métricas: nunca levanta, e não muda nenhum cálculo."""
+    return SUPRIMIDA if 0 < n < R7_MINIMO else int(n)
+
+
+def _contagem_publicada_valida(valor, caminho: str) -> None:
+    """Aceita "<10" ou inteiro 0 ou >= 10. Recusa número de 1 a 9, texto que não seja "<10", float,
+    bool, lista (valor por linha) e negativo."""
+    if isinstance(valor, str):
+        if valor != SUPRIMIDA:
+            raise ValueError(f"{caminho}: texto só pode ser \"<10\" (R7), veio {valor!r}")
+        return
+    _inteiro(valor, caminho)
+    if 0 < valor < R7_MINIMO:
+        raise ValueError(f"{caminho}: contagem de 1 a 9 deve sair como \"<10\" (R7)")
+
+
 def _rotulo(orcamento: float) -> str:
     return f"{orcamento:.2f}"
 
@@ -364,6 +385,7 @@ def _orcamentos(boot: _Bootstrap, modelos: list[str], orcamentos, n: int) -> dic
             pt = boot.limiares[c]
             por_orcamento[_rotulo(orcamento)] = {
                 "alertas": int(round(pt["marcados"])),
+                "vp": int(round(pt["vp"])),
                 "recall": _bloco(pt["recall"], boot.dist[f"{c}/limiar_recall"], n=n),
                 "precisao": _bloco(pt["precisao"], boot.dist[f"{c}/limiar_precisao"], n=n),
             }
@@ -383,7 +405,8 @@ def _calibracao(y, escores: dict[str, np.ndarray], *, n: int, seed: int) -> dict
     return saida
 
 
-def calcular(alinhado: Alinhado, manifesto: dict, cfg: dict, conformidade: dict[str, dict], *,
+def _calcular_brutos(alinhado: Alinhado, manifesto: dict, cfg: dict,
+                     conformidade: dict[str, dict], *,
              reamostras: int | None = None, processos: int = 1,
              ano_esperado: int | None = None) -> dict:
     """Agregados da comparação, no formato de `metricas.json` (contrato "Comparação em 2025").
@@ -442,8 +465,10 @@ def calcular(alinhado: Alinhado, manifesto: dict, cfg: dict, conformidade: dict[
             "diferencas": {m: bloco_dif.get(m) for m in ids},
             "orcamentos": {m: bloco_orc.get(m) for m in ids},
         }
-        populacoes[pop] = {"nome": NOMES_POPULACOES[pop], "casos": int(len(y_p)),
-                           "eventos": int(y_p.sum()), "prevalencia": float(y_p.mean())}
+        populacoes[pop] = {"nome": NOMES_POPULACOES[pop],
+                           "casos": int(len(y_p)),
+                           "eventos": int(y_p.sum()),
+                           "prevalencia": float(y_p.mean())}
 
     principal = booteados["principal"]
     y_principal = alinhado.y[alinhado.principal]
@@ -458,6 +483,7 @@ def calcular(alinhado: Alinhado, manifesto: dict, cfg: dict, conformidade: dict[
         no_limiar[m] = {
             "limiar": limiares[m],
             "alertas": int(round(pt["marcados"])),
+            "vp": int(round(pt["vp"])),
             "recall": _bloco(pt["recall"], principal.dist[f"{c}/limiar_recall"], n=n),
             "precisao": _bloco(pt["precisao"], principal.dist[f"{c}/limiar_precisao"], n=n),
         }
@@ -486,6 +512,55 @@ def calcular(alinhado: Alinhado, manifesto: dict, cfg: dict, conformidade: dict[
         "conformidade": {m: conformidade_do_modelo(conformidade[m], modelo_por_id[m], alinhado.ano)
                          for m in ids},
     }
+
+
+# --- Publicação (R7) ----------------------------------------------------------------------------
+
+def _publicar_bloco_alerta(bloco: dict) -> dict:
+    """Publica um bloco de orçamento ou de limiar próprio com R7. Recall e precisão viram
+    {"valor": null, "ic95": null} quando há 1 a 9 alertas OU 1 a 9 eventos capturados entre eles
+    (VP). Alertas de 1 a 9 saem como "<10". Só depois do cálculo: nunca levanta."""
+    alertas, vp = bloco["alertas"], bloco["vp"]
+    suprimido = 0 < alertas < R7_MINIMO or 0 < vp < R7_MINIMO
+    nulo = {"valor": None, "ic95": None}
+    return {
+        "alertas": _publicar_contagem(alertas),
+        "recall": dict(nulo) if suprimido else bloco["recall"],
+        "precisao": dict(nulo) if suprimido else bloco["precisao"],
+    }
+
+
+def publicar(bruto: dict) -> dict:
+    """Aplica a publicação R7 ao resultado bruto de `_calcular_brutos`: contagens de 1 a 9 viram
+    "<10", recall e precisão de linhas com VP ou alertas de 1 a 9 viram null, e o VP interno sai."""
+    populacoes = {
+        pop: {"nome": info["nome"], "casos": _publicar_contagem(info["casos"]),
+              "eventos": _publicar_contagem(info["eventos"]),
+              "prevalencia": info["prevalencia"]}
+        for pop, info in bruto["populacoes"].items()
+    }
+    orcamentos = {
+        pop: {m: (None if por is None else
+                  {rot: _publicar_bloco_alerta(b) for rot, b in por.items()})
+              for m, por in mods.items()}
+        for pop, mods in bruto["orcamentos"].items()
+    }
+    no_limiar = {
+        m: (None if b is None else {"limiar": b["limiar"], **_publicar_bloco_alerta(b)})
+        for m, b in bruto["no_limiar_proprio"].items()
+    }
+    return {**bruto, "populacoes": populacoes, "orcamentos": orcamentos,
+            "no_limiar_proprio": no_limiar}
+
+
+def calcular(alinhado: Alinhado, manifesto: dict, cfg: dict, conformidade: dict[str, dict], *,
+             reamostras: int | None = None, processos: int = 1,
+             ano_esperado: int | None = None) -> dict:
+    """Agregados PUBLICADOS da comparação (contrato "Comparação em 2025"): o cálculo de
+    `_calcular_brutos` com a supressão R7 da publicação aplicada."""
+    return publicar(_calcular_brutos(alinhado, manifesto, cfg, conformidade,
+                                     reamostras=reamostras, processos=processos,
+                                     ano_esperado=ano_esperado))
 
 
 # --- Validação do formato (contrato) -------------------------------------------------------------
@@ -528,11 +603,13 @@ def _validar_ic(bloco, caminho: str) -> None:
 
 def _validar_alertas(bloco, caminho: str) -> None:
     _chaves_exatas(bloco, ("alertas", "recall", "precisao"), caminho)
-    _inteiro(bloco["alertas"], f"{caminho}.alertas")
-    if 0 < bloco["alertas"] < R7_MINIMO:
-        raise ValueError(f"{caminho}.alertas: contagem de 1 a 9 não sai (R7)")
+    _contagem_publicada_valida(bloco["alertas"], f"{caminho}.alertas")
     _validar_ic(bloco["recall"], f"{caminho}.recall")
     _validar_ic(bloco["precisao"], f"{caminho}.precisao")
+    if bloco["alertas"] == SUPRIMIDA:  # com 1 a 9 alertas, recall e precisão não saem (R7)
+        for chave in ("recall", "precisao"):
+            if bloco[chave]["valor"] is not None:
+                raise ValueError(f"{caminho}.{chave}: com alertas \"<10\" não sai valor (R7)")
 
 
 def _validar_caixa(caixa, caminho: str) -> None:
@@ -580,14 +657,13 @@ def validar_agregados(dados: dict) -> None:
         _chaves_exatas(info, ("nome", "casos", "eventos", "prevalencia"), f"populacoes.{pop}")
         if not isinstance(info["nome"], str):
             raise ValueError(f"populacoes.{pop}.nome: texto esperado")
-        _inteiro(info["casos"], f"populacoes.{pop}.casos")
-        _inteiro(info["eventos"], f"populacoes.{pop}.eventos")
-        for campo in ("casos", "eventos"):
-            if 0 < info[campo] < R7_MINIMO:
-                raise ValueError(f"populacoes.{pop}.{campo}: contagem de 1 a 9 não sai (R7)")
-        if info["eventos"] > info["casos"]:
-            raise ValueError(f"populacoes.{pop}: mais eventos que casos")
-        _real(info["prevalencia"], f"populacoes.{pop}.prevalencia")
+        _contagem_publicada_valida(info["casos"], f"populacoes.{pop}.casos")
+        _contagem_publicada_valida(info["eventos"], f"populacoes.{pop}.eventos")
+        if isinstance(info["casos"], int) and isinstance(info["eventos"], int):
+            if info["eventos"] > info["casos"]:
+                raise ValueError(f"populacoes.{pop}: mais eventos que casos")
+        if info["prevalencia"] is not None:
+            _real(info["prevalencia"], f"populacoes.{pop}.prevalencia")
 
     for pop in POPULACOES:
         _chaves_exatas(dados["metricas"][pop], conjunto, f"metricas.{pop}")
@@ -684,6 +760,15 @@ def _celula(bloco, casas: int) -> str:
     return ta.ic_txt(bloco, casas)
 
 
+def _contagem_md(valor) -> str | int:
+    return valor if isinstance(valor, str) else ta.celula(valor)
+
+
+def _cel_orc(bloco: dict, casas: int) -> str:
+    """Recall ou precisão de um orçamento: null (R7) vira "<10"; senão valor e IC."""
+    return "<10" if bloco["valor"] is None else ta.ic_txt(bloco, casas)
+
+
 def _so_ic(ic: list[float] | None, casas: int) -> str:
     if ic is None:
         return "IC indisponível"
@@ -697,8 +782,8 @@ def _rotulo_pct(rotulo: str) -> str:
 def markdown_metricas(r: dict) -> str:
     linhas = ["# Métricas da comparação em 2025", "", _rodape(r), "",
               "## Populações", ""]
-    corpo = [[pop, r["populacoes"][pop]["nome"], ta.celula(r["populacoes"][pop]["casos"]),
-              ta.celula(r["populacoes"][pop]["eventos"]),
+    corpo = [[pop, r["populacoes"][pop]["nome"], _contagem_md(r["populacoes"][pop]["casos"]),
+              _contagem_md(r["populacoes"][pop]["eventos"]),
               ta.num(r["populacoes"][pop]["prevalencia"], 5)] for pop in POPULACOES]
     linhas += ta._tabela_md(["População", "Descrição", "Casos", "Eventos", "Prevalência"], corpo)
     cabecalho = ["Modelo", "PR-AUC", "ROC-AUC", "Brier", "Slope", "Intercepto",
@@ -752,8 +837,8 @@ def markdown_orcamentos(r: dict) -> str:
                     corpo.append([m, "não estima", "—", "—"])
                     continue
                 bloco = por_orc[orcamento]
-                corpo.append([m, ta.celula(bloco["alertas"]), ta.ic_txt(bloco["recall"], 3),
-                              ta.ic_txt(bloco["precisao"], 4)])
+                corpo.append([m, _contagem_md(bloco["alertas"]), _cel_orc(bloco["recall"], 3),
+                              _cel_orc(bloco["precisao"], 4)])
             linhas += ta._tabela_md(["Modelo", "Alertas", "Recall (IC 95%)", "Precisão (IC 95%)"],
                                     corpo)
     linhas += ["", "## Limiar próprio de cada modelo (população principal; só informação)", ""]
@@ -763,8 +848,8 @@ def markdown_orcamentos(r: dict) -> str:
         if bloco is None:
             corpo.append([m, "sem limiar", "—", "—", "—"])
             continue
-        corpo.append([m, ta.num(bloco["limiar"], 6), ta.celula(bloco["alertas"]),
-                      ta.ic_txt(bloco["recall"], 3), ta.ic_txt(bloco["precisao"], 4)])
+        corpo.append([m, ta.num(bloco["limiar"], 6), _contagem_md(bloco["alertas"]),
+                      _cel_orc(bloco["recall"], 3), _cel_orc(bloco["precisao"], 4)])
     linhas += ta._tabela_md(["Modelo", "Limiar", "Alertas", "Recall (IC 95%)", "Precisão (IC 95%)"],
                             corpo)
     return "\n".join(linhas) + "\n"

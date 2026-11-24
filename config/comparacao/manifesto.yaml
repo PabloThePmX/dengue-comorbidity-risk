@@ -5,6 +5,8 @@
 versao: 2                       # v2: população da comparação = subconjunto que o E1 estima (D-99)
 declarado_em: "2026-11-24"
 ano_comparacao: 2025            # deve ser igual a `ano_comparacao` de config/base.yaml
+# T-8.9: .dbc do ano de comparação (só o SHA-256 é lido na checagem pré-execução; R1, R7).
+dados: {ano: 2025, arquivo: DENGBR25.dbc, sha256: 87831a1ee61d03d0f83dcb788c23b1a5cfd938ec22f7e44313833e9eb6445d29}
 
 comparacao:
   # D-99: o E1 não estima 5 ou mais comorbidades nem os pares excluídos de e1.json (0,16% dos casos e

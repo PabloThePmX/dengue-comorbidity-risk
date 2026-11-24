@@ -473,18 +473,22 @@ def _calcular_a_mao() -> dict:
     # 0,30000000000000004 e L10, com p = 0,3, sairia do "p >= t")
     cfg = {"seed": 1, "dca_limiares": {"min": 0.3, "max": 0.9, "passos": 3}}
     alinhado = cmp.alinhar(ref, prev, ano=ANO)
-    return cmp.calcular(alinhado, manifesto, cfg, _conformidade_ok(), reamostras=5)
+    # brutos: os números internos (a publicação R7 é testada à parte)
+    return cmp._calcular_brutos(alinhado, manifesto, cfg, _conformidade_ok(), reamostras=5)
 
 
 def test_caso_a_mao_recall_e_precisao_nos_orcamentos_com_empates():
     orc = _calcular_a_mao()["orcamentos"]["principal"]["m1_main"]
     assert orc["0.05"]["alertas"] == 1
+    assert cmp.k_do_orcamento(0.05, 20) == 1
     assert orc["0.05"]["recall"]["valor"] == pytest.approx(1 / 5)
     assert orc["0.05"]["precisao"]["valor"] == pytest.approx(1.0)
     assert orc["0.10"]["alertas"] == 2
+    assert cmp.k_do_orcamento(0.10, 20) == 2
     assert orc["0.10"]["recall"]["valor"] == pytest.approx(1 / 5)
     assert orc["0.10"]["precisao"]["valor"] == pytest.approx(1 / 2)
     assert orc["0.14"]["alertas"] == 3
+    assert cmp.k_do_orcamento(0.14, 20) == 3
     assert orc["0.14"]["recall"]["valor"] == pytest.approx(2 / 5)
     assert orc["0.14"]["precisao"]["valor"] == pytest.approx(2 / 3)
 
@@ -648,3 +652,204 @@ def test_teste_estatico_detecta_mutacao_em_copia(tmp_path, linha):
     copia.write_text(ORIGEM_MODULO.read_text(encoding="utf-8") + "\n" + linha + "\n",
                      encoding="utf-8")
     assert _violacoes(copia), f"não detectou: {linha!r}"
+
+
+# --- R7 na publicação: suprime, não recusa (depois do cálculo) -----------------------------------
+
+def _cenario_dois_alertas() -> dict:
+    """Modelo com 2 alertas no limiar próprio (m1_lora, limiar 0,5): o caso que antes recusava."""
+    ref = _referencia(n=200, prevalencia=0.2)
+    prev = _conjunto(ref)
+    p = np.full(len(ref), 0.01)
+    p[[0, 1]] = 0.9
+    prev["m1_lora"] = _previsoes(ref, p)
+    manifesto = _manifesto()
+    manifesto["modelos"][3]["limiar"] = {"valor": 0.5}
+    alinhado = cmp.alinhar(ref, prev, ano=ANO)
+    return cmp.calcular(alinhado, manifesto, CFG, _conformidade_ok(), reamostras=REAMOSTRAS)
+
+
+def test_r7_publicacao_suprime_e_nao_levanta_depois_do_calculo(tmp_path):
+    from dengue_sinan import comparar_graficos as cg
+
+    res = _cenario_dois_alertas()
+    # o cálculo continua numérico; só a publicação suprime
+    assert res["no_limiar_proprio"]["m1_lora"]["alertas"] == "<10"
+    assert res["orcamentos"]["principal"]["m1_lora"]["0.05"]["alertas"] == 10
+    assert res["populacoes"]["principal"]["casos"] == 200
+    assert isinstance(res["populacoes"]["principal"]["prevalencia"], float)
+    # JSON e .md: nada levanta, e o número de 2 alertas não aparece
+    pasta = tmp_path / "comparacao"
+    cmp.escrever_agregados(pasta, res)
+    lido = json.loads((pasta / "metricas.json").read_text(encoding="utf-8"))
+    assert lido["no_limiar_proprio"]["m1_lora"]["alertas"] == "<10"
+    texto = (pasta / "orcamentos.md").read_text(encoding="utf-8")
+    assert "<10" in texto
+    # as seis figuras saem do mesmo agregado, sem levantar
+    figuras = cg.gerar_graficos(lido, tmp_path / "figuras")
+    assert len(figuras) == 6
+    assert all(p.exists() and p.stat().st_size > 0 for p in figuras)
+
+
+def test_rotulo_do_eixo_mostra_lt10_sem_quebrar():
+    from dengue_sinan import comparar_graficos as cg
+
+    assert cg._alertas_texto("<10") == "<10 alertas"
+    assert cg._alertas_texto(10).startswith("10")
+
+
+def test_validador_aceita_lt10_em_alertas_e_eventos():
+    dados = _valido()
+    dados["orcamentos"]["principal"]["m1_main"]["0.05"]["alertas"] = "<10"
+    dados["orcamentos"]["principal"]["m1_main"]["0.05"]["recall"] = {"valor": None, "ic95": None}
+    dados["orcamentos"]["principal"]["m1_main"]["0.05"]["precisao"] = {"valor": None, "ic95": None}
+    dados["no_limiar_proprio"]["m1_main"]["alertas"] = "<10"
+    dados["no_limiar_proprio"]["m1_main"]["recall"] = {"valor": None, "ic95": None}
+    dados["no_limiar_proprio"]["m1_main"]["precisao"] = {"valor": None, "ic95": None}
+    dados["populacoes"]["principal"]["eventos"] = "<10"
+    cmp.validar_agregados(dados)
+    from dengue_sinan import comparar_graficos as cg
+    cg.validar(dados)
+
+
+@pytest.mark.parametrize("valor", [7, 1, 2.0, [1, 2], "5", "<9", -1, True])
+def test_validador_recusa_contagem_fora_da_regra_de_publicacao(valor):
+    dados = _valido()
+    dados["orcamentos"]["principal"]["m1_main"]["0.05"]["alertas"] = valor
+    with pytest.raises(ValueError):
+        cmp.validar_agregados(dados)
+    from dengue_sinan import comparar_graficos as cg
+    dados = _valido()
+    dados["orcamentos"]["principal"]["m1_main"]["0.05"]["alertas"] = valor
+    with pytest.raises(ValueError):
+        cg.validar(dados)
+
+
+@pytest.mark.parametrize("campo, valor", [("casos", [1, 2, 3]), ("eventos", 5.5),
+                                          ("eventos", "5")])
+def test_populacoes_recusa_valor_por_linha_e_fora_da_regra(campo, valor):
+    dados = _valido()
+    dados["populacoes"]["principal"][campo] = valor
+    with pytest.raises(ValueError):
+        cmp.validar_agregados(dados)
+
+
+# --- Publicação R7 de recall e precisão (alertas 1 a 9, ou VP entre 1 e 9) -----------------------
+
+def _publicado_a_mao() -> dict:
+    """O mesmo caso à mão, pela publicação: 1, 2 e 3 alertas -> recall e precisão null."""
+    ref = pd.DataFrame({"ANO": ANO, "LINHA": HAND_LINHA, "y": HAND_Y})
+    prev = {
+        "m1_main": _previsao_invertida(HAND_P),
+        "e1_main": _previsao_invertida(HAND_P, estimavel=np.ones(20, dtype=bool)),
+        "b0_main": _previsao_invertida(np.full(20, 0.25)),
+        "m1_lora": _previsao_invertida(np.full(20, 0.05)),
+    }
+    manifesto = _manifesto()
+    manifesto["modelos"][0]["limiar"] = {"valor": 0.7}
+    manifesto["modelos"][2]["limiar"] = {"valor": 0.15}
+    cfg = {"seed": 1, "dca_limiares": {"min": 0.3, "max": 0.9, "passos": 3}}
+    alinhado = cmp.alinhar(ref, prev, ano=ANO)
+    return cmp.calcular(alinhado, manifesto, cfg, _conformidade_ok(), reamostras=5)
+
+
+def test_publicacao_caso_a_mao_suprime_alertas_pequenos_e_eventos():
+    res = _publicado_a_mao()
+    for rotulo in ("0.05", "0.10", "0.14"):
+        bloco = res["orcamentos"]["principal"]["m1_main"][rotulo]
+        assert bloco["alertas"] == "<10"
+        assert bloco["recall"] == {"valor": None, "ic95": None}
+        assert bloco["precisao"] == {"valor": None, "ic95": None}
+        assert "vp" not in bloco
+    lim = res["no_limiar_proprio"]["m1_main"]
+    assert lim["alertas"] == "<10"
+    assert lim["recall"] == {"valor": None, "ic95": None}
+    assert lim["precisao"] == {"valor": None, "ic95": None}
+    # populacao: 5 eventos saem como "<10"; prevalência continua numérica
+    pop = res["populacoes"]["principal"]
+    assert pop["eventos"] == "<10"
+    assert pop["casos"] == 20
+    assert pop["prevalencia"] == pytest.approx(0.25)
+    # o que não é de 1 a 9 segue numérico: o B0 marca 20 alertas no limiar 0,15
+    assert res["no_limiar_proprio"]["b0_main"]["alertas"] == 20
+
+
+def _cenario_vp_pequeno_com_alertas_grandes() -> dict:
+    """m1_lora marca 12 casos no limiar 0,5, mas só 2 são eventos (VP = 2 entre 12 alertas).
+    Os alertas (12, 10, 20) são >= 10 e saem numéricos; o recall e a precisão somem (R7 do VP)."""
+    y = np.zeros(200, dtype=np.int64)
+    y[:40] = 1  # 40 eventos na população
+    ref = pd.DataFrame({"ANO": ANO, "LINHA": np.arange(1, 201, dtype=np.int64), "y": y})
+    prev = _conjunto(ref)
+    p = np.full(200, 0.01)
+    p[[0, 1]] = 0.9      # linhas 1 e 2: eventos
+    p[100:110] = 0.9     # linhas 101..110: não eventos (10 alertas) -> 12 no total
+    prev["m1_lora"] = _previsoes(ref, p)
+    manifesto = _manifesto()
+    manifesto["modelos"][3]["limiar"] = {"valor": 0.5}
+    alinhado = cmp.alinhar(ref, prev, ano=ANO)
+    return {"bruto": cmp._calcular_brutos(alinhado, manifesto, CFG, _conformidade_ok(),
+                                          reamostras=REAMOSTRAS),
+            "publicado": cmp.publicar(cmp._calcular_brutos(alinhado, manifesto, CFG,
+                                                           _conformidade_ok(),
+                                                           reamostras=REAMOSTRAS))}
+
+
+def test_vp_entre_1_e_9_suprime_recall_e_precisao_mesmo_com_alertas_grandes():
+    cen = _cenario_vp_pequeno_com_alertas_grandes()
+    bruto, pub = cen["bruto"], cen["publicado"]
+    assert bruto["no_limiar_proprio"]["m1_lora"]["alertas"] == 12
+    assert bruto["no_limiar_proprio"]["m1_lora"]["vp"] == 2
+    lim = pub["no_limiar_proprio"]["m1_lora"]
+    assert lim["alertas"] == 12                     # 12 >= 10: numérico
+    assert lim["recall"] == {"valor": None, "ic95": None}   # VP = 2 entre 1 e 9
+    assert lim["precisao"] == {"valor": None, "ic95": None}
+    orc = pub["orcamentos"]["principal"]["m1_lora"]
+    assert orc["0.05"]["alertas"] == 10 and orc["0.05"]["recall"]["valor"] is None
+    # 0,10: 20 alertas, VP = 10 (linhas 1, 2 e 3..10 de desempate, todas eventos): fronteira,
+    # VP = 10 não é suprimido
+    assert orc["0.10"]["alertas"] == 20 and orc["0.10"]["recall"]["valor"] == pytest.approx(10 / 40)
+    # um modelo sem VP pequeno segue com valores publicados
+    assert pub["orcamentos"]["principal"]["m1_main"]["0.05"]["recall"]["valor"] is not None
+    # o cálculo interno não mudou: o recall bruto segue lá
+    assert bruto["orcamentos"]["principal"]["m1_lora"]["0.05"]["recall"]["valor"] == \
+        pytest.approx(2 / 40)
+
+
+def test_publicacao_vp_nos_arquivos_e_nas_seis_figuras(tmp_path):
+    from dengue_sinan import comparar_graficos as cg
+
+    pub = _cenario_vp_pequeno_com_alertas_grandes()["publicado"]
+    pasta = tmp_path / "comparacao"
+    cmp.escrever_agregados(pasta, pub)
+    lido = json.loads((pasta / "metricas.json").read_text(encoding="utf-8"))
+    assert lido["no_limiar_proprio"]["m1_lora"]["recall"]["valor"] is None
+    md = (pasta / "orcamentos.md").read_text(encoding="utf-8")
+    assert "<10" in md
+    figuras = cg.gerar_graficos(lido, tmp_path / "figuras")
+    assert len(figuras) == 6
+    assert all(p.exists() and p.stat().st_size > 0 for p in figuras)
+
+
+def test_validador_recusa_recall_com_alertas_lt10_e_aceita_null():
+    dados = _valido()
+    dados["orcamentos"]["principal"]["m1_main"]["0.05"]["alertas"] = "<10"
+    with pytest.raises(ValueError, match="R7"):
+        cmp.validar_agregados(dados)  # recall ainda publicado: vazamento
+    dados["orcamentos"]["principal"]["m1_main"]["0.05"]["recall"] = {"valor": None, "ic95": None}
+    dados["orcamentos"]["principal"]["m1_main"]["0.05"]["precisao"] = {"valor": None, "ic95": None}
+    cmp.validar_agregados(dados)
+    from dengue_sinan import comparar_graficos as cg
+    cg.validar(dados)
+
+
+def test_graficos_recusa_recall_publicado_com_alertas_lt10():
+    from dengue_sinan import comparar_graficos as cg
+
+    dados = _valido()
+    dados["no_limiar_proprio"]["m1_main"] = {
+        "limiar": 0.5, "alertas": "<10",
+        "recall": {"valor": 0.5, "ic95": [0.4, 0.6]},
+        "precisao": {"valor": None, "ic95": None}}
+    with pytest.raises(ValueError, match="R7"):
+        cg.validar(dados)

@@ -88,3 +88,29 @@ def test_recusa_modelo_dentro_e_fora_do_conjunto(tmp_path, base):
     ruim["fora_do_conjunto"].append({"id": "m1_main", "motivo": "x"})
     with pytest.raises(ValueError, match="dentro e fora"):
         carregar_manifesto(_escrever(tmp_path, ruim), CFG)
+
+
+def test_o_manifesto_do_projeto_declara_o_dbc_de_2025():
+    m = carregar_manifesto()
+    assert m["dados"]["arquivo"] == "DENGBR25.dbc"
+    assert m["dados"]["ano"] == 2025
+    assert len(m["dados"]["sha256"]) == 64
+
+
+def test_recusa_manifesto_sem_a_chave_dados(tmp_path, base):
+    ruim = copy.deepcopy(base)
+    del ruim["dados"]
+    with pytest.raises(ValueError, match="falta a chave `dados`"):
+        carregar_manifesto(_escrever(tmp_path, ruim), CFG)
+
+
+@pytest.mark.parametrize("campo,valor,erro", [
+    ("ano", 2024, "difere do ano de comparação"),
+    ("arquivo", "DENGBR24.dbc", "não é o .dbc de 2025"),
+    ("sha256", "abc", "SHA-256 válido"),
+])
+def test_recusa_dados_fora_do_formato(tmp_path, base, campo, valor, erro):
+    ruim = copy.deepcopy(base)
+    ruim["dados"][campo] = valor
+    with pytest.raises(ValueError, match=erro):
+        carregar_manifesto(_escrever(tmp_path, ruim), CFG)

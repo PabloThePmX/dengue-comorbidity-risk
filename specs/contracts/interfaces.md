@@ -118,13 +118,22 @@ D-97, FR-23. Só agregados saem para o git (R7); previsões por caso ficam em `d
   (R4), parâmetros do estimador e a busca por correção de desbalanceamento (R3), anos de treino, versões do
   ambiente de execução e de treino, estatísticas de `p` (mínimo, máximo, média, nº de 0 e de 1, NaN). Sem
   nenhum valor de linha.
-- **Lacre** (`reports/comparacao/LACRE.json`, escrito logo depois dos agregados e antes das figuras): `commit`, `sha256` do manifesto,
+- **Lacre em duas fases** (`reports/comparacao/LACRE.json`, escrita atômica; `status` e `sha256_entrada` entram
+  no lacre): a **fase 0** (`status: "previsoes_geradas"`) é gravada quando todas as previsões existem, passam na
+  checagem de formato e foram alinhadas com o `y` (sem calcular nenhuma métrica), antes de `calcular`; a **fase
+  final** (`"concluido"`, com `sha256_metricas`) depois dos agregados e antes das figuras. Qualquer falha a partir
+  da fase 0 deixa o lacre e impede nova execução (R2). `--retomar` aceita só `previsoes_geradas`: confere o
+  SHA-256 do manifesto, da entrada e das previsões contra o lacre **antes** de abrir a porta, que fica aberta só em
+  volta da leitura da entrada e do alinhamento; recalcula com a mesma semente (mesmo resultado), sem ler o
+  `.dbc`, sem o parquet bruto e sem `exportar_entrada`. Falha **antes** da fase 0 (um script externo, ou
+  alinhamento inválido) não deixa lacre nem agregados: nenhuma métrica foi vista, e nova tentativa é permitida. A
+  única janela que resta é a falha de escrita da própria fase 0. Campos: `commit`, `sha256` do manifesto,
   `arvore_limpa`, SHA-256 de cada artefato e de cada previsão, SHA-256 do `.dbc` de 2025
   (`87831a1ee61d03d0f83dcb788c23b1a5cfd938ec22f7e44313833e9eb6445d29`), `semente`, `reamostras`,
   `gravado_em_utc`. Existir impede nova execução (R2).
 - **Porta por variável de ambiente:** os scripts de `scripts/comparacao/` só aceitam o ano de comparação com
   `DENGUE_PORTA_COMPARACAO=1`. É um contrato, e não uma barreira: quem a define é só o avaliador
-  (`comparar.executar`), depois das checagens go/no-go (manifesto commitado e limpo, lacre ausente, SHA-256).
+  (`comparar_executar.executar`), depois das checagens go/no-go (manifesto commitado e limpo, lacre ausente, SHA-256).
 - **Agregados** (`reports/comparacao/`): `metricas.json` (fonte única, formato abaixo) e, geradas dele,
   `metricas.md`, `diferencas.md`, `orcamentos.md`, `conformidade.md` e as figuras `.png`. Células com < 10
   casos suprimidas.
@@ -156,6 +165,13 @@ D-97, FR-23. Só agregados saem para o git (R7); previsões por caso ficam em `d
       "ic95": null, "casos": "<10"}`; com casos ≥ 10 e menos de 10 eventos, mantém `casos` e `previsto` e anula
       `observado` e `ic95`. Quem desenha **ignora** caixa suprimida e **recusa** caixa com `casos` numérico < 10.
     - `orcamentos`: `alertas = round(X · n)` (metade para cima); empate de `p` desempata pela menor `LINHA`.
+    - **Supressão R7 na publicação (nunca recusa depois de calcular):** contagem de 1 a 9 em `alertas`
+      (orçamentos e `no_limiar_proprio`), `casos` e `eventos` vira a string `"<10"` no JSON e nos `.md`; 0 e
+      ≥ 10 continuam numéricos. Quando `alertas` está entre 1 e 9, ou os eventos capturados entre os alertas
+      estão entre 1 e 9, o `recall` e a `precisao` dessa linha saem `{"valor": null, "ic95": null}` (`"<10"` nos
+      `.md`) e o gráfico não os desenha. O cálculo interno não muda; os validadores aceitam `"<10"` e recusam um
+      número entre 1 e 9. A saída de `comparar.py` nunca levanta por R7 depois de as métricas existirem, para
+      que 2025 não seja lido duas vezes.
     - `curva_decisao` traz só os modelos e a grade de limiares; a linha "tratar todos" é derivada da
       prevalência de `populacoes.principal` (sem ler dados).
     - `versoes_diferentes_do_treino` é `null` quando não há como comparar (o projeto não grava as versões).

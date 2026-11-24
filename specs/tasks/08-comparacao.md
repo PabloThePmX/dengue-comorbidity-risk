@@ -145,7 +145,7 @@ validação dela (decisão do Programador, 2026-11-24).
 - **Pronto quando:** testes geram as figuras a partir de agregados sintéticos, conferem arquivos e
   rótulos, e recusam agregados com células < 10; as figuras são legíveis (conferência visual do agente).
 
-### [ ] T-8.9 — Orquestrador do ensaio e da execução (`comparar.executar`, `python -m dengue_sinan.comparar`)
+### [x] T-8.9 — Orquestrador do ensaio e da execução (`comparar.executar`, `python -m dengue_sinan.comparar`)
 
 - Sequência: (1) **checagens pré-execução** (go/no-go), antes de abrir a porta: o manifesto passa em
   `git status --porcelain` limpo, tem commit que é ancestral do HEAD (molde: `evaluate._arvore_limpa`)
@@ -169,6 +169,16 @@ validação dela (decisão do Programador, 2026-11-24).
   "manifesto alterado recusa", "manifesto sem commit recusa", "lacre depois dos agregados e antes das figuras", "script externo falha
   → nada de lacre", "SHA-256 de artefato divergente recusa", "variável de ambiente só no avaliador"); nada em
   `data/` entra no git; `ruff` limpo.
+
+> **T-8.9 feita em 2026-11-24** (`src/dengue_sinan/comparar_executar.py`, `tests/test_comparar_executar.py`,
+> chave `dados` no manifesto). Desvios do plano original, decididos com a Sakura: o lacre tem **duas fases**
+> (`previsoes_geradas`, gravada quando as previsões existem e foram alinhadas, antes de qualquer métrica; e
+> `concluido`, depois dos agregados e antes das figuras); `--retomar` conclui a partir da fase 0 sem reler 2025
+> (porta aberta só em volta da leitura da entrada já exportada, hashes conferidos antes); a supressão R7 é feita
+> na publicação (nunca recusa depois de calcular). O ensaio usa o `ano_comparacao` real com **dados sintéticos
+> em tmp** (a guarda lê o config padrão; mudar isso seria mexer no R1). Reforços pedidos pela Sakura, a fazer
+> antes da T-8.10: hash dos JSON de conformidade no lacre, teste de `--retomar` com manifesto divergente e
+> teste com `calcular` quebrado.
 
 ### [ ] T-8.10 — 🛑 Go/no-go e "ok" do Programador
 

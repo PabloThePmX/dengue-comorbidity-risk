@@ -117,6 +117,11 @@ def _checar_ponto(objeto, onde: str, com_leitura: bool = False) -> None:
     _exigir(objeto["valor"] is None or _numero(objeto["valor"]), f"{onde}: valor não numérico")
 
 
+def _sem_valor(bloco) -> bool:
+    """True se o bloco {valor, ic95} não tem valor publicado (null, R7)."""
+    return bloco is None or bloco.get("valor") is None
+
+
 def validar(agregados: dict) -> None:
     """Recusa o agregado se ele não segue o contrato. Não altera nada."""
     faltando = [c for c in CHAVES_DO_CONTRATO if c not in agregados]
@@ -158,11 +163,16 @@ def validar(agregados: dict) -> None:
             if not celulas:
                 break
             _exigir(b in celulas, f"orcamentos[principal][{m}] sem o orçamento {b}")
-            _exigir(isinstance(celulas[b].get("alertas"), int),
-                    f"orcamentos[principal][{m}][{b}] sem alertas inteiro")
-            alertas = celulas[b]["alertas"]
-            _exigir(not 0 < alertas < MIN_CASOS_CAIXA,
-                    f"orcamentos[principal][{m}][{b}]: {alertas} alertas (1 a 9 não saem, R7)")
+            alertas = celulas[b].get("alertas")
+            ok = alertas == "<10" or (isinstance(alertas, int) and not isinstance(alertas, bool)
+                                       and (alertas == 0 or alertas >= MIN_CASOS_CAIXA))
+            _exigir(ok, f"orcamentos[principal][{m}][{b}]: alertas deve ser inteiro (0 ou >= 10) "
+                        f"ou \"<10\" (R7), veio {alertas!r}")
+            if alertas == "<10":  # R7: com 1 a 9 alertas, recall e precisão não saem
+                for metrica in ("recall", "precisao"):
+                    _exigir(_sem_valor(celulas[b].get(metrica)),
+                            f"orcamentos[principal][{m}][{b}]: com alertas \"<10\" {metrica} "
+                            "não sai (R7)")
             for metrica in ("recall", "precisao"):
                 _checar_ponto(celulas[b].get(metrica),
                           f"orcamentos[principal][{m}][{b}][{metrica}]")
@@ -189,6 +199,12 @@ def validar(agregados: dict) -> None:
 
     nlp = agregados["no_limiar_proprio"]
     _exigir(all(m in nlp for m in modelos), "no_limiar_proprio sem algum modelo")
+    for m in modelos:
+        bloco = nlp[m]
+        if bloco is not None and bloco.get("alertas") == "<10":  # R7 do limiar próprio
+            for metrica in ("recall", "precisao"):
+                _exigir(_sem_valor(bloco.get(metrica)),
+                        f"no_limiar_proprio[{m}]: com alertas \"<10\" {metrica} não sai (R7)")
 
     calibracao = agregados["calibracao"]
     for m in modelos:
@@ -288,7 +304,9 @@ def _decimal_ptbr(lado) -> None:
     lado.set_major_formatter(FuncFormatter(lambda v, _p: f"{v:g}".replace(".", ",")))
 
 
-def _alertas_texto(n: int) -> str:
+def _alertas_texto(n: int | str) -> str:
+    if isinstance(n, str):  # "<10": publicado sem o número (R7)
+        return f"{n} alertas"
     return f"{n:,}".replace(",", ".") + " alertas"
 
 
