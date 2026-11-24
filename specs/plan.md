@@ -243,7 +243,7 @@ FR-22.
 
 - Maior PR-AUC média nas dobras leave-one-region-out.
 - Empate (diferença < 0,005 ou ICs sobrepostos; regra mantida em D-53) → menor Brier.
-- Persistindo → o modelo mais simples, na ordem: elastic net < Random Forest < XGBoost/CatBoost < MLP `[ASSUMPTION]`.
+- Persistindo → o modelo mais simples, na ordem: elastic net < Random Forest < XGBoost/CatBoost < MLP `[ASSUMPTION]`. A ordem cobre só os cinco modelos reais (o TabFM saiu, D-91); na seleção real o desempate foi pelo menor Brier (D-95).
 - Calibrador e limiar: [spec › Plano de avaliação](spec.md#plano-de-avaliação); a escolha entre isotônica e Platt é a de menor Brier fora da dobra `[ASSUMPTION]`.
 
 ## Reprodutibilidade

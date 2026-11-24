@@ -402,7 +402,8 @@ A demonstração **não foi publicada**: roda localmente, por decisão do Progra
 - **Deriva em 2024:** subestimação em todo o país, maior no Nordeste e no Centro-Oeste.
 - **Rótulo muito raro:** 6 dos 21 pares e os perfis com 5 ou mais comorbidades ficaram sem estimativa.
 - **Padrão "todas as 7 comorbidades":** influencia os OR das comorbidades raras (D-77).
-- **Supressão dedutível:** células "<10" podem ser deduzidas por subtração dos totais (D-75).
+- **Supressão dedutível:** células "<10" podem ser deduzidas por subtração dos totais (D-75). No perfil dos falsos negativos (3.5.6), isso vale para quatro células de 1 a 9 casos (gestante, 2 comorbidades, região Norte e atraso de 15 dias ou mais); o `erros.md` está no lacre e não foi regerado, e este relatório não reproduz essas células (D-95).
+- **Mapeamento da regra B2:** a tradução dos critérios do grupo B para os campos da ficha é uma suposição do Programador, da qual o SC-02 depende; foi mantida como estava para não invalidar a avaliação de 2024 (D-95).
 - **Subgrupos:** por região, não por estado (exceto o Espírito Santo); grupos pequenos sem conclusão.
 - **Revisão por profissional de saúde (FR-21):** o escopo previa revisar só os resultados (D-34), mas o relatório e o modelo não passaram por revisão de profissional de saúde, e não há revisão prevista; qualquer uso clínico exigiria essa validação.
 - **TabFM fora:** inviável na GPU disponível; qualidade não medida (D-91).
@@ -582,7 +583,7 @@ Fonte: `reports/fluxograma.md`. Células com menos de 10 casos aparecem como "<1
 
 # APÊNDICE C – PASSOS SEGUIDOS (CRONOLOGIA DE EXECUÇÃO)
 
-Extraída do Registro de execução (`specs/tasks/00-como-usar.md`); as execuções também estão no MLflow `[VERIFY: FR-20 pede a cronologia exportada do MLflow]`.
+A tabela abaixo é uma leitura reconstruída do Registro de execução (`specs/tasks/00-como-usar.md`). A cronologia exportada do MLflow (FR-20) está em `reports/mlflow/cronologia.md` (SHA-256 `d5aa6cdbefb0aec00cc14feea396f61a900ae692baccc44970a392d015ea5535`) e `reports/mlflow/runs.csv` (SHA-256 `6b5abe1f587630133b65e15e296cc783b79b7539e09b596be713a30bfa79ba53`).
 
 | Data | Etapa | Resultado | Evidência |
 |---|---|---|---|
@@ -592,6 +593,8 @@ Extraída do Registro de execução (`specs/tasks/00-como-usar.md`); as execuç�
 | 2026-11-23 | B0 e B1 congelados; avaliação única em 2024 (commit `91425ad`, semente 20261103) | 49 checks aprovados; SC-02 falhou | `reports/teste/LACRE.json`, `reports/verificacao/T-5.1.json` |
 | 2026-11-23 | Demonstração local (commit `97cca70`); paridade no Colab (clone do commit `bc6708c`) | mesmo hash das 419 árvores | `reports/verificacao/paridade-m1-demo.json` |
 | 2026-11-23 | Reprodução do teste (NFR-02), clone limpo do commit `7fbe300` | 14 arquivos de resultado idênticos; só o `LACRE.json` difere; sem retreino | `reports/verificacao/T-7.3-nfr02.json` |
+
+**Evidência do MLflow.** O MLflow registra 45 execuções em 7 sessões, de 2026-11-17 a 2026-11-19 (horário UTC). A primeira busca do elastic net (2026-11-17 13:00) terminou como FAILED e foi repetida às 13:27, quando terminou. As duas últimas execuções de seleção (2026-11-18 23:54 e 2026-11-19 01:38) trazem os mesmos valores: limiar 0,002155, limiar F2 0,021514, recall no limiar 0,6846 e Brier calibrado 0,001599. Elas correspondem às rodadas do D-92 (Fonte: `reports/mlflow/cronologia.md`).
 
 ---
 

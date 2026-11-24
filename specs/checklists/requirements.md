@@ -29,8 +29,8 @@
 ## Marcadores e decisões
 
 - [x] Nenhum `[DECISION NEEDED]` aberto.
-- [ ] **`[ASSUMPTION]` revisados pelo Programador.** São 41 marcadores de fato em 2026-11-23 (`spec.md` 11, `plan.md` 18, `data-model.md` 3, `contracts/interfaces.md` 4, `tasks/03` 2, `tasks/04` 1, `tasks/05` 1 e `tasks/06` 1; as demais ocorrências do texto são menções; o FR-21 deixou de ser marcador no D-94). Os principais estão em
-  [spec › Premissas](../spec.md#premissas); os demais, no texto. Nenhum foi revisado ainda (decisão do Programador: revisão adiada).
+- [x] **`[ASSUMPTION]` revisados pelo Programador.** Revisados em 2026-11-23 (D-95): 41 marcadores de fato (`spec.md` 11, `plan.md` 18, `data-model.md` 3, `contracts/interfaces.md` 4, `tasks/03` 2, `tasks/04` 1, `tasks/05` 1 e `tasks/06` 1), 37 confirmados em bloco e 4 com decisão consciente (FR-21, mapeamento do B2, células < 10 e ordem de simplicidade). Marcadores mantidos no texto, como histórico; os principais estão em
+  [spec › Premissas](../spec.md#premissas).
 - [ ] **Todo `[VERIFY]` conferido ou listado como pendente.** Pendentes:
   - dados: significado de `NDUPLIC_N` e `TP_SISTEMA` no dicionário;
   - ambiente: saldo do Colab Pro; `PRAUC` do CatBoost em GPU e torch com CUDA 13 no Colab (a confirmar no Registro; vCPUs e RAM alta conferidos em 2026-11-15: 8 vCPUs, 50,99 GiB);

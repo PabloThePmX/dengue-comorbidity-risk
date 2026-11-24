@@ -4,3 +4,4 @@ models/e1/payload/* -text
 
 # reports/teste: os hashes do LACRE.json valem para os bytes gravados (LF); nao converter fim de linha.
 reports/teste/* -text
+reports/mlflow/* -text

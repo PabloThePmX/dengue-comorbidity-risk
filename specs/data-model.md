@@ -149,7 +149,7 @@ Lista fechada (regra R4). É a **única** cópia; tarefas e código apontam para
 
 | Feature | Origem | Tipo | Transformação |
 |---|---|---|---|
-| `idade_anos` | `NU_IDADE_N` decodificado; fallback por `ANO_NASC` (D-50) — `features.age_years_with_fallback` | contínua | logística/MLP: spline (`SplineTransformer`, 5 nós `[ASSUMPTION]`) + escala; árvores: crua |
+| `idade_anos` | `NU_IDADE_N` decodificado; fallback por `ANO_NASC` (D-50) — `features.age_years_with_fallback` | contínua | logística/MLP: spline (`SplineTransformer`, 5 nós `[ASSUMPTION]`; só no M1: o E1 usa base natural própria, D-73) + escala; árvores: crua |
 | `sexo` | `CS_SEXO` | categórica: M, F, I/branco → "I" | one-hot (logística/MLP); nativa/ordinal (árvores) |
 | `gestante` | `CS_GESTANT` ∈ {1, 2, 3, 4} | binária | 0/1 |
 | 7 comorbidades | `DIABETES`, `HEMATOLOG`, `HEPATOPAT`, `RENAL`, `HIPERTENSA`, `ACIDO_PEPT`, `AUTO_IMUNE` | 3 níveis: Sim (1) / Não (2) / Ausente (resto), D-07 | one-hot (logística/MLP); ordinal/nativa (árvores) |
