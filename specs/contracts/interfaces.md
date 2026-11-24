@@ -146,6 +146,19 @@ D-97, FR-23. Só agregados saem para o git (R7); previsões por caso ficam em `d
     menos de 10 casos ou eventos suprimida (R7).
   - `conformidade[<id>]`: `{"r3_sem_correcao": bool, "r4_variaveis_no_dicionario": bool,
     "treino_sem_ano_de_comparacao": bool, "versoes_diferentes_do_treino": bool|null, "externo": bool}`.
+  - **Convenções** (fixadas na T-8.7 e T-8.8; `comparar.py` escreve, `comparar_graficos.py` lê):
+    - `diferencas_pr_auc_vs_referencia[...]["valor"]` = PR-AUC do modelo **menos** a do `modelo_de_referencia`;
+      `"melhor"` quando o IC inferior é > 0 (o modelo supera o M1), `"pior"` quando o IC superior é < 0.
+      A entrada da própria referência é `null`.
+    - `{"valor": null, "ic95": null}` quer dizer "indisponível" (modelo que não estima a população, métrica que
+      não converge, B0 constante). `null` no lugar de um modelo inteiro vale o mesmo.
+    - **Caixa de calibração suprimida (R7):** com menos de 10 casos, `{"previsto": null, "observado": null,
+      "ic95": null, "casos": "<10"}`; com casos ≥ 10 e menos de 10 eventos, mantém `casos` e `previsto` e anula
+      `observado` e `ic95`. Quem desenha **ignora** caixa suprimida e **recusa** caixa com `casos` numérico < 10.
+    - `orcamentos`: `alertas = round(X · n)` (metade para cima); empate de `p` desempata pela menor `LINHA`.
+    - `curva_decisao` traz só os modelos e a grade de limiares; a linha "tratar todos" é derivada da
+      prevalência de `populacoes.principal` (sem ler dados).
+    - `versoes_diferentes_do_treino` é `null` quando não há como comparar (o projeto não grava as versões).
 
 ## Relatório de verificação
 

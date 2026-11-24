@@ -114,7 +114,7 @@ validação dela (decisão do Programador, 2026-11-24).
   `evaluate`/`retreino` sobre linhas de 2022) passam; fumaça em amostra de 2022, sem métrica; JSON de
   conformidade só com nomes e agregados.
 
-### [ ] T-8.7 — Avaliador comparativo (`src/dengue_sinan/comparar.py`) [P]
+### [x] T-8.7 — Avaliador comparativo (`src/dengue_sinan/comparar.py`) [P]
 
 - População principal = linhas com `estimavel = true` no E1 (D-99); população completa como informação.
 - Funções puras, sem ler dados reais: carregar as previsões (parquet) e alinhar com o `y` por
@@ -134,7 +134,7 @@ validação dela (decisão do Programador, 2026-11-24).
   empate, empates de `p`, linha faltando, linha duplicada) passam; o módulo **não importa** nenhuma
   função de treino, ajuste ou seleção, nem abre portas, e não lê parquet de dados; `ruff` limpo.
 
-### [ ] T-8.8 — Gráficos comparativos (`src/dengue_sinan/comparar_graficos.py`) [P]
+### [x] T-8.8 — Gráficos comparativos (`src/dengue_sinan/comparar_graficos.py`) [P]
 
 - Só a partir dos agregados (R7), como as figuras de `reports/teste/`: (1) PR-AUC com IC por modelo;
   (2) diferenças pareadas contra o M1 (forest plot); (3) recall e precisão contra o orçamento de
