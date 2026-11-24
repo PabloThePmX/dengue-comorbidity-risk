@@ -204,6 +204,7 @@ branches do repositório (`feat/soneca`, `feat/lora`; `feat/ricardo` ainda sem a
   - modelos externos rodam só em worktree e ambiente isolados (o `joblib` executa código ao carregar);
   - métricas sem limiar (PR-AUC, ROC-AUC, Brier, calibração, curva de decisão) e recall e precisão entre os
     5%, 10% e 14% de maior risco `[ASSUMPTION]`, com bootstrap pareado de 1.000 reamostras `[ASSUMPTION]`;
+  - população principal: os casos que o E1 estima (D-99), igual para todos os modelos; a população completa fica como informação;
   - previsões por caso ficam fora do git (R7); só agregados vão para `reports/comparacao/`.
   Como fazer: [plan › Comparação em 2025](plan.md#comparação-em-2025). Tarefas: [tasks/08-comparacao.md](tasks/08-comparacao.md).
 

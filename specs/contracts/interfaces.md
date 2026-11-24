@@ -109,8 +109,11 @@ D-97, FR-23. Só agregados saem para o git (R7); previsões por caso ficam em `d
   (D-45); colunas `ANO` (int64), `LINHA` (int64, nº da linha no parquet do ano) e as features do
   [dicionário](../data-model.md#dicionário-de-features). O `.json` traz o ano, o número de linhas e o SHA-256
   do parquet. O `y` **não** vai na entrada; vem do lado da `main`, com a mesma `LINHA`.
-- **Previsões** (`data/comparacao/p_<id>_<ano>.parquet`): `ANO`, `LINHA` e `p` (float64, em [0, 1], sem NaN),
+- **Previsões** (`data/comparacao/p_<id>_<ano>.parquet`): `ANO`, `LINHA` e `p` (float64, em [0, 1], sem NaN; no E1, NaN só onde `estimavel = false`, D-99),
   uma linha por linha da entrada, na mesma ordem e sem repetição. Um modelo com linha faltando é recusado.
+- **Subconjunto do E1 (D-99):** as previsões do E1 trazem a coluna `estimavel` (bool); onde é `false`, `p` é
+  NaN. O avaliador define a **população principal** como as linhas com `estimavel = true`, a mesma para todos os
+  modelos, e reporta a população completa como informação.
 - **Conformidade** (`.conformidade.json`, por modelo): `sha256` conferido, `variaveis` e se estão no dicionário
   (R4), parâmetros do estimador e a busca por correção de desbalanceamento (R3), anos de treino, versões do
   ambiente de execução e de treino, estatísticas de `p` (mínimo, máximo, média, nº de 0 e de 1, NaN). Sem

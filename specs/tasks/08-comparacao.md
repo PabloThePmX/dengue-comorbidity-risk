@@ -4,7 +4,7 @@
 > registros de execução e de problemas ficam **lá**. Regras novas: [constituição](../constitution.md)
 > R1 e R2 (versão 1.5) e a [D-97](../research.md#registro-de-decisões).
 
-Spec: FR-23, SC-09, US4; D-97, D-98. Contrato dos arquivos:
+Spec: FR-23, SC-09, US4; D-97, D-98, D-99. Contrato dos arquivos:
 [contracts › Comparação em 2025](../contracts/interfaces.md#comparação-em-2025). Critério de saída:
 [spec › Marcos](../spec.md#marcos). Plano técnico: [plan › Comparação em 2025](../plan.md#comparação-em-2025).
 
@@ -98,6 +98,10 @@ validação dela (decisão do Programador, 2026-11-24).
   `p` (ANO, LINHA) de M1, E1, B0 e B1 com os artefatos congelados; a B2 é a regra
   (`baselines.rule_b2`) sobre a mesma entrada. Mesma recusa de ano, mesma ordem de checagens
   (SHA-256 contra o manifesto **antes** de carregar), mesmo contrato de saída.
+- **Estado (2026-11-24): parcial.** `prever_projeto.py` e `tests/test_prever_projeto.py` (37 testes) existem; M1
+  roda pelo carregador tolerante da demo (`app.servico.carregar_bundle_m1`, o XGBoost do `.venv` não lê o
+  booster gravado no Colab); E1 e B2 rodam; **B0 e B1 aguardam a cópia do Drive**. E1: decisão **A** (D-99),
+  população principal = casos que o E1 estima (0,16% dos casos e 0,23% dos eventos de 2022–23 ficam de fora).
 - 🛑 **Pare e peça ao Programador:** `models/b0_final` e `models/b1_final` estão só no Drive (o lacre
   de 2024 aponta caminhos do Drive). Copiar para `models/` (ignorado pelo git) e conferir o SHA-256
   contra o manifesto. Sem isso, B0 e B1 ficam de fora e o manifesto precisa de nova versão **antes**
@@ -112,6 +116,7 @@ validação dela (decisão do Programador, 2026-11-24).
 
 ### [ ] T-8.7 — Avaliador comparativo (`src/dengue_sinan/comparar.py`) [P]
 
+- População principal = linhas com `estimavel = true` no E1 (D-99); população completa como informação.
 - Funções puras, sem ler dados reais: carregar as previsões (parquet) e alinhar com o `y` por
   (`ANO`, `LINHA`); recusar linha faltando, duplicada ou `p` fora de [0, 1]; métricas sem limiar
   (PR-AUC, ROC-AUC, Brier, calibration slope e intercepto, observado/esperado, net benefit);
