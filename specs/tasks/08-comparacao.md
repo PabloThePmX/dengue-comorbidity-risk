@@ -125,7 +125,7 @@ validação dela (decisão do Programador, 2026-11-24).
   forma estável); recall e precisão no limiar próprio de cada modelo (só informação); bootstrap
   pareado (1.000 reamostras, D-100; semente do config, mesmos sorteios para todos) e
   diferenças contra o M1 com IC 95%; regra de leitura: "melhor" só se o IC da diferença excluir 0,
-  senão "sem diferença detectável" `[ASSUMPTION]`; tabela de conformidade R3 a R6 por modelo
+  senão "sem diferença detectável" (D-100); tabela de conformidade R3 a R6 por modelo
   (reporta, não exclui); supressão R7 (células < 10).
 - Reaproveita `metrics.py` (bootstrap pareado, net benefit, calibração). Código novo só no que falta
   (recall em orçamento de alertas, tabela comparativa).

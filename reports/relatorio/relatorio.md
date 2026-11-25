@@ -395,7 +395,7 @@ Fonte: `reports/comparacao/metricas.md` e `reports/comparacao/diferencas.md`. A 
 
 **Figura 8 – Diferença de PR-AUC contra o M1, com IC 95% pareado, população principal, 2025.** Todas as diferenças ficam à esquerda do zero, com IC que exclui zero. Fonte: `reports/comparacao/diferencas_pr_auc.png`.
 
-**Recall e precisão com orçamento de alertas.** Com orçamento fixo, os 5%, 10% e 14% dos casos de maior risco viram alertas (69.377, 138.753 e 194.255 na população principal). Esses cortes foram confirmados (D-100); o de 14% coincide com a taxa de alertas do M1 em 2024 (14,2%).
+**Recall e precisão com orçamento de alertas.** Com orçamento fixo, os 5%, 10% e 14% dos casos de maior risco viram alertas (69.377, 138.753 e 194.255 na população principal). Esses cortes foram confirmados (D-100); o de 14% é próximo da taxa de alertas do M1 em 2024 (14,2%), mas a origem do número no manifesto não foi documentada.
 
 **Tabela 9 – Recall e precisão por orçamento de alertas, população principal, 2025**
 

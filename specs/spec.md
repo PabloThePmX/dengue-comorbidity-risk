@@ -1,11 +1,11 @@
 # Spec — Risco de desfecho grave em dengue por perfil de comorbidades
 
-**Criado**: 2026-10-19 | **Atualizado**: 2026-11-24 | **Status**: rascunho v0.21 (Marcos 1 a 7 concluídos; Marco 8 em planejamento; D-91 a D-98)
+**Criado**: 2026-10-19 | **Atualizado**: 2026-11-24 | **Status**: rascunho v0.21 (Marcos 1 a 8 concluídos; D-91 a D-100)
 **Entrada**: pré-projeto enviado ao professor (Grupo 1, "Dengue e Comorbidades") e retorno do professor (2026-11-02).
 
 > **O quê e por quê.** Objetivo em [goal.md](goal.md); como fazer em [plan.md](plan.md); dados em
 > [data-model.md](data-model.md).
-> Marcos 1 a 6 concluídos (teste de 2024 avaliado uma vez em 2026-11-23, lacre gravado; demo local); Marco 7 (relatório) concluído; Marco 8 (comparação em 2025, D-97) em planejamento ([tasks/08-comparacao.md](tasks/08-comparacao.md)).
+> Marcos 1 a 6 concluídos (teste de 2024 avaliado uma vez em 2026-11-23, lacre gravado; demo local); Marco 7 (relatório) concluído; Marco 8 (comparação em 2025, D-97) concluído ([tasks/08-comparacao.md](tasks/08-comparacao.md)).
 > Números de dados, salvo indicação: 3ª execução do profiling (2026-11-03 04:21 UTC),
 > [profiling/RESULTADOS.md](../profiling/RESULTADOS.md).
 

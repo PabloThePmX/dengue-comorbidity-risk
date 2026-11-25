@@ -2,7 +2,7 @@
 
 > Adaptado do Spec Kit para projeto acadêmico de ML. Refazer a cada mudança relevante do spec e
 > antes da entrega (T-7.3).
-> **Última avaliação:** 2026-11-24, spec v0.21 e plan v0.20 (Marcos 1 a 7 concluídos; teste de 2024 avaliado uma vez). A seção "Comparação em 2025 (Marco 8)", no fim, tem itens abertos de propósito (auditoria da T-8.13). Seção Comparação revisada em 2026-11-24 (T-8.12): itens abertos são o `.docx` e a linha do SC-09 (T-8.12) e a auditoria (T-8.13).
+> **Última avaliação:** 2026-11-24, spec v0.21 e plan v0.20 (Marcos 1 a 7 concluídos; teste de 2024 avaliado uma vez). A seção "Comparação em 2025 (Marco 8)", no fim, está fechada. Seção Comparação revisada em 2026-11-24 (T-8.12 e T-8.13); Marco 8 auditado (Sasuke) e fechado.
 
 ## Requisitos
 
@@ -64,4 +64,4 @@
 - [x] "Ok" do Programador e execução única em 2025, com lacre (T-8.10 e T-8.11). Lacre em `reports/comparacao/LACRE.json`; `reports/verificacao/T-8.11.json` com `passou: true` em 6 checks.
 - [x] Relatório e README atualizados com o resultado real (T-8.12). `reports/relatorio/relatorio.md` (seções 3.7 e 4.4, Resumo, Abstract, Apêndices A, C, D e E), o `.docx` (regerado com `gerar_docx.js` e reduzido por `comprimir_docx.py`, para caber no limite do R7) e `README.md`, com números de `reports/comparacao/`.
 - [x] SC-09 com o resultado real registrado no spec (T-8.12): `spec.md`, SC-09, com o "ok" do Programador (commit `3ddc569`).
-- [ ] Auditoria do marco e limpeza dos worktrees (T-8.13). Fora do escopo da T-8.12.
+- [x] Auditoria do marco e limpeza dos worktrees (T-8.13): Sasuke sem falha em R1 a R10 nem no lacre, pendências técnicas corrigidas, `[ASSUMPTION]` fechados na D-100; worktrees `soneca` e `lora` removidos.
