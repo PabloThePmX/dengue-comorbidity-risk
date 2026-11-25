@@ -13,7 +13,7 @@ challenge, and write down what we agreed.
 > 1. Read, before anything else: `specs/goal.md` (why the project exists, artifact map),
 >    `specs/constitution.md` (rules R1–R10, decisions you can't take) and
 >    `specs/tasks/00-como-usar.md` (how to work, order, quick reference). The **current
->    milestone** is the first file in `specs/tasks/`, in numeric order (`02`…`07`; file `0N` =
+>    milestone** is the first file in `specs/tasks/`, in numeric order (`02`…`08`; file `0N` =
 >    Marco N = tasks `T-N.x`), that still has a `[ ]` or `[~]` task; read only that one.
 > 2. If a task is marked `[~]` (pending a Colab check), first read its report in
 >    `reports/verificacao/` (`<task>.json`, or `sessao-m1.json` for all of Marco 4; D-56, D-57).
@@ -22,7 +22,9 @@ challenge, and write down what we agreed.
 >    me to type results. Otherwise take the **first task still marked `[ ]`**, in file order.
 >    Read only the files and sections that task cites.
 > 3. Follow its steps and its "Pronto quando" exactly. Stop at every 🛑 and ask me.
-> 4. Run `uv run pytest -q` and `uv run ruff check .`, mark `[x]` only if every "Pronto quando"
+> 4. Run `uv run pytest -q` and `uv run ruff check .` (agents on Windows use
+>    `.venv\Scripts\python.exe -m pytest -q` and `.venv\Scripts\ruff.exe check .`; `uv sync`,
+>    `uv add` and `uv python install` only in my terminal, see `quickstart.md`), mark `[x]` only if every "Pronto quando"
 >    item was verified, and log the result in "Registro de execução" of `00-como-usar.md` (or
 >    "Registro de problemas" if something went wrong). If an item can only be checked in Colab,
 >    follow "Verificação no Colab" in that file (D-64): write the check as code that emits the JSON
@@ -30,6 +32,13 @@ challenge, and write down what we agreed.
 >    marking `[x]`; without the MCP, mark `[~]`, tell me which notebook cell to run, and stop.
 >    Cells you run through the MCP print aggregates only (R7): their output enters this chat.
 > 5. Never change `constitution.md`, `spec.md`, or `plan.md` to make code fit; ask me.
+> 6. **Held-out years (R1, R2, constitution 1.5).** 2024 is the sealed test year; 2025 is the
+>    comparison year (D-97, Marco 8). Never read either outside its guard door
+>    (`guard.leitura_do_teste()` / `guard.leitura_do_ano_de_comparacao()`), and never run
+>    `python -m dengue_sinan.comparar_executar --confirmo-execucao-unica-em-2025` (or delete or edit a
+>    `LACRE.json`) without my explicit written "ok" in the chat. After a failure past the seal's phase
+>    0, use `--retomar`, never a second run. External models (other branches) load only inside the
+>    isolated worktrees, with the SHA-256 checked first (`joblib` runs code on load).
 >
 > **Agent team (D-65).** When I call **Kakashi** ("Kakashi, execute os passos") or type
 > `/kakashi`, use the `kakashi` skill: you orchestrate the subagents `naruto` (implements),
@@ -50,8 +59,9 @@ map of the artifacts (what each file holds and its Spec Kit role) is in `specs/g
 - **References:** cite sections by name with a link, e.g.
   `[spec › Split e vazamento](spec.md#split-e-vazamento)`. Never use `§` numbers. IDs (`US`,
   `FR`, `NFR`, `SC`, `D`, `Q`, `T`, `P`, `R`) are global across `specs/`.
-- **Tasks:** `specs/tasks/00-como-usar.md` + one file per milestone, `02`–`07`; file `0N` =
-  Marco N = tasks `T-N.x`.
+- **Tasks:** `specs/tasks/00-como-usar.md` + one file per milestone, `02`–`08`; file `0N` =
+  Marco N = tasks `T-N.x`. **Plan first (D-98):** a new feature, even a small one, starts with its tasks
+  file and its spec IDs (`US`, `FR`, `SC`), plan section and contract, before any code.
 - Code goes in `src/` (`src/dengue_sinan/`, `src/app/`); tests in `tests/`; config in `config/`.
 
 ## 2. Workflow (Spec Kit order)
