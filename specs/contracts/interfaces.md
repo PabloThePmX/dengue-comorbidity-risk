@@ -14,6 +14,8 @@ Vale para a CLI (extra, FR-10 MAY) e para a aba Triagem da demo.
 predict --model <caminho_artefato> --input casos.csv --output riscos.csv
 ```
 
+**A CLI `predict` não foi implementada** (FR-10 é MAY e a entrega é modelo, demo e relatório, D-26); o contrato fica como referência para a aba Triagem.
+
 Entrada (`casos.csv`), uma linha por caso. A coluna "Vira a feature" diz como cada entrada é
 traduzida para o [data-model › Dicionário de features](../data-model.md#dicionário-de-features)
 (D-61).
@@ -75,7 +77,7 @@ models/<modelo>/
 - `load_bundle` recusa o artefato se algum SHA-256 do payload não bater, se o `schema_version` for de
   uma versão futura ou se o tipo for desconhecido (`ArtefatoInvalido`).
 - O E1 carregado calcula risco, IC e razão de risco só com NumPy (sem `statsmodels`).
-- M1 (D-85): quem carrega precisa importar `dengue_sinan.retreino` antes de `load_bundle` (é ali que o tipo `m1` é registrado). `models/m1_final*` e `models/m1_demo*` não vão ao git até o conteúdo do payload ser inspecionado (R7, D-85).
+- M1 (D-85): quem carrega precisa importar `dengue_sinan.retreino` antes de `load_bundle` (é ali que o tipo `m1` é registrado). `models/m1_final*` e `models/m1_demo*` não vão ao git até o conteúdo do payload ser inspecionado (R7, D-85); `models/b1_final*` e `models/b0_final*` também ficam fora do git (D-93).
 
 ## Demo
 
@@ -88,7 +90,7 @@ Streamlit, FR-11, D-27.
   - Entrada: as colunas de [Entrada de casos](#entrada-de-casos) (perfil + sintomas iniciais + dias até a notificação).
   - Saída: risco calibrado de M1 e "alto risco" sim/não no limiar escolhido ([spec › Plano de avaliação](../spec.md#plano-de-avaliação)).
   - Explicação (D-35): os 5 fatores que mais aumentaram ou reduziram o risco do caso (SHAP local), com a frase "contribuição no modelo, não causa".
-    - Modelos de árvore: TreeSHAP exato. Elastic net: contribuição linear (coeficiente × valor). MLP: `shap.GradientExplainer` com amostra de fundo (D-51). Todos respeitando NFR-06. O TabFM nunca é o modelo da demo (D-69); se o melhor M1 não couber, vale o D-70.
+    - Modelos de árvore: TreeSHAP exato. Elastic net: contribuição linear (coeficiente × valor). MLP: `shap.GradientExplainer` com fundo = vetor de médias de uma linha, porque o R7 impede levar uma amostra de linhas (D-51, D-88). Todos respeitando NFR-06. O TabFM nunca é o modelo da demo (D-69); se o melhor M1 não couber, vale o D-70.
   - `[ASSUMPTION]` SHOULD mostrar também se o caso cairia no grupo B pela regra do protocolo (B2, [spec › Baselines](../spec.md#baselines)), para o usuário comparar modelo e regra.
   - Sem IC por predição: a maioria dos candidatos de M1 não tem IC analítico por caso, e a escolha do modelo só sai no Marco 4. A incerteza do modelo fica no relatório (IC bootstrap das métricas).
 - As duas abas explicam, em uma frase, a diferença entre elas: Perfil responde "qual o risco de quem tem estas condições"; Triagem responde "qual o risco deste paciente, com estes sintomas, agora".
@@ -101,7 +103,7 @@ Streamlit, FR-11, D-27.
 D-97, FR-23. Só agregados saem para o git (R7); previsões por caso ficam em `data/comparacao/` (ignorado).
 
 - **Manifesto** (`config/comparacao/manifesto.yaml`, validado por `comparacao_manifesto.carregar_manifesto`):
-  `versao`, `ano_comparacao` (igual ao do config), `comparacao` (métricas, orçamentos de alertas, reamostras),
+  `versao`, `declarado_em`, `ano_comparacao` (igual ao do config), `dados` (`ano`, `arquivo` e `sha256` do `.dbc`), `comparacao` (métricas, orçamentos de alertas, reamostras),
   `modelo_por_branch`, `saidas`, `verificacoes_na_carga`, `modelos` e `fora_do_conjunto`. Cada modelo tem `id`,
   `papel`, `origem` (`branch`, `commit`), `artefato` (`caminho`, `sha256` de 64 hex; `null` para a regra B2),
   `treino_anos` (sem o ano de comparação), `limiar` (`valor` e `regra`, ou `null`) e, se houver, `validacao`.
@@ -127,11 +129,7 @@ D-97, FR-23. Só agregados saem para o git (R7); previsões por caso ficam em `d
   volta da leitura da entrada e do alinhamento; recalcula com a mesma semente (mesmo resultado), sem ler o
   `.dbc`, sem o parquet bruto e sem `exportar_entrada`. Falha **antes** da fase 0 (um script externo, ou
   alinhamento inválido) não deixa lacre nem agregados: nenhuma métrica foi vista, e nova tentativa é permitida. A
-  única janela que resta é a falha de escrita da própria fase 0. Campos: `commit`, `sha256` do manifesto,
-  `arvore_limpa`, SHA-256 de cada artefato, de cada previsão e do JSON de conformidade de cada modelo
-  (`sha256_conformidade`, conferido no `--retomar`), SHA-256 do `.dbc` de 2025
-  (`87831a1ee61d03d0f83dcb788c23b1a5cfd938ec22f7e44313833e9eb6445d29`), `semente`, `reamostras`,
-  `gravado_em_utc`. Existir impede nova execução (R2).
+  única janela que resta é a falha de escrita da própria fase 0. Campos: `ano`, `commit`, `arvore_limpa`, `status`, `sha256_manifesto`, `sha256_entrada`, `sha256_artefatos`, `sha256_previsoes` e `sha256_conformidade` (os três últimos por `id` de modelo; a conformidade é conferida no `--retomar`), `sha256_dbc` (SHA-256 do `.dbc` de 2025, `87831a1ee61d03d0f83dcb788c23b1a5cfd938ec22f7e44313833e9eb6445d29`), `semente`, `reamostras`, `gravado_em_utc`, `aviso` (texto fixo: existir impede nova avaliação, R2) e, na fase final, `sha256_metricas`. Existir impede nova execução (R2).
 - **Porta por variável de ambiente:** os scripts de `scripts/comparacao/` só aceitam o ano de comparação com
   `DENGUE_PORTA_COMPARACAO=1`. É um contrato, e não uma barreira: quem a define é só o avaliador
   (`comparar_executar.executar`), depois das checagens go/no-go (manifesto commitado e limpo, lacre ausente, SHA-256).
@@ -215,7 +213,7 @@ D-57, D-86. `<caminhos.dados>/m1/sessao-m1.json` no Drive (o clone do Colab some
   "sessao": "sessao-m1",
   "gerado_em": "2026-11-12T18:40:00Z",
   "commit": "<sha do git no Colab>",
-  "ambiente": {"python": "3.13.x", "gpu": "L4", "vcpus": 8, "ram_gib": 53.0},
+  "ambiente": {"python": "3.13.x", "gpu": "T4", "vcpus": 8, "ram_gib": 51.0},
   "hash_dados": {"2022": "<sha256 do .dbc>", "2023": "<sha256 do .dbc>"},
   "hash_dobras": "<sha256 do conteúdo das dobras, igual ao da T-2.3>",
   "blocos": [
@@ -234,3 +232,8 @@ D-57, D-86. `<caminhos.dados>/m1/sessao-m1.json` no Drive (o clone do Colab some
 - Blocos na ordem de gravação (um bloco regravado vai para o fim): `checagem_inicial`, os modelos na ordem do config, `selecao`,
   `shap`, `retreino`.
 - `passou` (nível de cima) = `sessao_completa` e todos os blocos passaram.
+- **`reports/verificacao/sessao-m1-modelos.json` (D-91)** tem o mesmo formato e guarda os blocos dos 5 modelos
+  (`random_forest`, `xgboost`, `catboost`, `elastic_net`, `mlp`) da sessão anterior (commit `2d66670`), mais
+  `checagem_inicial`; valem só esses blocos, porque `selecao`, `shap` e `retreino` dele são do limiar F2 e estão
+  obsoletos. O `sessao-m1.json` é o relatório atual de `checagem_inicial`, `selecao`, `shap` e `retreino` (D-92), e
+  nele os modelos foram pulados pelo cache (sem bloco próprio).

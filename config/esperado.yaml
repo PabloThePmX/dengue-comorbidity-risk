@@ -1,6 +1,7 @@
 # Valores que as verificações do Colab e do PC conferem (T-2.0).
 # Fonte: specs/data-model.md › Tamanho e prevalência e Eventos por região e subgrupo;
-# fluxograma de profiling/RESULTADOS.md, seção 2. Só 2022–23: números de 2024 entram na T-5.1 (R1).
+# fluxograma de profiling/RESULTADOS.md, seção 2. Há seção de 2024 (`teste`, conferida só pela T-5.1, R1) e
+# nenhuma de 2025: o perfil de 2025 está em reports/perfil_2025.md e não é conferido por este arquivo.
 desenvolvimento:
   anos: [2022, 2023]
   populacao_por_ano: {2022: 1148299, 2023: 1304909}

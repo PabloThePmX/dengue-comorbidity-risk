@@ -40,8 +40,12 @@ uv run ruff check .
 Marco 4 (modelos) e Marco 5 (teste); os Marcos 2 e 3 rodam no PC local (D-66).
 
 1. Montar o Google Drive. Pasta do projeto: `MyDrive/dengue-comorbidity-risk/`.
-2. `git clone` do repositório e `pip install -e .` (ou `uv sync`). O código da tarefa precisa estar
-   commitado e no GitHub antes; o orquestrador faz o commit e o push (D-66).
+2. `git clone` do repositório e instalação a partir do lock (D-82, NFR-02): o runtime precisa ser
+   Python 3.13 (runtime 2026.10 do Colab); `pip install uv`, `uv export --frozen --no-hashes --no-dev
+   --no-emit-project -q -o /content/requirements-lock.txt`, `pip install -r /content/requirements-lock.txt`
+   e `pip install -e . --no-deps` (o `notebooks/04_modelos.ipynb` já faz isso; nada de `pip install -e .`
+   sozinho, que resolveria versões novas). O código da tarefa precisa estar commitado e no GitHub
+   antes; o orquestrador faz o commit e o push (D-66).
 3. Conferir a GPU (Colab Pro, ou gratuito se houver):
    `nvidia-smi` e `python -c "import torch; print(torch.__version__, torch.cuda.is_available())"`.
    Se der `False` numa VM com GPU, **🛑 pare e pergunte**: o lock usa torch com CUDA 13 (ver a
@@ -56,6 +60,27 @@ Marco 4 (modelos) e Marco 5 (teste); os Marcos 2 e 3 rodam no PC local (D-66).
    na sessão dos modelos, só `sessao-m1.json`, D-57) para a mesma pasta no repositório local e faça
    commit. O notebook também grava uma cópia no Drive. Não digite nenhum número.
 7. Ao terminar, desconectar o ambiente, para não gastar unidades com GPU ociosa.
+
+## Demo (local)
+
+A demo roda no PC, sem publicação (D-94): `uv run streamlit run src/app/streamlit_app.py`. Precisa de
+`models/e1/` (versionado) e, para a aba Triagem, de `models/m1_final/` (fora do git, D-85). As variáveis
+`DENGUE_MODELOS` e `DENGUE_RELATORIOS` e o SHA-256 do payload estão no [README](../README.md#demo-streamlit).
+
+## Comparação em 2025
+
+Marco 8 (US4, D-97 a D-100). Os modelos das outras branches (`soneca`, `lora`) rodam só em worktrees
+isolados, em `..\_comparacao\<branch>`, com o interpretador do próprio worktree e o SHA-256 conferido
+antes do `joblib.load`; os scripts de previsão ficam em `scripts/comparacao/` (`prever_soneca.py`,
+`prever_lora.py`, `prever_projeto.py`). Quem orquestra é `python -m dengue_sinan.comparar_executar`:
+
+- `--so-checagens`: só o go/no-go (15 checagens), sem ler dados;
+- `--ensaio`: a mesma cadeia com dados sintéticos em diretório temporário;
+- `--retomar`: depois de uma falha após a fase 0 do lacre; nunca uma segunda execução;
+- `--so-graficos`: regenera as figuras dos agregados (exige o lacre).
+
+A **execução única em 2025** (flag `--confirmo-execucao-unica-em-2025`) só roda com o "ok" escrito do
+Programador no chat; agentes nunca a rodam. Ela já foi feita (`reports/comparacao/LACRE.json`).
 
 ## Colab pelo MCP
 
@@ -91,8 +116,9 @@ ao criar um arquivo na primeira tentativa.
   `data/parquet/dengue_{ano}.parquet` (todas as colunas como texto) e atualiza
   `data/manifest.json` com hash do `.dbc`, hash do Parquet e data de revisão no FTP.
 - Se o Parquet do ano já existir, ele é reutilizado.
-- **No PC local, baixe só 2022 e 2023** (D-66), em `data/` (fora do git). 2024 fica só no Drive e
-  só é lido na T-5.1 (R1).
+- **No PC local, 2022 e 2023** (D-66), em `data/` (fora do git), e, desde o Marco 8, 2025 (D-97;
+  `data/raw/DENGBR25.dbc` e o parquet de 2025), lido só pela porta do ano de comparação. 2024 fica só
+  no Drive e só foi lido na T-5.1 (R1).
 
 ## Validação rápida
 

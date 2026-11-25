@@ -35,13 +35,13 @@ grave ou óbito pelo agravo**, usando os dados do SINAN (DataSUS) de 2022–2024
 | Arquivo | Responde | Seções principais |
 |---|---|---|
 | [constitution.md](constitution.md) | O que nunca pode ser quebrado | Princípios P1–P10, regras R1–R10, decisões reservadas ao Programador, governança |
-| [spec.md](spec.md) | **O quê** e **por quê** | Problema, cenários US1–US3, requisitos FR/NFR, critérios de sucesso SC, formulação, split e vazamento, baselines, avaliação, riscos, marcos |
-| [plan.md](plan.md) | **Como** | Arquitetura do código, ambiente e orçamento, features e pré-processamento, modelagem, reprodutibilidade |
+| [spec.md](spec.md) | **O quê** e **por quê** | Problema, cenários US1–US4, requisitos FR/NFR, critérios de sucesso SC, formulação, split e vazamento, baselines, avaliação, riscos, marcos |
+| [plan.md](plan.md) | **Como** | Arquitetura do código, ambiente e orçamento, features e pré-processamento, modelagem, [comparação em 2025](plan.md#comparação-em-2025), reprodutibilidade |
 | [data-model.md](data-model.md) | Quais dados | Entidades, dados (fonte, tamanhos, codificação, qualidade), dicionário de features |
-| [contracts/interfaces.md](contracts/interfaces.md) | Formatos de entrada e saída | Entrada de casos, tabela de perfis, demo, relatórios de verificação |
+| [contracts/interfaces.md](contracts/interfaces.md) | Formatos de entrada e saída | Entrada de casos, tabela de perfis, artefato do modelo, demo, comparação em 2025, relatório de verificação, relatório da sessão dos modelos |
 | [research.md](research.md) | Por que cada escolha | Literatura, evidências e o Registro de decisões (D-01 em diante) |
 | [quickstart.md](quickstart.md) | Como rodar | Ambiente local, Colab, validação rápida |
-| [tasks/00-como-usar.md](tasks/00-como-usar.md) | O que fazer agora | Regras de execução, ordem dos marcos e registros; uma tarefa-arquivo por marco (`02` a `07`) |
+| [tasks/00-como-usar.md](tasks/00-como-usar.md) | O que fazer agora | Regras de execução, ordem dos marcos e registros; uma tarefa-arquivo por marco (`02` a `08`) |
 | [checklists/requirements.md](checklists/requirements.md) | O spec está pronto? | Checklist de qualidade |
 
 **Como ler as referências.** Seções são citadas pelo nome, com link:

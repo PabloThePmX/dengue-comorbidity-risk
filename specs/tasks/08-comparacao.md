@@ -4,7 +4,7 @@
 > registros de execução e de problemas ficam **lá**. Regras novas: [constituição](../constitution.md)
 > R1 e R2 (versão 1.5) e a [D-97](../research.md#registro-de-decisões).
 
-Spec: FR-23, SC-09, US4; D-97, D-98, D-99. Contrato dos arquivos:
+Spec: FR-23, SC-09, US4; D-97, D-98, D-99, D-100. Contrato dos arquivos:
 [contracts › Comparação em 2025](../contracts/interfaces.md#comparação-em-2025). Critério de saída:
 [spec › Marcos](../spec.md#marcos). Plano técnico: [plan › Comparação em 2025](../plan.md#comparação-em-2025).
 
@@ -145,7 +145,7 @@ validação dela (decisão do Programador, 2026-11-24).
 - **Pronto quando:** testes geram as figuras a partir de agregados sintéticos, conferem arquivos e
   rótulos, e recusam agregados com células < 10; as figuras são legíveis (conferência visual do agente).
 
-### [x] T-8.9 — Orquestrador do ensaio e da execução (`comparar.executar`, `python -m dengue_sinan.comparar`)
+### [x] T-8.9 — Orquestrador do ensaio e da execução (`comparar_executar.executar`, `python -m dengue_sinan.comparar_executar`)
 
 - Sequência: (1) **checagens pré-execução** (go/no-go), antes de abrir a porta: o manifesto passa em
   `git status --porcelain` limpo, tem commit que é ancestral do HEAD (molde: `evaluate._arvore_limpa`)
@@ -184,14 +184,14 @@ validação dela (decisão do Programador, 2026-11-24).
 
 - Listar ao Programador, antes de ler 2025: o manifesto (modelos, limiares, orçamentos), o que foi
   verificado e o que não foi, os `[ASSUMPTION]` (orçamentos 5/10/14%, 1.000 reamostras, regra de
-  "melhor"), os limites conhecidos (3.436 eventos em 2025, IC mais largo; versões de pandas/numpy
+  "melhor"; já confirmados na D-100), os limites conhecidos (3.436 eventos em 2025, IC mais largo; versões de pandas/numpy
   diferentes entre treino e execução da `soneca` e da `lora`; 20 linhas de microdados no pickle da
   `lora`). Suíte inteira verde, `ruff` limpo, árvore limpa, tudo commitado e enviado.
 - **Pronto quando:** o Programador responde "ok" por escrito. Sem o "ok", nada abre a porta.
 
 ### [x] T-8.11 — 🛑 Execução única em 2025 (R2, D-97)
 
-- `python -m dengue_sinan.comparar` (execução real). Roda **uma vez**; o resultado é reportado como
+- `python -m dengue_sinan.comparar_executar` (execução real). Roda **uma vez**; o resultado é reportado como
   saiu (resultado pior ou empate é resultado). Agregados em `reports/comparacao/`; relatório de
   verificação `reports/verificacao/T-8.11.json` (D-64: commit, hashes, checks, `passou`).
 - **Pronto quando:** o lacre existe, os agregados e as figuras existem, o JSON de verificação tem

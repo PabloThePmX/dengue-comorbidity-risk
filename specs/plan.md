@@ -1,6 +1,6 @@
 # Plano técnico — Risco de desfecho grave em dengue por perfil de comorbidades
 
-**Data**: 2026-11-24 | **Status**: v0.20 (D-91 a D-100)
+**Data**: 2026-11-25 | **Status**: v0.20 (D-91 a D-101)
 
 > **Como** o projeto é construído. Requisitos em [spec.md](spec.md); princípios em
 > [constitution.md](constitution.md); motivos das escolhas em [research.md](research.md).
@@ -22,7 +22,7 @@ abas (US3) e um relatório TRIPOD+AI.
 | Item | Valor |
 |---|---|
 | **Linguagem/versão** | Python 3.13 (`requires-python >=3.13,<3.14`; o `pyreaddbc` não tem wheel para 3.14), ambiente com `uv` (D-16) |
-| **Dependências principais** | Já instaladas: `pandas`, `pyarrow`, `pyreaddbc`, `dbfread`. Aprovadas para a T-2.0 (D-67): `scikit-learn`, `statsmodels`, `xgboost`, `catboost`, `optuna`, `mlflow`, `shap`, `torch`, `pyyaml`, `matplotlib`, `streamlit`; `tabfm[pytorch]` na T-4.7 (D-69) |
+| **Dependências principais** | Já instaladas: `pandas`, `pyarrow`, `pyreaddbc`, `dbfread`. Aprovadas para a T-2.0 (D-67): `scikit-learn`, `statsmodels`, `xgboost`, `catboost`, `optuna`, `mlflow`, `shap`, `torch`, `pyyaml`, `matplotlib`, `streamlit`; `tabfm[pytorch]` na T-4.7 (D-69; instalado do commit fixo da `main` do GitHub, D-90; retirado do M1 pelo D-91) |
 | **Armazenamento** | Parquet por ano + `manifest.json` com hashes, no Google Drive; MLflow (`mlruns/`) e estudos do Optuna (SQLite) no Drive; `reports/` versionado só com agregados |
 | **Testes** | `pytest` (testes unitários por módulo) e `ruff` |
 | **Plataforma** | PC local (Windows) para desenvolvimento e para os Marcos 2 e 3, com os dados de 2022–23 (D-66); Google Colab, gratuito e Pro (D-44), para o Marco 4 e o teste (Marco 5); a demo roda localmente (`streamlit run`); Streamlit Community Cloud fica como publicação futura opcional (D-17, D-94) |
@@ -34,7 +34,7 @@ abas (US3) e um relatório TRIPOD+AI.
 ## Constitution Check
 
 O plano precisa cumprir a [constituição](constitution.md) antes de implementar e de novo depois do
-Marco 4. Situação em 2026-11-23 (Marcos 1 a 6 implementados e auditados pelo Sasuke, sem pendência técnica bloqueante; Marco 7 em andamento; 1361 testes passando e 3 skipped, ruff limpo; teste de 2024 avaliado uma vez, com `LACRE.json` gravado).
+Marco 4. Situação em 2026-11-25 (Marcos 1 a 8 concluídos; auditorias do Sasuke registradas nos Marcos 2 a 6 e 8, sem pendência técnica bloqueante (o Marco 7 não tem auditoria registrada); ruff limpo e suíte verde, com a contagem de testes do último registro da suíte inteira no [Registro de execução](tasks/00-como-usar.md#registro-de-execução); teste de 2024 avaliado uma vez, com `LACRE.json` gravado; comparação de 2025 executada uma vez, com lacre).
 
 | Princípio | Como o plano cumpre | Situação |
 |---|---|---|
@@ -46,7 +46,7 @@ Marco 4. Situação em 2026-11-23 (Marcos 1 a 6 implementados e auditados pelo S
 | P6 Associação ≠ causa | Ranking só pelo E1 (R10); legendas do SHAP ([spec › Interpretabilidade](spec.md#interpretabilidade-e-equidade)) | Cumpre: ranking só com os OR do E1 (Marco 3); SHAP nativo (D-88) e legendas no Marco 4 |
 | P7 Reprodutível | `uv.lock`, semente única, config YAML, hashes, MLflow ([Reprodutibilidade](#reprodutibilidade)) | Cumpre: NFR-02 verificado em 2026-11-23 (T-7.3): 17 de 17 arquivos de saída idênticos byte a byte, exceto `commit` e `gravado_em_utc` do `LACRE.json`; limite: reproduz a avaliação com os modelos congelados, não retreina do zero (`reports/verificacao/T-7.3-nfr02.json`) |
 | P8 Privacidade | Só agregados, células < 10 suprimidas; demo sem microdados (NFR-03) | Cumpre, com limitações registradas: sexo "I" dedutível por subtração (D-75) e quatro células de 1 a 9 do perfil dos falsos negativos dedutíveis (D-94) |
-| P9 Código testável | Um módulo por responsabilidade com testes ([Módulos](#módulos)); 1361 testes passando e 3 skipped | Cumpre (os 3 skipped não são do app, segundo a auditoria do Marco 6) |
+| P9 Código testável | Um módulo por responsabilidade com testes ([Módulos](#módulos)); testes passando (contagem no último registro da suíte inteira do [Registro de execução](tasks/00-como-usar.md#registro-de-execução)) | Cumpre (os 6 skipped da suíte inteira em 2026-11-25 não são do app: 3 testes de escala de 5,3 milhões de linhas, só com `DENGUE_TESTES_LENTOS=1`, e 3 que dependem das worktrees das outras branches, D-97; no Marco 6 eram só os 3 de escala) |
 | P10 Honestidade | [Registro de problemas](tasks/00-como-usar.md#registro-de-problemas); resultado negativo é válido (SC-04) | Cumpre: SC-02 falhou e consta como falhou em todos os arquivos; o B0 prevê "todos" no limiar (não "ninguém") e a divergência do spec está registrada (D-94) |
 
 ## Arquitetura do código
@@ -59,11 +59,13 @@ src/
   dengue_sinan/    pacote Python: todo o pipeline (instalado por `uv sync`)
   app/             demo Streamlit (Marco 6, FR-11)
 tests/             pytest, um arquivo por módulo (NFR-05)
-config/            base.yaml (parâmetros) e esperado.yaml (valores conferidos, D-56)
+config/            base.yaml (parâmetros), esperado.yaml (valores conferidos, D-56) e comparacao/ (manifesto do Marco 8)
+models/            artefatos congelados: e1/ versionado; m1_final, b1_final e b0_final fora do git (D-85, D-93)
+scripts/           comparacao/: previsão isolada de cada modelo, com o python do worktree (Marco 8)
 notebooks/         só chamam funções de src/ (NFR-05)
 profiling/         gerador do notebook de profiling e resultados do Marco 1
 reports/           só agregados, versionado (NFR-03); verificacao/ com os JSON das verificações (D-56)
-data/, mlruns/     fora do git (NFR-03); no PC, só 2022–23 (D-66); no Colab, no Google Drive
+data/, mlruns/     fora do git (NFR-03); no PC, 2022–23 e, desde o Marco 8, 2025 (D-66, D-97); no Colab, no Google Drive
 ```
 
 - **Layout `src`:** o código fica em `src/` e os testes fora dele. Assim os testes importam o pacote
@@ -97,9 +99,31 @@ Módulos de `src/dengue_sinan/`:
 | `runner.py` | `run_all_models`: sessão única com retomada; grava `sessao-m1.json`; entrada `python -m` para rodar em segundo plano | D-53, D-57, D-64 | T-4.3b |
 | `mlp.py` | MLP em PyTorch com interface do scikit-learn | D-51 | T-4.6b |
 | `evaluate.py` | `evaluate_test_once` + lacre | FR-09, R2 | T-5.1 |
+| `search_space.py` | Espaço de busca por modelo lido de `config/base.yaml` (`busca:`); recusa nomes de peso de classe | R3, D-68 | T-4.0 |
+| `elastic_net_m1.py` | Elastic net do M1 (`saga`, penalização mista), registrado em `cv.REGISTRO` | D-53, D-63 | T-4.6b |
+| `random_forest.py` | Random Forest do M1, com pré-processamento de árvore e sem peso de classe | D-53, R3 | T-4.4 |
+| `xgboost_m1.py` | XGBoost do M1 com parada antecipada na validação interna | D-53, R6 | T-4.5 |
+| `catboost_m1.py` | CatBoost do M1 com categóricas nativas e parada antecipada | D-53, R6 | T-4.6 |
+| `tabfm_m1.py` | TabFM do M1 (aprendizado em contexto, sem treino); tentado e retirado do M1 (D-91) | D-69, D-91 | T-4.7 |
+| `selecao.py` | Calibração (isotônica ou Platt), limiar por recall ≥ B2 e seleção do vencedor do M1; gancho do fim da sessão | FR-07, FR-08, D-87, D-92 | T-4.9 |
+| `shap_global.py` | SHAP global nativo do modelo de árvore (média de \|SHAP\| e interações), só agregados | FR-13, D-88, R7 | T-4.8 |
+| `shap_graficos.py` | Gráficos do SHAP global desenhados localmente a partir dos agregados, com o SHA-256 conferido | D-66, R10 | T-4.8 |
+| `retreino.py` | Retreino final do vencedor em todo 2022–23 e congelamento do `ModeloFinal`; gancho do fim da sessão | FR-12, FR-22, D-37, D-85 | T-4.10 |
+| `baselines_final.py` | Congela B0 e B1 em todo 2022–23 antes do teste (`models/b0_final`, `models/b1_final`) | D-93, R1 | T-5.0 |
+| `teste_analises.py` | Curva de decisão, calibração com bandas e subgrupos no teste (funções puras sobre arrays) | D-93, R7 | T-5.2 |
+| `teste_erros.py` | Análise de erros do M1 no teste: falsos negativos de maior risco e células de comorbidade, com supressão | D-93, R7 | T-5.3 |
+| `teste_criterios.py` | Critérios SC-01 a SC-04 no teste, com valor, IC e passou/falhou | D-36, D-93 | T-5.4 |
+| `teste_graficos.py` | Figuras da avaliação no teste desenhadas a partir dos agregados, com o SHA-256 conferido contra o lacre | D-66, R7 | T-5.2 |
+| `verificacao_populacao.py` | Verificação da T-2.1 (população e fluxograma contra `esperado.yaml`) | D-56, D-66 | T-2.1 |
+| `verificacao_folds.py` | Verificação da T-2.3 (eventos por região e hash das dobras) | D-56, D-72 | T-2.3 |
+| `verificacao_baselines.py` | Verificação da T-2.8 (B0, B1 e B2 na validação cruzada) | D-56 | T-2.8 |
+| `verificacao_artefatos.py` | Verificação da T-3.6 (carga do bundle do E1 sem `statsmodels`) | D-56, D-81 | T-3.6 |
+| `verificacao_cv.py` | Verificação da T-4.2 (laço `run_loro` com o B1) | D-56 | T-4.2 |
+| `verificacao_shap.py` | Bloco `shap` do relatório da sessão dos modelos | D-57, R7 | T-4.8 |
 | `comparacao_manifesto.py` | Carrega e valida o manifesto da comparação (`config/comparacao/manifesto.yaml`); `exportar_json` | FR-23, D-97 | T-8.3 |
 | `comparacao_entrada.py` | `exportar_entrada`: quadro de features comum (ANO, LINHA) de um ano, sem ou com a porta de 2025 | FR-23, R1 | T-8.4 |
-| `comparar.py` | Avaliador comparativo: alinhar previsões com y, métricas sem limiar, recall em orçamento de alertas, bootstrap pareado, conformidade, lacre e `executar` | FR-23, R2 | T-8.7, T-8.9 |
+| `comparar.py` | Avaliador comparativo: alinhar previsões com y, métricas sem limiar, recall em orçamento de alertas, bootstrap pareado e conformidade | FR-23, R2 | T-8.7 |
+| `comparar_executar.py` | Orquestrador da comparação (`executar`, `executar_ensaio`, `--so-checagens`, `--ensaio`, `--retomar`): checagens go/no-go, previsões por modelo, agregados e lacre em duas fases; único módulo que abre a porta de 2025 | FR-23, R1, R2, R7 | T-8.9 |
 | `comparar_graficos.py` | Figuras comparativas a partir dos agregados | FR-23, R7 | T-8.8 |
 
 Os scripts de previsão de cada modelo ficam em `scripts/comparacao/` (`prever_soneca.py`, `prever_lora.py`,
@@ -140,7 +164,7 @@ Como cumprir a NFR-01. Pesquisa de planos, preços e fontes do Colab:
   - O saldo, as GPUs disponíveis e o acúmulo de unidades são vistos no Colab (*Ambiente de execução → Ver recursos*); a checagem inicial de cada sessão registra a GPU e a RAM por código (`cfg.ambiente`, D-64).
 - **Consumo e custo da sessão de modelos (≈ 4 h, D-53):** T4 ≈ 1,2 unidade/h, L4 ≈ 1,7/h, A100 40 GB ≈ 5,4/h (medição de março de 2026). A sessão custa ~5 unidades em T4, ~7 em L4 e ~22 em A100; 200 unidades/mês cobrem cerca de 9 sessões em A100 e mais de 25 em T4/L4. GPU ociosa continua consumindo unidades.
 - **RAM alta (medida em 2026-11-15):** a VM com GPU T4 e "RAM alta" tem **50,99 GiB e 8 vCPUs** (a padrão, 12,67 GiB e 2 vCPUs). Com ela, Random Forest e as 5 dobras com todos os dados devem caber sem subamostra. A opção pode não ser aplicada na primeira vez que é salva, por isso a checagem inicial confere a RAM por código (`cfg.ambiente`, D-64).
-- **Como usar `[ASSUMPTION]`:** o Pro é um **acelerador**, não muda os orçamentos de tempo da tabela abaixo (mantém a comparação justa entre modelos). Sessão única (D-53) numa VM com GPU T4 e "RAM alta" (L4 também serve): XGBoost (`device="cuda"`), CatBoost (`task_type="GPU"`), MLP na GPU; elastic net e Random Forest na CPU da mesma VM. Desconectar o ambiente ao fim da sessão.
+- **Como usar o Pro** `[ASSUMPTION]`**:** o Pro é um **acelerador**, não muda os orçamentos de tempo da tabela abaixo (mantém a comparação justa entre modelos). Sessão única (D-53) numa VM com GPU T4 e "RAM alta" (só T4, D-84): XGBoost (`device="cuda"`), CatBoost (`task_type="GPU"`), MLP na GPU; elastic net e Random Forest na CPU da mesma VM. Desconectar o ambiente ao fim da sessão.
   - CatBoost em GPU com `PRAUC` como métrica de early stopping: `detectar_dispositivo` faz um treino real de 5 iterações na GPU e, se não aceitar, o CatBoost volta para a CPU.
   - **torch com CUDA 13 no Colab.** O `uv.lock` (2026-11-03) resolve o `torch` 2.15.0 para Linux com wheels de CUDA 13 (pacotes `nvidia-*-cu13`); no Windows local, a mesma versão vem só com CPU (`2.15.0+cpu`). Depois de instalar o projeto no Colab, conferir se o driver suporta CUDA 13 (`nvidia-smi`) e se `torch.cuda.is_available()` dá `True`. Se não der, as alternativas são: usar o torch que já vem no Colab, baixando o piso de versão no `pyproject.toml`, ou instalar o torch do índice da PyTorch para a versão de CUDA do Colab. A escolha fica com o Programador, e a versão usada vai para o MLflow.
 - **Reprodutibilidade (D-44):** mesmo executado no Pro, o pipeline MUST continuar executável no Colab gratuito, ainda que mais devagar ou com subamostra na busca. Assim o professor ou outra pessoa consegue reproduzir sem assinatura.
@@ -180,7 +204,7 @@ Como cumprir a NFR-01. Pesquisa de planos, preços e fontes do Colab:
 - **Escalonamento:** só para logística/MLP (variáveis contínuas). Árvores não precisam.
 - **Outliers:** idade inválida ou fora de [0, 120] → fallback por `ANO_NASC` (D-50); sem `ANO_NASC` utilizável, o caso é excluído e contado no fluxograma (D-49). Atraso de notificação > 60 dias truncado em 60: confirmado pelo profiling, com mediana de 3 dias, p99 de 61 / 38 / 52 dias e 1,0% / 0,5% / 0,8% dos casos acima de 60 dias.
 - **Desbalanceamento (D-12, revisado em D-38):** **sem correção.** Os modelos treinam com a prevalência natural, sem pesos de classe, subamostragem ou SMOTE. O recall é controlado pelo limiar (precisão máxima com recall ≥ ao da regra B2, D-92; F2 é ponto secundário; [spec › Plano de avaliação](spec.md#plano-de-avaliação)), e a calibração posterior (isotônica ou Platt) continua nas predições fora da dobra. Motivo: corrigir o desbalanceamento não melhora AUROC nem AUPRC e piora a calibração, às vezes de forma que a recalibração não conserta (van den Goorbergh et al., JAMIA 2022; Carriero et al., Stat Med 2025 — síntese em `research/consensus-boas-praticas.md`, cópia local fora do repositório: termos do Consensus). Exceção: a subamostra de negativos do Random Forest, só por memória, com correção de probabilidade e verificada pela calibração (R3, T-4.4).
-- **Implementação:** um único `sklearn.Pipeline` / `ColumnTransformer` por modelo, salvo inteiro no artefato (FR-12; formato em D-81: pasta com `metadata.json` e payload; o E1 é NPZ + JSON, sem pickle, e o Pipeline do M1 vai em joblib). Nada de transformação ad hoc fora do pipeline.
+- **Implementação:** um único `sklearn.Pipeline` / `ColumnTransformer` por modelo, salvo inteiro no artefato (FR-12; formato em D-81: pasta com `metadata.json` e payload; o E1 é NPZ + JSON, sem pickle, e o payload do M1 é o joblib do `ModeloFinal`, D-85). Nada de transformação ad hoc fora do pipeline.
 
 ## Modelagem
 
@@ -215,7 +239,7 @@ Verificado em 2026-11-02 em fontes de lançamento: [blog do Google Research](htt
 
 - Lançado em 30/06/2026. Não há treino: as linhas de treino entram como **contexto** na hora da predição (aprendizado em contexto), e a arquitetura alterna atenção entre linhas e colunas.
 - **Licença (conferida em 2026-11-15, D-69):** código sob Apache 2.0; pesos sob a TabFM Non-Commercial License v1.0, que permite pesquisa acadêmica, mas exclui uso em interação com usuários finais e proíbe redistribuir o modelo. Por isso o TabFM **nunca vai para a demo** e o artefato fica só no Drive.
-- **Pacote:** `tabfm[pytorch]` ([model card 1.1.0](https://huggingface.co/google/tabfm-1.1.0-pytorch)); até 500 features e 10 classes. O repositório fixa `torch==2.12.1`, e o lock do projeto usa 2.15: se conflitar, o `tabfm` é instalado só na sessão do Colab e a versão vai para o MLflow (D-69).
+- **Pacote:** `tabfm[pytorch]` ([model card 1.1.0](https://huggingface.co/google/tabfm-1.1.0-pytorch)); até 500 features e 10 classes. O repositório fixa `torch==2.12.1`, e o lock do projeto usa 2.15: se conflitar, o `tabfm` é instalado só na sessão do Colab e a versão vai para o MLflow (D-69). Nota (D-90): o pacote do PyPI (1.0.1) só traz a implementação JAX; a tentativa instalou o TabFM 1.0.0 PyTorch de um commit fixo da `main` do GitHub, e o D-91 retirou o TabFM do M1.
 - (resolvido: D-83, D-91) Na T-4.7: limite padrão de linhas de contexto (`max_num_rows`; o README cita um número baixo, não confirmado), ensembling de contextos (`n_estimators`) e velocidade de predição.
 - Com milhões de linhas no desenvolvimento, o contexto será uma **subamostra estratificada** do treino de cada dobra, com tamanho definido pelo limite verificado. O relatório registra que o TabFM vê só essa subamostra.
 - Precisa de GPU (Colab). Avaliado nas mesmas dobras leave-one-region-out e calibrado igual aos outros (FR-08, FR-17).

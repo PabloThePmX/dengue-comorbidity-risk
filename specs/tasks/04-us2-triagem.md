@@ -5,9 +5,9 @@
 
 Spec: FR-07, FR-08, FR-12, FR-13, FR-17, FR-22, NFR-01, D-32, D-36, D-37, D-42, D-43;
 [plan › Modelagem](../plan.md#modelagem) e [plan › Ambiente](../plan.md#ambiente-de-execução-e-orçamento).
-Critério de saída: [spec › Marcos](../spec.md#marcos). Tudo em 2022–23 (R1). **Uma sessão única do Colab para os 6 modelos** (NFR-01, D-53): mesmos dados,
+Critério de saída: [spec › Marcos](../spec.md#marcos). Tudo em 2022–23 (R1). **Uma sessão única do Colab para os 6 modelos** (NFR-01, D-53; **5 modelos desde o D-91**: o TabFM saiu do M1): mesmos dados,
 mesmas dobras (arquivo de T-2.3 com hash), mesma semente; comparação pareada no fim (T-4.9).
-VM com GPU T4 e "RAM alta" no Pro (medida em 2026-11-15: 50,99 GiB, 8 vCPUs; L4 também serve).
+VM com GPU T4 e "RAM alta" no Pro (medida em 2026-11-15: 50,99 GiB, 8 vCPUs; só T4, D-84).
 No gratuito, o mesmo notebook roda, mais devagar, retomando de onde parou.
 
 **Como este marco é verificado (D-57, D-64):** T-4.0 a T-4.10 são implementadas e testadas
@@ -15,7 +15,7 @@ No gratuito, o mesmo notebook roda, mais devagar, retomando de onde parou.
 Colab (`notebooks/04_modelos.ipynb`), disparada pelo agente via MCP em segundo plano
 ([Verificação no Colab](00-como-usar.md#verificação-no-colab)), que executa tudo e grava **um** relatório:
 `reports/verificacao/sessao-m1.json`, com um bloco por etapa (checagem inicial, cada modelo,
-seleção, SHAP, retreino), cada um com seu `"passou"`. O arquivo é reescrito ao fim de cada etapa;
+seleção, SHAP, retreino), cada um com seu `"passou"` (D-86: o relatório é gravado no Drive e copiado ao repositório; os blocos dos 5 modelos ficaram em `sessao-m1-modelos.json`, D-91). O arquivo é reescrito ao fim de cada etapa;
 se a sessão cair, o que terminou fica registrado e a reexecução continua de onde parou.
 
 ### [x] T-4.0 [US2] — Espaço de busca (Q-08, definido pelo agente, D-68)
@@ -153,7 +153,7 @@ Nenhum parâmetro de peso de classe (R3).
 - **Pronto quando:** testes passam e o bloco `checagem_inicial` do `sessao-m1.json` tem
   `"passou": true`.
 
-### [x] T-4.4 a T-4.8 [US2] — Os 6 modelos (dentro de `run_all_models`)
+### [x] T-4.4 a T-4.8 [US2] — Os 6 modelos (5 desde o D-91; dentro de `run_all_models`)
 
 Implemente e teste cada modelo separadamente (testes rápidos em CPU), mas a execução real é **uma
 só**, pela T-4.3b, na ordem do config. Tetos de tempo e de tentativas: `config/base.yaml` (D-53).
@@ -220,12 +220,12 @@ no MLflow; tempo gasto ≤ teto do modelo; nº de tentativas concluídas e podad
 - Retreinar o modelo escolhido em **todo** 2022–23 com os melhores hiperparâmetros.
   Iterativos: nº de árvores/épocas = **mediana** dos melhores pontos das 5 dobras (sem early stopping).
 - Aplicar o calibrador e o limiar da T-4.9 (não reajustar).
-- Serializar com `save_bundle` (pipeline + calibrador + limiar + metadados FR-12 + os 5 melhores pontos).
+- Serializar com `save_bundle` (o payload é o joblib do `ModeloFinal`, D-85: pipeline + calibrador + limiar + metadados FR-12 + os 5 melhores pontos).
 - Medir se o modelo cabe na demo: tamanho do arquivo, tempo de predição de um caso e tempo do SHAP
   local. Os três vão para o bloco `retreino` do `sessao-m1.json`.
 - **Modelo da demo (D-69, D-70):** se o vencedor for o TabFM, passar de 1 s (NFR-06) ou não tiver
   SHAP local viável, retreine também o melhor candidato que cumpra os três, do mesmo jeito, como
-  `models/m1_demo.*`, e registre o motivo. O vencedor continua sendo o M1 avaliado no teste.
+  `models/m1_demo.*`, e registre o motivo. O vencedor continua sendo o M1 avaliado no teste. (D-91: o TabFM saiu do M1; a regra só vale se o vencedor reprovar em algum dos três critérios.)
 - **Pronto quando:** o bloco `retreino` do `sessao-m1.json` tem `"passou": true` para: o artefato
-  `models/m1_final.*` (no Drive) carrega e prediz; o hash do arquivo está no relatório (copie para o
+  `models/m1_final.*` (no Drive; fora do git, D-85) carrega e prediz; o hash do arquivo está no relatório (copie para o
   Registro de execução).

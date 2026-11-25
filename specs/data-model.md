@@ -54,7 +54,7 @@ População final (D-45 e idade com o fallback de D-50):
 | Prevalência de y | 0,16% | 0,16% | 0,21% |
 
 - Desenvolvimento (2022–23): **2.453.208 casos e 3.985 eventos**; teste (2024): 5.331.745 casos e 11.338 eventos. População total: 7.784.953.
-- A prevalência é **muito baixa** (cerca de 1 evento a cada 470–630 casos). A PR-AUC de B0 fica entre ~0,0016 e ~0,0021.
+- A prevalência é **muito baixa** (cerca de 1 evento a cada 470–620 casos). A PR-AUC de B0 fica entre ~0,0016 e ~0,0021.
 - **Ano do arquivo × ano da notificação (D-46):** coincidem em 99,98% dos casos. Exceções: 680 casos de 2024 no arquivo de 2023; 284 de 2023 e 477 de 2025 no de 2024. O arquivo de 2024 tem 5.238 casos com sintomas em 2023, que ficam no teste.
 
 ### Eventos por região e subgrupo
@@ -67,6 +67,13 @@ População final (D-45 e idade com o fallback de D-50):
   - Região: Centro-Oeste 1.682, Nordeste 942, **Norte 110**, Sudeste 6.510, Sul 2.094.
 - O que esses números implicam para a avaliação: [spec › Tamanho do teste e das dobras](spec.md#tamanho-do-teste-e-das-dobras).
 
+### Ano de comparação (2025)
+
+O arquivo `DENGBR25.dbc` (Marco 8, D-97) tem 1.389.509 casos na população do projeto e 3.436 eventos. Os
+números, por etapa do fluxograma, região e faixa etária, estão em [reports/perfil_2025.md](../reports/perfil_2025.md)
+(só agregados, R7). Esse perfil não foi usado para treinar, escolher nem avaliar nada; 2025 é lido só pela
+porta do ano de comparação ([constituição](constitution.md), R1 e R2).
+
 ### Codificação do alvo
 
 Regra do alvo: [spec › Formulação do problema](spec.md#formulação-do-problema) (D-02). Códigos nos dicionários oficiais (conferidos em 2026-11-01):
@@ -77,7 +84,7 @@ Regra do alvo: [spec › Formulação do problema](spec.md#formulação-do-probl
 - Contagens: `CLASSI_FIN` = 12 em 1.548 / 1.686 / 8.831; `EVOLUCAO` = 2 em 1.056 / 1.192 / 6.337 (2022 / 2023 / 2024, todas as notificações).
 - `CLASSI_FIN` = 0 (8.442 linhas: 330 em 2022 e 8.112 em 2023) tem `ALRM_*` e `GRAV_*` preenchidos em 100% das linhas: código anômalo, fora da população.
 - Nas notas do portal, o MS define "casos graves" como **dengue com sinais de alarme + dengue grave**. O alvo deste projeto (D-02) é mais estrito (só dengue grave + óbito). Ao comparar com números oficiais no relatório, explicitar essa diferença.
-- **`ALRM_*` por classe (restrição do M2):** algum `ALRM_*` está preenchido em **99,8%** dos casos 11, **92,9%** dos 12 e só **3,3%** dos 10 (todos os anos). (M2 não implementado, D-94: não aplicável)
+- **`ALRM_*` por classe (restrição do M2):** algum `ALRM_*` está preenchido em **99,8%** dos casos 11, **92,9%** dos 12 e só **3,3%** dos 10 (todos os anos). (M2 (FR-14) não implementado)
 
 ### Comorbidades e sinais clínicos
 

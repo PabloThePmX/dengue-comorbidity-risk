@@ -41,7 +41,7 @@ Em epidemias, como a de 2024, os serviços recebem muito mais pacientes com deng
 
 Hoje essa decisão segue o protocolo do Ministério da Saúde (*Dengue: diagnóstico e manejo clínico, adulto e criança*, 6ª ed.; Brasil, 2024). O grupo de manejo B reúne quem não tem sinais de alarme, mas tem sangramento de pele (espontâneo ou na prova do laço) ou uma condição especial. A prova do laço é um teste em que se aperta o braço com o manguito do aparelho de pressão para ver se surgem pequenos pontos de sangramento na pele. As condições especiais incluem lactentes, gestantes, maiores de 65 anos, hipertensão, diabetes, doença renal crônica e outras comorbidades.
 
-O desfecho é raro: entre os casos confirmados de 2022 a 2024, cerca de 1 em cada 470 a 630 evolui para dengue grave ou óbito, conforme o ano; em 2022–23, cerca de 1 em cada 616 (3.985 eventos em 2.453.208 casos). Um modelo que diz "ninguém vai piorar" acerta mais de 99% das vezes e não serve para nada.
+O desfecho é raro: entre os casos confirmados de 2022 a 2024, cerca de 1 em cada 470 a 620 evolui para dengue grave ou óbito, conforme o ano; em 2022–23, cerca de 1 em cada 616 (3.985 eventos em 2.453.208 casos). Um modelo que diz "ninguém vai piorar" acerta mais de 99% das vezes e não serve para nada.
 
 ## 1.2 As duas perguntas do projeto
 
@@ -107,7 +107,7 @@ O **vazamento por completude** (fichas de casos graves mais preenchidas, tornand
 
 ## 2.4 Desenho de validação
 
-**Camada temporal (D-08).** Todo o desenvolvimento usa só 2022 e 2023. O ano de 2024 é o **teste**, lido uma única vez, no fim, com o modelo congelado; um "lacre" gravado ao fim da avaliação impede uma segunda execução (regra R2).
+**Camada temporal (D-08).** Todo o desenvolvimento usa só 2022 e 2023. O ano de 2024 é o **teste**, lido uma única vez, no fim, com o modelo congelado; um "lacre" gravado ao fim da avaliação impede uma segunda execução (regra R2). A avaliação em 2024 foi executada uma única vez, depois de congelar o modelo. Antes disso, 2024 e 2025 haviam sido lidos apenas em agregados (contagens, prevalência, eventos por região), sem influenciar nenhuma escolha. O perfil de 2025 é anterior à emenda de R1 e à D-97. A reexecução de 2024 para o NFR-02 foi feita num clone descartável (D-101).
 
 **Camada geográfica (validação que deixa uma região de fora, ou *leave-one-region-out*).** Em 2022–23, os modelos foram comparados em 5 rodadas, chamadas dobras. Em cada uma, o modelo treina com 4 regiões e prevê a quinta, como uma receita aprendida em quatro cozinhas e testada numa quinta que o cozinheiro nunca viu. Esse desenho interno-externo é o recomendado em vez da divisão aleatória (Steyerberg; Harrell, 2016).
 
@@ -129,7 +129,7 @@ As previsões sobre a região deixada de fora se chamam **predições fora da do
 
 ## 2.6 Desbalanceamento de classes: por que não houve correção
 
-Com cerca de 1 evento para cada 616 casos em 2022–23 (2.453.208 casos sobre 3.985 eventos), é comum "corrigir o desbalanceamento" com pesos de classe, descarte de casos comuns ou casos sintéticos (SMOTE). O projeto não fez nada disso (D-38, regra R3). Essas correções não melhoram a separação entre graves e não graves e **pioram a calibração**, inflando os riscos de um modo que a recalibração nem sempre conserta (van den Goorbergh et al., 2022; Carriero et al., 2025). Como o produto é um risco em porcentagem, a calibração vem antes; o equilíbrio entre encontrar casos e gerar alarmes fica com o limiar (seção 2.7). 
+Com cerca de 1 evento para cada 616 casos em 2022–23 (2.453.208 casos sobre 3.985 eventos), é comum "corrigir o desbalanceamento" com pesos de classe, descarte de casos comuns ou casos sintéticos (SMOTE). O projeto não fez nada disso (D-38, regra R3). Essas correções não melhoram a separação entre graves e não graves e **pioram a calibração**, inflando os riscos de um modo que a recalibração nem sempre conserta (van den Goorbergh et al., 2022; Carriero et al., 2025). Como o produto é um risco em porcentagem, a calibração vem antes; o equilíbrio entre encontrar casos e gerar alarmes fica com o limiar (seção 2.7).
 
 A única exceção prevista era uma subamostra de negativos no Random Forest, por falta de memória. Pela tabela da busca, o Random Forest rodou sem subamostra; só o elastic net usou subamostra, e ela foi estratificada pelo alvo, na busca de hiperparâmetros, mantendo a prevalência (Fonte: `reports/m1/comparacao_oof.md`, seção 4).
 
@@ -158,7 +158,7 @@ Semente única (20261103), ambiente travado pelo `uv.lock`, SHA-256 dos dados, d
 
 ## 2.10 Aspectos éticos
 
-Os dados são públicos e **desidentificados**: não têm nome, CPF, endereço nem data de nascimento completa, mas têm ano de nascimento, idade, sexo e município. Não são "anonimizados", porque combinações raras de idade, município e data ainda poderiam identificar alguém. Por isso nada linha a linha foi publicado, e contagens de 1 a 9 aparecem como "<10" (regra R7).
+Os dados são públicos e **desidentificados**: não têm nome, CPF, endereço nem data de nascimento completa, mas têm ano de nascimento, idade, sexo e município. Não são "anonimizados", porque combinações raras de idade, município e data ainda poderiam identificar alguém. Por isso nada linha a linha foi publicado, e contagens de 1 a 9 aparecem como "<10" (regra R7). Exceção: `profiling/RESULTADOS.md`, gerado pelo notebook de profiling, anterior às regras, tem células com 1 a 9 casos; ele deve ser regerado com supressão de células < 10 antes de qualquer nova execução do zero (D-101).
 
 A dispensa de apreciação por comitê de ética se apoia na Resolução CNS nº 510/2016, art. 1º, parágrafo único, inciso II, que trata de pesquisas com informações de acesso público nos termos da Lei nº 12.527/2011 (NFR-04).
 
@@ -258,7 +258,7 @@ Segundo o SHAP (Figura 3), o modelo usa sobretudo os dias até a notificação, 
 
 ## 3.5 O teste em 2024, usado uma única vez
 
-A avaliação rodou uma vez, em 2026-11-23, sobre 5.331.745 casos e 11.338 eventos (prevalência de 0,213%). Nenhum modelo, peso, calibrador ou limiar foi alterado depois (Fonte: `reports/teste/criterios.md`, `specs/tasks/00-como-usar.md`).
+A avaliação rodou uma vez, em 2026-11-23, sobre 5.331.745 casos e 11.338 eventos (prevalência de 0,213%). Nenhum modelo, peso, calibrador ou limiar foi alterado depois (Fonte: `reports/teste/criterios.md`, `specs/tasks/00-como-usar.md`). A avaliação em 2024 foi executada uma única vez, depois de congelar o modelo. Antes disso, 2024 e 2025 haviam sido lidos apenas em agregados (contagens, prevalência, eventos por região), sem influenciar nenhuma escolha. O perfil de 2025 é anterior à emenda de R1 e à D-97. A reexecução de 2024 para o NFR-02 foi feita num clone descartável (D-101).
 
 ### 3.5.1 Desempenho geral
 
@@ -271,7 +271,7 @@ A avaliação rodou uma vez, em 2026-11-23, sobre 5.331.745 casos e 11.338 event
 | B1 (logística simples) | 0,016561 (0,015569; 0,017734) | 0,7156 (0,7096; 0,7211) | 0,002108 | 0,998 (0,980; 1,014) | 1,188 (1,186; 1,189) |
 | B0 (prevalência) | 0,002127 | 0,5000 | 0,002122 | não definido | 1,309 |
 
-Fonte: `reports/teste/metricas.md`. A B2 é uma regra binária e não tem PR-AUC.
+Fonte: `reports/teste/metricas.md`. A B2 é regra binária; a PR-AUC dela é de um ponto único (em 2024, 0,0053; em 2025, veja a Tabela 8).
 
 Dividida pela prevalência de 2024 (0,002127, a PR-AUC do B0), a PR-AUC do M1 é cerca de **16 vezes** o acaso; a do E1, cerca de 10, e a do B1, cerca de 8. O ganho sobre o B1 é pequeno em valor absoluto (0,018), mas o M1 tem cerca do dobro da PR-AUC do B1.
 
@@ -310,7 +310,7 @@ O limiar foi escolhido em 2022–23 para igualar o recall da regra (0,6846 contr
 
 ### 3.5.3 Calibração e deriva em 2024
 
-**Deriva (*drift*)** é a mudança, ao longo do tempo, dos dados ou da relação entre eles e o desfecho. Em modelos clínicos, ela é comum e afeta a calibração com mais frequência que a discriminação (Guo et al., 2021). O ano de 2024 foi de epidemia, com prevalência de 0,213%, contra 0,16% no desenvolvimento. O M1 **subestimou o risco em 2024**: a razão observado/esperado foi 1,301, cerca de 30% mais eventos do que o previsto, em todas as dez caixas de risco da Figura 4. O slope de 0,945 mostra que a ordenação foi preservada (por isso o SC-03 passou): o erro está no nível do risco, não na ordem. Nenhum ajuste foi feito depois (FR-08, D-36, D-93), porque recalibrar com 2024 transformaria o teste em dado de treino.
+**Deriva (*drift*)** é a mudança, ao longo do tempo, dos dados ou da relação entre eles e o desfecho. Em modelos clínicos, ela é comum e afeta a calibração com mais frequência que a discriminação (Guo et al., 2021). O ano de 2024 foi de epidemia, com prevalência de 0,213%, contra 0,16% no desenvolvimento. O M1 **subestimou o risco em 2024**: a razão observado/esperado foi 1,301, cerca de 30% mais eventos do que o previsto, em todas as dez caixas de risco da Figura 4. O slope de 0,945 mede a escala do risco (por isso o SC-03 passou); a ordenação é medida pelo ROC-AUC, que ficou em 0,8338 em 2024 (0,8481 fora da dobra na validação): o erro está no nível do risco, não na ordem. Nenhum ajuste foi feito depois (FR-08, D-36, D-93), porque recalibrar com 2024 transformaria o teste em dado de treino.
 
 ![Figura 4](../teste/calibracao.png)
 
@@ -358,14 +358,14 @@ A demonstração **não foi publicada**: roda localmente, por decisão do Progra
 
 > **Em uma frase:** em 2025, ano que nenhum modelo viu no treino, o M1 teve a maior PR-AUC entre os sete modelos comparados, com diferença detectável para os outros seis; mas, com orçamento fixo de alertas, ele ficou empatado, dentro do IC, com o modelo da branch `feat/soneca`.
 
-A pergunta é se o M1 é melhor que os modelos gerados, para o mesmo problema, nas outras branches do repositório (FR-23, US4). O teste de 2024 está lacrado (R2), então a comparação usa 2025, o ano de comparação (D-97): dados finais do DataSUS, lidos uma única vez, pela porta própria do módulo de comparação. Nenhum modelo foi escolhido, ajustado ou substituído com base no resultado (R1).
+A pergunta é se o M1 é melhor que os modelos gerados, para o mesmo problema, nas outras branches do repositório (FR-23, US4). O teste de 2024 está lacrado (R2), então a comparação usa 2025, o ano de comparação (D-97): dados finais do DataSUS, lidos uma única vez, pela porta própria do módulo de comparação. Nenhum modelo foi escolhido, ajustado ou substituído com base no resultado (R1). A avaliação em 2024 foi executada uma única vez, depois de congelar o modelo. Antes disso, 2024 e 2025 haviam sido lidos apenas em agregados (contagens, prevalência, eventos por região), sem influenciar nenhuma escolha. O perfil de 2025 é anterior à emenda de R1 e à D-97. A reexecução de 2024 para o NFR-02 foi feita num clone descartável (D-101). O valor de 14% do orçamento de alertas tem origem não documentada; foi fixado no manifesto antes da execução única de 2025 e da leitura dos agregados da comparação (o perfil de 2025 já existia, e não há registro de que o valor tenha sido escolhido a partir dele) e coincide com a taxa de alertas do M1 em 2024 (14,2%), ver D-101.
 
 **Conjunto e regras de leitura**
 
-- **Conjunto fechado.** O manifesto (`config/comparacao/manifesto.yaml`) foi commitado antes da leitura de 2025 e traz o SHA-256 de cada artefato. Entram o M1, o E1, a B0, a B1 e a B2 do projeto, mais o M1 de duas branches: `feat/soneca` (`m1_soneca`) e `feat/lora` (`m1_lora`). Ficaram de fora a `feat/ricardo`, que não tem artefato, e a `mario`, que não tem commits novos.
+- **Conjunto fechado.** O manifesto (`config/comparacao/manifesto.yaml`) foi commitado antes da execução única de 2025 e da leitura dos agregados da comparação e traz o SHA-256 de cada artefato. Entram o M1, o E1, a B0, a B1 e a B2 do projeto, mais o M1 de duas branches: `feat/soneca` (`m1_soneca`) e `feat/lora` (`m1_lora`). Ficaram de fora a `feat/ricardo`, que não tem artefato, e a `mario`, que não tem commits novos.
 - **"Melhor" é o modelo congelado por cada branch**, escolhido pela validação dela (limites na seção 4.4).
 - **População principal:** 1.387.534 casos e 3.426 eventos, os casos que o E1 estima (D-99), iguais para todos os modelos. A população completa, com 1.389.509 casos e 3.436 eventos, aparece só como informação; os 1.975 casos a mais são os que o E1 não estima.
-- **Regra de leitura:** PR-AUC com IC 95% por bootstrap pareado, com 1.000 reamostras e semente 20261103. A diferença de cada modelo contra o M1 usa as mesmas reamostras. O modelo é "melhor" se o IC da diferença fica acima de zero, "pior" se fica abaixo, e "sem diferença detectável" se inclui zero. As 1.000 reamostras e essa regra foram confirmadas pelo Programador (D-100). Como são seis comparações contra o M1, conferiu-se também o corte de Bonferroni (z = 2,64), a partir dos ICs publicados: o menor z aproximado é o da soneca (cerca de 3,7), então os seis resultados "pior" resistem à correção.
+- **Regra de leitura:** PR-AUC com IC 95% por bootstrap pareado, com 1.000 reamostras e semente 20261103. A diferença de cada modelo contra o M1 usa as mesmas reamostras. O modelo é "melhor" se o IC da diferença fica acima de zero, "pior" se fica abaixo, e "sem diferença detectável" se inclui zero. As 1.000 reamostras e essa regra foram confirmadas na D-100. Como são seis comparações contra o M1, conferiu-se também o corte de Bonferroni (z = 2,64), a partir dos ICs publicados: o menor z aproximado é o da soneca (cerca de 3,7), então os seis resultados "pior" resistem à correção.
 
 **Tabela 8 – PR-AUC, diferença contra o M1 e observado/esperado, população principal, 2025**
 
@@ -379,7 +379,7 @@ A pergunta é se o M1 é melhor que os modelos gerados, para o mesmo problema, n
 | B0 (prevalência) | 0,0025 (0,0025 a 0,0025) | −0,0334 (−0,0381 a −0,0295) | pior | 1,520 (1,520 a 1,520) |
 | B2 (regra do protocolo) | 0,0049 (0,0048 a 0,0051) | −0,0309 (−0,0356 a −0,0271) | pior | 0,009 (0,009 a 0,009) |
 
-Fonte: `reports/comparacao/metricas.md` e `reports/comparacao/diferencas.md`. A B2 é uma regra de 0 ou 1, então a PR-AUC, a calibração e o observado/esperado dela não têm a mesma leitura que os dos modelos de probabilidade; os valores são os que o script gravou. A B0 dá a mesma probabilidade a todos, e por isso o IC da PR-AUC dela é degenerado.
+Fonte: `reports/comparacao/metricas.md`, `reports/comparacao/metricas.json` e `reports/comparacao/diferencas.md`. A B2 é regra binária; a PR-AUC dela é de um ponto único. Por isso a PR-AUC, a calibração e o observado/esperado dela não têm a mesma leitura que os dos modelos de probabilidade; os valores são os que o script gravou. A B0 dá a mesma probabilidade a todos, e por isso o IC da PR-AUC dela é degenerado.
 
 **Resultado principal**
 
@@ -421,14 +421,14 @@ Fonte: `reports/comparacao/orcamentos.md`.
 
 **Figura 9 – Recall e precisão por orçamento de alertas (5%, 10% e 14%), população principal, 2025.** Barras: IC 95%. Fonte: `reports/comparacao/orcamentos.png`.
 
-**Calibração e curva de decisão.** Nenhuma caixa de calibração foi suprimida pelo R7 (0 de 52; Figura 10, Apêndice E). Na curva de decisão (Figura 11, Apêndice E), o M1 e a soneca se cruzam: no grid de 0,1% a 5,0% (50 limiares), a soneca fica acima em 39 e o M1 em 11, com diferenças de até cerca de 3 × 10⁻⁵ de benefício líquido e sem IC. A lora não fica acima do M1 em nenhum. Diferente de 2024 (seção 3.5.4), o M1 não é a melhor estratégia em toda a faixa.
+**Calibração e curva de decisão.** Nenhuma caixa de calibração foi suprimida pelo R7 (0 de 52; Figura 10, Apêndice E). Na curva de decisão (Figura 11, Apêndice E), o M1 e a soneca se cruzam: no grid de 0,1% a 5,0% (50 limiares), a soneca fica acima em 39 e o M1 em 11, com diferenças de até cerca de 3 × 10⁻⁵ de benefício líquido e sem IC. A lora não fica acima do M1 em nenhum. Diferentemente de 2024 (seção 3.5.4), o M1 não é a melhor estratégia em toda a faixa.
 
 **Conformidade R3 a R6.** Os sete modelos passam em R3 (sem correção de desbalanceamento) e em R4 (variáveis no dicionário), e foram treinados sem 2025. A soneca e a lora rodaram com pandas e numpy de versões diferentes das do treino, e a conformidade marca `versoes_diferentes_do_treino` como verdadeiro. Para os modelos do projeto, a versão do treino não está declarada, e o item fica não determinado. As duas branches foram carregadas em worktree e ambiente isolados, com o SHA-256 conferido antes (D-97, g). O quadro completo é a Figura 12 (Apêndice E).
 
 **SC-09.** O SC-09 não mede o desempenho do M1: passa se a execução cumpre as condições do FR-23, seja qual for o resultado. Cada condição tem prova no repositório:
 
 - **execução única:** o lacre (`reports/comparacao/LACRE.json`) existe e impede nova avaliação, e o relatório de verificação T-8.11 tem `passou: true` em seis checks (`reports/verificacao/T-8.11.json`);
-- **manifesto commitado antes:** o lacre grava o hash do manifesto, e o manifesto não mudou depois do commit que o lacre registra (`d5570c8`);
+- **manifesto commitado antes:** o lacre grava o hash do manifesto, e o manifesto não mudou depois do commit que o lacre registra (`d5570c8`); o hash vale para a cópia com CRLF (`core.autocrlf=true` no Windows), e o blob no git (LF) tem outro SHA-256, então, para reproduzir em Linux ou no Colab, é preciso normalizar o fim de linha (D-101);
 - **lacre antes das figuras:** o check `lacre_antes_das_figuras` passou;
 - **resultado completo:** PR-AUC com IC e diferença pareada com IC para cada modelo (`reports/comparacao/diferencas.md`).
 
@@ -446,7 +446,7 @@ Logo, o SC-09 passa. Isso não significa que o M1 seja melhor em tudo: no recall
 
 **Pergunta preditiva.** O XGBoost superou o B0 e o B1 no teste. Contra a regra do protocolo, marcou 46% menos casos com quase os mesmos eventos capturados, mas o SC-02 falhou: recall de 0,6528 contra 0,6601 da regra (diferença de −0,0072, IC de −0,0151 a 0,0005, que mal inclui zero), com precisão maior (0,00975 contra 0,00529). O M1 oferece uma troca diferente, e não um substituto da regra.
 
-**Calibração.** A ordenação se manteve em 2024; o nível do risco, não. Uma explicação plausível, não testada, é a epidemia de 2024 e a volta do sorotipo DENV-3 (Fonte: `specs/data-model.md`, seção "Vieses conhecidos"). Foi a validação temporal que expôs essa deriva.
+**Calibração.** A ordenação se manteve em 2024 (ROC-AUC 0,8338, contra 0,8481 fora da dobra); o nível do risco, não. Uma explicação plausível, não testada, é a epidemia de 2024 e a volta do sorotipo DENV-3 (Fonte: `specs/data-model.md`, seção "Vieses conhecidos"). Foi a validação temporal que expôs essa deriva.
 
 ## 4.2 Limitações
 
@@ -478,7 +478,7 @@ Logo, o SC-09 passa. Isso não significa que o M1 seja melhor em tudo: no recall
 - **Um ano, com poucos eventos.** São 3.426 eventos na população principal (3.436 na completa), cerca de 30% dos 11.338 de 2024. O IC da PR-AUC do M1 tem amplitude de 0,0086, quase o dobro dos 0,0047 de 2024, e a diferença para a soneca (−0,0029) é pequena. Só um segundo ano diz se a ordem se repete.
 - **Versões de bibliotecas diferentes.** A soneca e a lora rodaram com pandas e numpy de versões diferentes das do treino. O efeito sobre as previsões não foi medido.
 - **"Melhor" é o modelo congelado de cada branch**, não o melhor que ela produziu. O MLP e o XGBoost da lora tinham PR-AUC de validação um pouco maior que a do elastic net, mas não têm artefato commitado, e o Programador manteve o modelo congelado (`specs/tasks/08-comparacao.md`, "Fora do escopo"). A `feat/ricardo` (sem artefato) e a `mario` (sem commits novos) ficaram fora, e um modelo acrescentado depois é exploratório (D-97, c).
-- **R7 na branch `feat/lora`.** O pickle do modelo guarda 20 linhas de microdados de 2022–23 (`background_df`), sem dado de 2025. A cópia só existe no worktree local, e as temporárias foram apagadas (T-8.5). Não foi verificado se o arquivo está rastreado na branch, e microdado em artefato de branch exige decisão do Programador.
+- **R7 na branch `feat/lora`.** O pickle do modelo guarda 20 linhas de microdados de 2022–23 (`background_df`), sem dado de 2025. A cópia só existe no worktree local, e as temporárias foram apagadas (T-8.5). Verificado: `models/m1_final.joblib` está rastreado em `origin/feat/lora` (commit `af96e97`; SHA-256 `2f65a1cc…`, igual ao do manifesto); a branch não é tocada neste projeto, e o fato fica registrado para o Programador tratar com o dono da branch (D-101). Microdado em artefato de branch exige decisão do Programador.
 - **A B2 é parcial.** A ficha não tem asma, DPOC nem obesidade (seção 4.2). A contagem de alertas da regra em 2025 não está nos agregados, e por isso o corte de 5% não a representa.
 - **Recall e precisão sem diferença pareada.** A regra de "melhor" usa só a PR-AUC. Para recall e precisão por orçamento, os agregados trazem o IC de cada modelo, mas não o da diferença contra o M1. O empate da seção 3.7 é sobreposição de ICs, não um teste.
 - **Sem recalibração.** R1 e D-36 proíbem ajuste com 2025, então nenhum modelo foi recalibrado, e o observado/esperado ficou entre 1,354 e 1,520. O ano de comparação foi lido uma vez (R2), e esta seção não muda o M1, o limiar nem os critérios SC-01 a SC-04.
@@ -491,7 +491,7 @@ Logo, o SC-09 passa. Isso não significa que o M1 seja melhor em tudo: no recall
 1. *Quais comorbidades?* Doença hematológica (OR 9,32), renal (6,80), autoimune (5,02), hepatopatia (4,89), diabetes (2,98) e hipertensão (2,67), as duas últimas aos 40 anos, com IC sobrepostos; ácido-péptica sem associação.
 2. *E as combinações?* Só 4 dos 15 pares estimados mostram risco além da soma dos efeitos, e 3 pares têm conclusão aditiva sensível ao método; uma mulher de 60 a 79 anos com doença renal e hipertensão tem risco estimado de 2,987%, contra 0,194% sem comorbidades.
 3. *O aprendizado de máquina acrescenta algo?* Sobre a logística simples, sim (cerca do dobro da PR-AUC no teste). Sobre a regra do protocolo, só em parte: 46% menos alertas, mas recall abaixo do da regra, e o SC-02 falhou.
-4. *O risco é confiável?* A ordenação, sim (slope 0,945); o nível, não em 2024 (subestimação de cerca de 30%).
+4. *O risco é confiável?* A ordenação, sim (ROC-AUC 0,8338; o slope de 0,945 mede a escala do risco); o nível, não em 2024 (subestimação de cerca de 30%).
 5. *E em 2025?* Lido uma vez, para comparar com outras branches (seção 3.7): o M1 teve a maior PR-AUC entre os sete modelos, com diferença detectável para os seis, mas empatou com a branch `soneca` no recall e na precisão por orçamento de alertas, e subestimou o risco de novo (observado/esperado de 1,455).
 
 **Trabalhos futuros:** recalibração periódica avaliada num ano não visto; atributos geográficos contínuos (por exemplo, incidência recente no município); TabFM e ensemble num novo teste; sensibilidade de duplicatas (D-47).
@@ -504,11 +504,11 @@ BRASIL. Conselho Nacional de Saúde. **Resolução nº 510, de 7 de abril de 201
 
 BRASIL. **Lei nº 12.527, de 18 de novembro de 2011**. Regula o acesso a informações (Lei de Acesso à Informação). Diário Oficial da União: edição extra, Brasília, DF, 18 nov. 2011. Disponível em: https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm. Acesso em: 23 nov. 2026.
 
-BRASIL. Ministério da Saúde. **Dengue**: diagnóstico e manejo clínico: adulto e criança. 6. ed. Brasília: Ministério da Saúde, 2024.. Disponível em: https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue/publicacoes/dengue-diagnostico-e-manejo-clinico-adulto-e-crianca. Acesso em: 23 nov. 2026.
+BRASIL. Ministério da Saúde. **Dengue**: diagnóstico e manejo clínico: adulto e criança. 6. ed. Brasília: Ministério da Saúde, 2024. Disponível em: https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dengue/publicacoes/dengue-diagnostico-e-manejo-clinico-adulto-e-crianca. Acesso em: 23 nov. 2026.
 
 BRASIL. Ministério da Saúde. **Sinan/Dengue**: arboviroses. Portal de Dados Abertos do Ministério da Saúde. Disponível em: https://dadosabertos.saude.gov.br/dataset/arboviroses-dengue. Acesso em: 1 nov. 2026.
 
-BRASIL. Ministério da Saúde. DataSUS. **Microdados SINAN Dengue** (DENGBR22, DENGBR23, DENGBR24). Disponível em: ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/. Acesso em: 2 nov. 2026.
+BRASIL. Ministério da Saúde. DataSUS. **Microdados SINAN Dengue** (DENGBR22, DENGBR23, DENGBR24). Disponível em: ftp.datasus.gov.br/dissemin/publicos/SINAN/DADOS/FINAIS/. Acesso em: 3 nov. 2026.
 
 CARRIERO, A. et al. The harms of class imbalance corrections for machine learning based prediction models: a simulation study. **Statistics in Medicine**, v. 44, n. 3-4, e10320, fev. 2025. DOI: 10.1002/sim.10320. Disponível em: https://doi.org/10.1002/sim.10320.
 
@@ -601,7 +601,9 @@ Registro completo em `specs/research.md`, seção "Registro de decisões". D-22 
 | D-92 | Limiar principal: precisão máxima com recall pelo menos igual ao da B2. |
 | D-97 | 2025 como ano de comparação de modelos (emenda do R1 e do R2, constituição 1.5). Lido uma única vez, para o conjunto declarado em manifesto commitado antes; nada é escolhido, ajustado ou substituído pelo resultado; modelo acrescentado depois é exploratório; previsões por caso ficam fora do git; modelos de outras branches rodam só em worktree e ambiente isolados. |
 | D-98 | Plano do Marco 8 e correção de processo: tarefas T-8.0 a T-8.13, US4, FR-23 e SC-09 acrescentados sem renumerar; nenhuma regra ou critério muda; uma feature nova começa pela tarefa e pelo spec. |
+| D-99 | O E1 na comparação de 2025: a população principal é o subconjunto de casos que ele estima (no máximo 4 comorbidades e pares não excluídos), igual para todos os modelos; a população completa fica como informação. |
 | D-100 | Revisão dos três `[ASSUMPTION]` da comparação de 2025: orçamentos de alertas de 5%, 10% e 14%, 1.000 reamostras e regra de "melhor" pelo IC da diferença, confirmados sem reler 2025; a leitura "pior" resiste ao corte de Bonferroni para seis comparações. |
+| D-101 | Auditoria de documentos: frase de transparência sobre as leituras de 2024 e 2025, exceção ao R7 no `profiling/RESULTADOS.md`, origem do 14% como limitação declarada, aviso do CRLF no hash do manifesto e registro do `m1_final.joblib` rastreado na `feat/lora`. Não altera regra, critério nem resultado. |
 
 Fonte: `specs/research.md`.
 
@@ -671,7 +673,7 @@ A tabela abaixo é uma leitura reconstruída do Registro de execução (`specs/t
 
 # APÊNDICE D – CHECKLIST TRIPOD+AI
 
-A tabela agrupa os itens do TRIPOD+AI (Collins et al., 2024) por seção, sem a numeração dos itens. **A numeração oficial deve ser conferida no checklist TRIPOD+AI antes da entrega.** A revisão por profissional de saúde (FR-21) não foi feita e não está prevista.
+A tabela agrupa os itens do TRIPOD+AI (Collins et al., 2024) por seção, sem a numeração dos itens. A numeração oficial dos itens deve ser conferida no checklist TRIPOD+AI antes da entrega. A revisão por profissional de saúde (FR-21) não foi feita e não está prevista.
 
 | Seção do TRIPOD+AI | O que cobre | Onde no relatório | Situação | Motivo |
 |---|---|---|---|---|
@@ -712,7 +714,7 @@ Figuras de apoio à seção 3.7.
 
 <!-- MENSAGENS-CHAVE PARA OS SLIDES
 
-1. O problema: dengue grave ou óbito é raro (1 em cada 470 a 630 casos confirmados em 2022–24; cerca de 1 em 616 em 2022–23), e priorizar quem acompanhar é crítico em epidemias. Fonte: specs/data-model.md.
+1. O problema: dengue grave ou óbito é raro (1 em cada 470 a 620 casos confirmados em 2022–24; cerca de 1 em 616 em 2022–23), e priorizar quem acompanhar é crítico em epidemias. Fonte: specs/data-model.md.
 
 2. Os dados: 7.784.953 casos confirmados do SINAN de 2022 a 2024, com 15.323 eventos; modelos construídos só com 2022–23 (2.453.208 casos, 3.985 eventos). Fonte: specs/data-model.md, reports/fluxograma.md.
 
@@ -730,7 +732,7 @@ Figuras de apoio à seção 3.7.
 
 9. Mas o SC-02 falhou: recall 65,3% contra 66,0% da regra; IC da diferença inclui zero; precisão maior (0,975% contra 0,529%). Fonte: reports/teste/criterios.md.
 
-10. Deriva em 2024: o modelo subestimou o risco (observado/esperado 1,30; Nordeste 2,76), com a ordenação preservada (slope 0,945). Nada foi reajustado depois do teste (D-36). Fonte: reports/teste/metricas.md.
+10. Deriva em 2024: o modelo subestimou o risco (observado/esperado 1,30; Nordeste 2,76), com a ordenação preservada (ROC-AUC 0,8338; o slope de 0,945 mede a escala do risco). Nada foi reajustado depois do teste (D-36). Fonte: reports/teste/metricas.md.
 
 11. Quem o modelo perde: entre os 100 falsos negativos de maior risco, 76% não tinham comorbidade. Fonte: reports/teste/erros.md.
 

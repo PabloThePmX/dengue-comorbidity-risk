@@ -1,5 +1,8 @@
 # Resultados do profiling — SINAN Dengue 2022–2024
 
+> **Exceção ao R7 (D-101):** este arquivo é gerado pelo notebook de profiling, anterior às regras; contém células com 1 a 9 casos (por exemplo as linhas de sexo "I" e em branco, da idade e dos anos). Deve ser regerado com supressão de células < 10 antes de qualquer nova execução do zero.
+> Células afetadas hoje (numeração das linhas anterior a esta nota, que acrescenta 3 linhas): removidos no filtro 4 (idade) com CLASSI_FIN 11 (linha 130); teste 2024 por sexo, linhas em branco e "I" (167 e 169); unidade da idade, dígitos 0 e 5 a 9 (260 a 269); CS_SEXO em branco de 2023 (283); inconsistências de gestante com sexo M em 2023 (318). Os números não foram alterados.
+
 > Gerado automaticamente por `profiling/01_profiling.ipynb` em 2026-11-03 04:21 UTC (Colab). Não edite à mão: rode o notebook de novo.
 > "Dentro do esperado?" = `sim`/`não` quando a regra é objetiva; `revisar` quando depende de julgamento.
 

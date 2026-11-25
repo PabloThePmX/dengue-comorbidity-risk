@@ -2,16 +2,16 @@
 
 > Adaptado do Spec Kit para projeto acadêmico de ML. Refazer a cada mudança relevante do spec e
 > antes da entrega (T-7.3).
-> **Última avaliação:** 2026-11-24, spec v0.21 e plan v0.20 (Marcos 1 a 7 concluídos; teste de 2024 avaliado uma vez). A seção "Comparação em 2025 (Marco 8)", no fim, está fechada. Seção Comparação revisada em 2026-11-24 (T-8.12 e T-8.13); Marco 8 auditado (Sasuke) e fechado.
+> **Última avaliação:** 2026-11-25 (auditoria de documentos, D-101), spec v0.21 e plan v0.20 (Marcos 1 a 8 concluídos; teste de 2024 avaliado uma vez). A seção "Comparação em 2025 (Marco 8)", no fim, está fechada. Seção Comparação revisada em 2026-11-24 (T-8.12 e T-8.13); Marco 8 auditado (Sasuke) e fechado.
 
 ## Requisitos
 
-- [x] Todo FR e NFR tem ID e é testável. 22 IDs de FR, 21 ativos (FR-15 riscado), e 6 NFR. Ressalva: NFR-04 (ética)
+- [x] Todo FR e NFR tem ID e é testável. 23 IDs de FR, 22 ativos (FR-15 riscado), e 6 NFR. Ressalva: NFR-04 (ética)
   se verifica pelo texto do relatório, não por teste automático. FR-21 não cumprido, registrado como limitação (D-94).
 - [x] Requisitos sem detalhe de implementação. Ressalvas que ficaram de propósito: FR-11 cita
   Streamlit (D-17) e FR-07/FR-22 citam o MLflow como lugar do registro. FR-11 passa a citar a demo local, com publicação adiada (D-94).
-- [x] Critérios de sucesso mensuráveis (SC-01 a SC-08).
-- [x] Histórias US1–US3 com prioridade, teste independente e cenários Dado/Quando/Então.
+- [x] Critérios de sucesso mensuráveis (SC-01 a SC-09).
+- [x] Histórias US1–US4 com prioridade, teste independente e cenários Dado/Quando/Então.
 - [x] Casos-limite listados.
 - [x] [Não-objetivos](../spec.md#não-objetivos) listados.
 
@@ -23,7 +23,7 @@
 - [x] Toda coluna passou pela [revisão de vazamento](../spec.md#revisão-de-vazamento): as 121 colunas do arquivo de 2022.
 - [x] [Baselines](../spec.md#baselines) definidos e critérios de sucesso relativos a eles (SC-01, SC-02, SC-04).
 - [x] Métrica primária justificada pelo custo dos erros ([spec › Usuários e custo dos erros](../spec.md#usuários-e-custo-dos-erros), [Plano de avaliação](../spec.md#plano-de-avaliação)); incerteza com IC bootstrap.
-- [x] Avaliação por subgrupo planejada, com aviso para subgrupos com < 100 eventos.
+- [x] Avaliação por subgrupo planejada, com aviso para subgrupos com poucos eventos (< 100, ou no limite, ~110).
 - [x] **Resultado final reprodutível a partir de semente, config e versão dos dados.** Verificado em 2026-11-23 (T-7.3): os 14 arquivos regerados pelo `evaluate` saíram idênticos byte a byte (mais 3 PNGs que já estavam no clone e não são regerados; só o `LACRE.json` difere, em `commit` e `gravado_em_utc`), sem reavaliar o lacre original (`reports/verificacao/T-7.3-nfr02.json`). Ressalva: reproduz a avaliação com os modelos congelados; não retreinou do zero.
 
 ## Marcadores e decisões
@@ -32,9 +32,9 @@
 - [x] **`[ASSUMPTION]` revisados pelo Programador.** Revisados em 2026-11-23 (D-95): 41 marcadores de fato (`spec.md` 11, `plan.md` 18, `data-model.md` 3, `contracts/interfaces.md` 4, `tasks/03` 2, `tasks/04` 1, `tasks/05` 1 e `tasks/06` 1), 37 confirmados em bloco e 4 com decisão consciente (FR-21, mapeamento do B2, células < 10 e ordem de simplicidade). Marcadores mantidos no texto, como histórico; os principais estão em
   [spec › Premissas](../spec.md#premissas).
   - Reconciliada em 2026-11-23: a diferença de 3 em `spec.md` (14 contra 11 do D-95) era a frase de SC-01 a SC-04 (agora ratificada pelo D-95, sem marcador), uma menção ao próprio marcador (linha 212) e o marcador de Marcos, que o Programador confirmou como está em 2026-11-23 (marcador retirado).
-- [x] **Todo `[VERIFY]` conferido ou fechado.** Fechados em 2026-11-23 (T-7.3): `TP_SISTEMA` e `NDUPLIC_N` (não constam no dicionário oficial, limitação declarada); marcadores do ambiente, da literatura e do relatório retirados por decisão do Programador. Restam apenas menções históricas no Registro de decisões (D-82, D-94). Fechados antes, em D-94: eventos por par de comorbidades; TabFM (D-91); SQLite do Optuna no Drive; `tabfm_v1_1_0` (D-90); `ALRM_*` em casos 10, não aplicável (M2 não implementado).
+- [x] **Todo `[VERIFY]` conferido ou fechado.** Fechados em 2026-11-23 (T-7.3): `TP_SISTEMA` e `NDUPLIC_N` (não constam no dicionário oficial, limitação declarada); marcadores do ambiente, da literatura e do relatório retirados por decisão do Programador. Restam apenas menções históricas no Registro de decisões (D-82, D-94, D-100); os de D-82 e D-100 (driver da T4; origem do 14% do orçamento de alertas) foram fechados na D-101, o primeiro verificado e o segundo como limitação declarada. Fechados antes, em D-94: eventos por par de comorbidades; TabFM (D-91); SQLite do Optuna no Drive; `tabfm_v1_1_0` (D-90); `ALRM_*` em casos 10, não aplicável (M2 não implementado).
 - [x] [Registro de decisões](../research.md#registro-de-decisões) com uma entrada por escolha
-  significativa (D-01 a D-95).
+  significativa (D-01 a D-101).
 - [x] **Perguntas em aberto respondidas.** Q-13 respondida no D-94 (não houve revisão por profissional de saúde; limitação registrada); Q-08 foi delegada ao agente (D-68) e Q-14 resolvida (D-70).
 
 ## Marcos

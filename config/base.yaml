@@ -3,13 +3,13 @@
 # daqui; não copie números para o código.
 seed: 20261103
 anos_dev: [2022, 2023]
-ano_teste: 2024          # R1: só a T-5.1 lê este ano
+ano_teste: 2024          # R1: só a T-5.1 lê este ano, pela porta guard.leitura_do_teste(); a reexecução do NFR-02 (T-7.3) relê pela mesma porta
 ano_comparacao: 2025     # R1/D-97: só o módulo de comparação lê este ano (porta própria)
 caminhos:
   dados: "data"            # no Colab: /content/drive/MyDrive/dengue-comorbidity-risk/data
   mlruns: "mlruns"
   relatorios: "reports"
-  modelos: "models"        # artefatos serializados (T-3.6): pequenos, versionados no git (sem dados)
+  modelos: "models"        # artefatos serializados (T-3.6): só models/e1 é versionado; m1_final, b1_final e b0_final ficam fora do git (.gitignore, D-85, D-93)
 dias_notificacao_max: 60
 faixas: [0, 5, 15, 40, 60, 80]
 validacao_interna_frac: 0.10

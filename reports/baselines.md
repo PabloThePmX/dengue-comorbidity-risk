@@ -28,7 +28,7 @@ Spline da idade (5 nós), sexo, gestante e as 7 comorbidades. Sem `n_comorbidade
 
 ## B2 — regra do protocolo
 
-**B2 é uma regra, não um modelo:** não treina e não tem PR-AUC; por isso a tabela traz só recall, precisão e F2 no limiar da própria regra.
+**B2 é uma regra, não um modelo:** não treina e é binária, então a PR-AUC dela é um ponto único (recall e precisão); por isso a tabela traz só recall, precisão e F2 no limiar da própria regra.
 
 | Dobra (validação) | Eventos | Recall | Precisão | F2 |
 |---|---:|---:|---:|---:|

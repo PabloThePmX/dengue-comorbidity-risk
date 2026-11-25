@@ -1,6 +1,6 @@
 # Spec — Risco de desfecho grave em dengue por perfil de comorbidades
 
-**Criado**: 2026-10-19 | **Atualizado**: 2026-11-24 | **Status**: rascunho v0.21 (Marcos 1 a 8 concluídos; D-91 a D-100)
+**Criado**: 2026-10-19 | **Atualizado**: 2026-11-25 | **Status**: rascunho v0.21 (Marcos 1 a 8 concluídos; D-91 a D-101)
 **Entrada**: pré-projeto enviado ao professor (Grupo 1, "Dengue e Comorbidades") e retorno do professor (2026-11-02).
 
 > **O quê e por quê.** Objetivo em [goal.md](goal.md); como fazer em [plan.md](plan.md); dados em
@@ -49,7 +49,7 @@ Os objetivos estão em [goal.md](goal.md). Fica fora do escopo:
 
 ## Usuários e custo dos erros
 
-`[ASSUMPTION]` Não há usuário clínico real; os usuários abaixo são hipotéticos, para guiar as escolhas de métrica.
+`[ASSUMPTION]` (confirmado, D-95) Não há usuário clínico real; os usuários abaixo são hipotéticos, para guiar as escolhas de métrica.
 
 | Usuário | Decisão que muda |
 |---|---|
@@ -146,11 +146,11 @@ branches do repositório (`feat/soneca`, `feat/lora`; `feat/ricardo` ainda sem a
 - Comorbidade ou sintoma em branco ou fora de 1/2 → categoria "Ausente" (D-07).
 - Combinação de comorbidades com < 10 casos → fora da tabela publicada; na demo, o risco sai do E1
   com a nota de que vem da soma dos efeitos (D-52).
-- Subgrupo com < 100 eventos no teste (sexo "I" ou em branco, gestantes, Norte) → reportado com
+- Subgrupo com poucos eventos no teste (< 100, ou no limite, ~110; sexo "I" ou em branco, gestantes, Norte) → reportado com
   aviso de IC largo, sem conclusões ([Tamanho do teste](#tamanho-do-teste-e-das-dobras)).
 - Notificações com a mesma chave composta → mantidas; a taxa é reportada (D-47).
 - Entrada da demo fora do domínio de [contracts › Entrada de casos](contracts/interfaces.md#entrada-de-casos)
-  (ex.: idade > 120, dias > 60) → recusada com mensagem `[ASSUMPTION]`.
+  (ex.: idade > 120, dias > 60) → recusada com mensagem `[ASSUMPTION]` (confirmado, D-95).
 
 ## Requisitos
 
@@ -216,7 +216,7 @@ branches do repositório (`feat/soneca`, `feat/lora`; `feat/ricardo` ainda sem a
 - **NFR-04 (ética)** — Dados públicos e desidentificados (sem nome, CPF, endereço nem data de nascimento completa, mas com ano de nascimento, idade, sexo e município; [data-model › Dados pessoais](data-model.md#dados-pessoais)). Nenhum trâmite de ética é previsto (D-30).
   - No relatório, a dispensa se apoia na Resolução CNS 510/2016, art. 1º, parágrafo único, inciso II ("informações de acesso público", Lei 12.527/2011), e não em "não haver coleta direta", como no pré-projeto. Os dados são chamados de "desidentificados", não "anonimizados".
 - **NFR-05 (manutenibilidade)** — Código em módulos Python (não só notebooks), com testes unitários (pytest) para geração do alvo, filtros de população e decodificação de idade; lint com ruff.
-- **NFR-06 (latência)** — `[ASSUMPTION]` O app SHOULD responder em < 1 s por perfil.
+- **NFR-06 (latência)** — `[ASSUMPTION]` (confirmado, D-95) O app SHOULD responder em < 1 s por perfil.
 
 Entidades (notificação, caso, perfil, dobra, modelo, predição): [data-model › Entidades](data-model.md#entidades).
 
@@ -244,7 +244,7 @@ em bloco pelo Programador (D-95).
 ## Premissas
 
 Valores assumidos onde a entrada não decide. Cada um aparece também no ponto do texto em que se
-aplica, marcado `[ASSUMPTION]`; esta lista serve para a revisão do Programador.
+aplica, marcado `[ASSUMPTION]`; esta lista foi revisada no D-95.
 
 - Não há usuário clínico real; os [usuários](#usuários-e-custo-dos-erros) são hipotéticos e servem para guiar a métrica.
 - "Gestante" = `CS_GESTANT` 1–4; faixas etárias 0–4, 5–14, 15–39, 40–59, 60–79 e 80+ ([data-model › Demografia e idade](data-model.md#demografia-e-idade)).
@@ -298,7 +298,7 @@ D-08: temporal + validação interna-externa por região. Por que esse desenho:
 
 - **Ano do split (D-46):** o ano é o **ano do arquivo**, que coincide com o da notificação em 99,98% dos casos ([data-model › Tamanho e prevalência](data-model.md#tamanho-e-prevalência)).
 - Todo pré-processamento (imputação, encoding, calibração) é ajustado só nos dados de desenvolvimento, dentro de cada dobra.
-- `[ASSUMPTION]` Ano e semana epidemiológica **não** entram como features: com split temporal, o modelo não pode extrapolar um ano que nunca viu.
+- `[ASSUMPTION]` (confirmado, D-95) Ano e semana epidemiológica **não** entram como features: com split temporal, o modelo não pode extrapolar um ano que nunca viu.
 - UF/região **não** entram como features (D-21): em leave-one-region-out, a região deixada de fora nunca apareceria no treino, e as predições fora da dobra não representariam o modelo final.
 - Limitação conhecida: tuning e calibração usam as mesmas predições fora da dobra, o que pode deixar as métricas de desenvolvimento um pouco otimistas. Por isso o teste de 2024 continua intocado.
 
@@ -325,8 +325,8 @@ Por grupo de campos. Nomes conferidos nos dicionários em 2026-11-01 e no arquiv
 | UF / região de residência (`SG_UF`, `ID_MN_RESI`) | Sim | **Fora como feature** (D-21) | Incompatível com leave-one-region-out; usada como subgrupo e eixo da validação. |
 | 7 comorbidades do item 34 (`DIABETES`, `HEMATOLOG`, `HEPATOPAT`, `RENAL`, `HIPERTENSA`, `ACIDO_PEPT`, `AUTO_IMUNE`) + nº de comorbidades (derivada) | Sim | Entra | Objeto central do estudo. |
 | Sintomas iniciais (`FEBRE`, `MIALGIA`, `CEFALEIA`, `EXANTEMA`, `VOMITO`, `NAUSEA`, `DOR_COSTAS`, `CONJUNTVIT`, `ARTRITE`, `ARTRALGIA`, `DOR_RETRO`, `PETEQUIA_N`) | Sim | Entra | Coletados na notificação. |
-| `LEUCOPENIA`, `LACO` (prova do laço) | Sim | Entra `[ASSUMPTION]` | Ambos estão no item 33 da ficha ("sinais clínicos ou achados laboratoriais inespecíficos"), campo obrigatório 1/2. Ressalva: o hemograma só é obrigatório no grupo B do protocolo, então "não" em leucopenia pode significar "não foi feito". Documentar como limitação. |
-| Dias entre início dos sintomas e notificação (`DT_NOTIFIC` − `DT_SIN_PRI`; as datas em si não entram) | Sim | Entra `[ASSUMPTION]` | Conhecido na notificação; proxy de busca por atendimento. |
+| `LEUCOPENIA`, `LACO` (prova do laço) | Sim | Entra `[ASSUMPTION]` (confirmado, D-95) | Ambos estão no item 33 da ficha ("sinais clínicos ou achados laboratoriais inespecíficos"), campo obrigatório 1/2. Ressalva: o hemograma só é obrigatório no grupo B do protocolo, então "não" em leucopenia pode significar "não foi feito". Documentar como limitação. |
+| Dias entre início dos sintomas e notificação (`DT_NOTIFIC` − `DT_SIN_PRI`; as datas em si não entram) | Sim | Entra `[ASSUMPTION]` (confirmado, D-95) | Conhecido na notificação; proxy de busca por atendimento. |
 | Resultados laboratoriais: sorologia (`DT_SORO`, `RESUL_SORO`), NS1 (`DT_NS1`, `RESUL_NS1`), isolamento viral (`DT_VIRAL`, `RESUL_VI_N`), PCR (`DT_PCR`, `RESUL_PCR_`), `SOROTIPO`, histopatologia (`HISTOPA_N`), imuno-histoquímica (`IMUNOH_N`) | **Não** | Fora | Chegam dias depois. |
 | `CRITERIO` (laboratorial vs clínico-epidemiológico) | **Não** | Fora | Definido no encerramento. |
 | `HOSPITALIZ`, data de internação (`DT_INTERNA`) | **Não** | Fora | Posterior à triagem e quase um desfecho. |
@@ -338,7 +338,7 @@ Por grupo de campos. Nomes conferidos nos dicionários em 2026-11-01 e no arquiv
 | Investigação e local de infecção: `DT_INVEST`, `TPAUTOCTO`, `COUFINF`, `COPAISINF`, `COMUNINF`, `DOENCA_TRA`, `CLINC_CHIK` | Não | Fora | Preenchidos na investigação ou no encerramento, depois da triagem. |
 | Unidade e local de notificação: `ID_UNIDADE`, `ID_MUNICIP`, `SG_UF_NOT`, `ID_REGIONA`, `UF`, `MUNICIPIO` | Sim | Fora | A unidade notificadora é um proxy do tipo de serviço: casos notificados por hospital tendem a ser mais graves, então ela vazaria a gravidade. A geografia já está fora por D-21. |
 | Administrativos e de sistema: `TP_NOT`, `ID_AGRAVO`, `NU_ANO`, `SEM_NOT`, `SEM_PRI`, `ID_PAIS`, `ID_RG_RESI`, `DT_DIGITA`, `TP_SISTEMA`, `NDUPLIC_N`, `CS_FLXRET`, `FLXRECEBI`, `MIGRADO_W` | — | Fora | Sem conteúdo clínico. `DT_DIGITA` é posterior à notificação; semana epidemiológica fora pela mesma razão do ano ([Estratégia de split](#estratégia-de-split)); `TP_SISTEMA` e `NDUPLIC_N` são usados só no profiling (cobertura do ES e duplicatas). |
-| Ocupação (`ID_OCUPA_N`) | Sim | Fora `[ASSUMPTION]` | Alta ausência e códigos genéricos (Rosa et al. removeram pelo mesmo motivo). Reavaliar se o profiling mostrar preenchimento razoável. |
+| Ocupação (`ID_OCUPA_N`) | Sim | Fora `[ASSUMPTION]` (confirmado, D-95) | Alta ausência e códigos genéricos (Rosa et al. removeram pelo mesmo motivo). Reavaliar se o profiling mostrar preenchimento razoável. |
 | Ano de nascimento (`ANO_NASC`) | Sim | Fora | Redundante com a idade decodificada; usado só para checar a decodificação e na chave de duplicatas. Os microdados não trazem `DT_NASC`. |
 
 Cobertura da tabela: conferida em 2026-11-02 contra as **121 colunas** do arquivo `DENGBR22.dbc`. Toda coluna do arquivo aparece em alguma linha acima; as que não estão marcadas "Entra" ficam fora do modelo.
@@ -351,7 +351,7 @@ Todos obrigatórios (FR-04). Todos os modelos são julgados contra eles.
 
 - **B0 — trivial:** prevê a prevalência do treino para todos. PR-AUC de B0 = prevalência (piso absoluto), entre **~0,0016 e ~0,0021** ([data-model › Tamanho e prevalência](data-model.md#tamanho-e-prevalência)).
 - **B1 — logística simples:** efeitos principais (idade em splines, sexo, gestação, 7 comorbidades), sem interações. O nº de comorbidades fica de fora (D-62): é a soma das 7 comorbidades, e numa logística sem penalização a repetição deixa os coeficientes sem solução única, sem mudar as predições.
-- **B2 — regra do protocolo:** "alto risco" se o caso cumprir qualquer critério do grupo B do protocolo do MS (6ª ed., 2024; [Problema e contexto](#problema-e-contexto)) que exista na ficha. Mapeamento `[ASSUMPTION]`, a revisar pelo grupo:
+- **B2 — regra do protocolo:** "alto risco" se o caso cumprir qualquer critério do grupo B do protocolo do MS (6ª ed., 2024; [Problema e contexto](#problema-e-contexto)) que exista na ficha. Mapeamento `[ASSUMPTION]` (confirmado, D-95), a revisar pelo grupo:
   - idade < 24 meses **ou** > 65 anos;
   - gestante (`CS_GESTANT` 1–4);
   - ≥ 1 das 7 comorbidades = 1;
@@ -369,13 +369,13 @@ Todos obrigatórios (FR-04). Todos os modelos são julgados contra eles.
   - B0 prevê a mesma probabilidade para todos; no limiar de recall ≥ B2 (0,001529 nas predições fora da dobra) isso marca **todos** os casos: recall 1,0000, acurácia 0,0021 (≈ prevalência de 0,213%), precisão 0,00213, 5.331.745 alertas (`reports/teste/metricas.md`). O relatório usa essa linha para mostrar por que acurácia e recall isolados não servem como métricas de decisão com classe rara: o B0 "ganha" no recall e "perde" na acurácia.
   - Não são critério de seleção de modelo (a [regra de seleção](plan.md#regra-de-seleção) usa PR-AUC).
 - **Limiar (D-92, complementa D-33):** escolhido nas predições calibradas fora da dobra (2022–23, FR-17) como o de **precisão máxima entre os limiares com recall ≥ ao da regra B2 nas mesmas predições**; empate: o maior limiar; sem folga. É fixado antes do teste e congelado com o modelo. No teste, o recall resultante é reportado e o SC-02 o compara com o da B2 no teste. O limiar de **F2 máximo** (D-33) continua calculado nas mesmas predições e é reportado como ponto secundário, sem entrar no modelo congelado.
-- **Utilidade clínica (D-39):** curva de decisão (*decision curve analysis*, net benefit) no teste para o melhor M1, B1 e a regra do protocolo (B2), contra "tratar todos" e "tratar ninguém", numa faixa de limiares de risco plausível para triagem `[ASSUMPTION]`, ajustada à prevalência observada de 0,16%–0,21%: **0,1%–5%**, ou seja, até ~30 vezes o risco médio. Os limiares principal (recall ≥ B2, D-92) e de F2 máximo (secundário, D-33) aparecem como pontos de operação marcados na curva, e nenhum deles é a única justificativa do limiar. Síntese das referências (Vickers & Holland 2021; benchmark com F2 + DCA) em `research/consensus-boas-praticas.md` (cópia local, fora do repositório: termos do Consensus).
+- **Utilidade clínica (D-39):** curva de decisão (*decision curve analysis*, net benefit) no teste para o melhor M1, B1 e a regra do protocolo (B2), contra "tratar todos" e "tratar ninguém", numa faixa de limiares de risco plausível para triagem `[ASSUMPTION]` (confirmado, D-95), ajustada à prevalência observada de 0,16%–0,21%: **0,1%–5%**, ou seja, até ~30 vezes o risco médio. Os limiares principal (recall ≥ B2, D-92) e de F2 máximo (secundário, D-33) aparecem como pontos de operação marcados na curva, e nenhum deles é a única justificativa do limiar. Síntese das referências (Vickers & Holland 2021; benchmark com F2 + DCA) em `research/consensus-boas-praticas.md` (cópia local, fora do repositório: termos do Consensus).
 - **Calibração:** obrigatória, porque o produto é "qual o risco". Isotônica ou Platt, ajustada nas predições fora da dobra (FR-17). No teste, reportar a curva de calibração e o calibration slope: é a métrica que a literatura mostra degradar primeiro sob drift ([research › Evidência para o desenho de validação](research.md#evidência-para-o-desenho-de-validação)).
 - **Variação entre regiões no desenvolvimento:** reportar PR-AUC e calibration slope de cada dobra leave-one-region-out. É a medida de robustez geográfica do modelo.
 - **Incerteza:** IC 95% por bootstrap no teste, para todas as métricas e para a **diferença** de PR-AUC entre o melhor modelo e B1. Número de reamostras e alternativas: [plan › Incerteza e comparação](plan.md#incerteza-e-comparação).
 - **Subgrupos (D-13, D-48):** faixa etária; sexo e gestantes; região/UF; **raça/cor** (com "ignorado" como categoria). Reportar PR-AUC, recall no limiar e calibração por subgrupo, com IC. Os subgrupos com poucos eventos listados em [Tamanho do teste](#tamanho-do-teste-e-das-dobras) vêm com aviso de IC largo.
-- **Análise de erros:** inspecionar os 100 falsos negativos com maior risco não detectado `[ASSUMPTION]`, por perfil (idade, comorbidades, UF, atraso de notificação), e as células de comorbidade com pior calibração.
-- **Privacidade nas tabelas:** células de perfil com < 10 casos não são publicadas `[ASSUMPTION]` (R7).
+- **Análise de erros:** inspecionar os 100 falsos negativos com maior risco não detectado `[ASSUMPTION]` (confirmado, D-95), por perfil (idade, comorbidades, UF, atraso de notificação), e as células de comorbidade com pior calibração.
+- **Privacidade nas tabelas:** células de perfil com < 10 casos não são publicadas `[ASSUMPTION]` (confirmado, D-95) (R7).
 - **Critérios de aceitação:** SC-01 a SC-04 ([Critérios de sucesso](#critérios-de-sucesso)).
 
 ## Interpretabilidade e equidade
@@ -411,7 +411,7 @@ Todos obrigatórios (FR-04). Todos os modelos são julgados contra eles.
 
 Marcos sem datas (D-31): cada um tem um objetivo, os FRs que completa e critérios de saída
 verificáveis. A ordem é a de dependência; datas e prazos ficam fora do spec (D-29). Composição e
-critérios confirmados pelo Programador em 2026-11-23, como estão.
+critérios dos Marcos 1 a 7 confirmados pelo Programador em 2026-11-23, como estão; Marco 8 declarado em 2026-11-24.
 
 Os marcos se chamam **Marco 1…8** para não confundir com os modelos M1/M2. O Marco N é executado
 pelas tarefas `T-N.x` do arquivo `tasks/0N-…md` (D-60).
@@ -421,11 +421,11 @@ pelas tarefas `T-N.x` do arquivo `tasks/0N-…md` (D-60).
 | **1 — Dados e profiling** | Ter os dados baixados, versionados e entendidos antes de qualquer modelo. | FR-01, FR-02, FR-03 | **Concluído em 2026-11-03** (3 execuções do [roteiro](../profiling/ROTEIRO.md)). Pendências que não bloqueiam: significado de `NDUPLIC_N` e `TP_SISTEMA` no dicionário. |
 | **2 — Descrição, split e baselines** | Descrever a população e fixar o piso que todo modelo precisa superar. | FR-18, FR-04, FR-17 | Análise descritiva gerada. Dobras leave-one-region-out construídas. Métricas fora da dobra de B0, B1 e B2 registradas no MLflow. Eventos por par de comorbidades contados (decide quais interações o E1 estima). Teste de 2024 ainda intocado. |
 | **3 — Modelo explicativo (E1)** | Responder à pergunta central: quais comorbidades e combinações estão associadas a maior risco. | FR-05, FR-06, FR-19 | OR com IC 95% e correção de Benjamini-Hochberg. Interações reportadas só com ≥ 10 eventos. Ranking de comorbidades com empates marcados. Tabela de perfis com células < 10 suprimidas. |
-| **4 — Modelos preditivos (M1)** | Treinar, comparar e escolher o modelo de triagem. | FR-07, FR-08, FR-12, FR-13 | Os cinco candidatos de FR-07 avaliados nas mesmas dobras, com busca registrada no MLflow (espaço de busca definido na T-4.0, D-68); TabFM tentado e retirado por inviabilidade medida (D-91). Melhores pesos por dobra e melhor tentativa de cada modelo salvos no MLflow (FR-22). Calibrador e limiar ajustados nas predições fora da dobra. Modelo final escolhido pela [regra de seleção](plan.md#regra-de-seleção) **antes** de tocar no teste. E1 e M1 serializados com metadados. |
+| **4 — Modelos preditivos (M1)** | Treinar, comparar e escolher o modelo de triagem. | FR-07, FR-08, FR-12, FR-13, FR-22 | Os cinco candidatos de FR-07 avaliados nas mesmas dobras, com busca registrada no MLflow (espaço de busca definido na T-4.0, D-68); TabFM tentado e retirado por inviabilidade medida (D-91). Melhores pesos por dobra e melhor tentativa de cada modelo salvos no MLflow (FR-22). Calibrador e limiar ajustados nas predições fora da dobra. Modelo final escolhido pela [regra de seleção](plan.md#regra-de-seleção) **antes** de tocar no teste. E1 e M1 serializados com metadados. |
 | **5 — Avaliação final no teste** | Medir o desempenho real, uma única vez, em 2024. | FR-09 | Teste usado uma vez, com o modelo congelado do Marco 4. Todas as métricas do [Plano de avaliação](#plano-de-avaliação) com IC bootstrap. Subgrupos e análise de erros feitos. Calibração de E1 em 2024 checada. Resultado registrado mesmo se pior que B1/B2. |
 | **6 — Demo** | Permitir testar os dois modelos. | FR-11 | Demo local com as abas Perfil e Triagem, usando os artefatos serializados (Marcos 3 e 4); publicação adiada (D-94). Aviso de uso acadêmico nas duas abas. Nenhum microdado embarcado (NFR-03). Resposta < 1 s por perfil (NFR-06). |
 | **7 — Relatório** | Explicar processo, decisões, resultados e passos seguidos. | FR-20, FR-21 | Checklist TRIPOD+AI preenchido. Apêndices A–C presentes. Apêndice D declara que não houve revisão por profissional de saúde (D-94). Justificativa do alvo (D-22) incluída. [checklists/requirements.md](checklists/requirements.md) passando. |
-| **8 — Comparação em 2025** | Saber se o M1 supera os modelos das outras branches num ano que nenhum modelo viu, sem reabrir o teste de 2024. | FR-23 | Manifesto commitado antes da leitura de 2025. Porta e lacre do ano de comparação (R1, R2 1.5). Previsões de cada modelo do conjunto por script isolado, com SHA-256 conferido. Execução única, com agregados, figuras e conformidade R3 a R6. SC-09 registrado com o resultado real, qualquer que seja. Relatório e README atualizados. [checklists/requirements.md](checklists/requirements.md) passando. |
+| **8 — Comparação em 2025** | Saber se o M1 supera os modelos das outras branches num ano que nenhum modelo viu, sem reabrir o teste de 2024. | FR-23 | Manifesto commitado antes da execução única de 2025 e da leitura dos agregados da comparação (o perfil de 2025, só agregados, já existia; D-101). Porta e lacre do ano de comparação (R1, R2 1.5). Previsões de cada modelo do conjunto por script isolado, com SHA-256 conferido. Execução única, com agregados, figuras e conformidade R3 a R6. SC-09 registrado com o resultado real, qualquer que seja. Relatório e README atualizados. [checklists/requirements.md](checklists/requirements.md) passando. |
 
 **Regras entre marcos**
 - **O teste fica isolado até o Marco 5.** Nenhum marco anterior olha para 2024.
@@ -478,7 +478,7 @@ Python, notebooks de profiling, explicação e avaliação, e MLflow. CLI só co
 
 ## Perguntas em aberto
 
-- **Resolvidas ou retiradas:** Q-01 e Q-02 (entrega e apresentação; D-26), Q-03 (D-33), Q-04 (D-47), Q-05 (D-48), Q-06 (D-49), Q-07 (D-32), Q-09 (D-29), Q-10 (papéis do grupo, fora do spec), Q-11 e Q-12 (D-30), Q-13 (D-94).
+- **Resolvidas ou retiradas:** Q-01 e Q-02 (entrega e apresentação; D-26), Q-03 (D-33), Q-04 (D-47), Q-05 (D-48), Q-06 (D-49), Q-07 (D-32), Q-09 (D-29), Q-10 (papéis do grupo, fora do spec), Q-11 e Q-12 (D-30).
 - ~~**Q-08** Espaço de busca de hiperparâmetros.~~ Delegado ao agente na T-4.0 (D-68).
 - ~~**Q-13** Quem será o profissional de saúde da revisão (FR-21)?~~ Respondida no D-94: não houve revisão e não haverá por ora; registrada como limitação.
 - ~~**Q-14** Modelo da demo se o melhor M1 não couber nela.~~ Resolvida no D-70: o melhor que couber, com o motivo no relatório.
@@ -508,4 +508,4 @@ Python, notebooks de profiling, explicação e avaliação, e MLflow. CLI só co
 - **TabFM** — modelo de fundação tabular zero-shot do Google Research (2026); prediz por aprendizado em contexto, sem treino.
 - **TRIPOD+AI** — diretriz de relato para modelos de predição clínica com IA (Collins et al., BMJ 2024).
 - **M1 / M2** — momentos de predição e modelos correspondentes ([Formulação](#formulação-do-problema)). **E1** — modelo explicativo ([plan › Modelagem](plan.md#modelagem)). **B0–B2** — [Baselines](#baselines).
-- **Marco** — etapa do projeto (1 a 7, [Marcos](#marcos)); não confundir com M1/M2.
+- **Marco** — etapa do projeto (1 a 8, [Marcos](#marcos)); não confundir com M1/M2.

@@ -18,7 +18,7 @@ perguntar ao Programador. Você coordena; quem escreve código é o Naruto.
 
 1. Leia `specs/goal.md`, as regras e decisões reservadas de `specs/constitution.md` e
    `specs/tasks/00-como-usar.md`.
-2. O **marco atual** é o primeiro arquivo `specs/tasks/0N-*.md` (02 a 07) com tarefa `[ ]` ou `[~]`.
+2. O **marco atual** é o primeiro arquivo `specs/tasks/0N-*.md` (02 a 08) com tarefa `[ ]` ou `[~]`.
    Pegue a primeira dessas tarefas.
 3. Diga ao Programador, em uma linha, qual tarefa vai começar.
 
@@ -70,6 +70,12 @@ houver erro que não seja técnico, ou chegar ao Marco 5.
 4. **Exceção, antes do Marco 5:** pare. Mostre o modelo congelado (vencedor, métricas fora da dobra,
    limiar, modelo da demo) e só comece o teste de 2024 com o "ok" do Programador, porque ele roda uma
    única vez (R2).
+5. **Exceção do Marco 8 (comparação em 2025, T-8.10 e T-8.11):** pare antes da execução única. Só
+   rode `python -m dengue_sinan.comparar_executar --confirmo-execucao-unica-em-2025` com o "ok"
+   escrito do Programador no chat, depois do go/no-go (`--so-checagens`) e do ensaio (`--ensaio`).
+   2025 só é lido pela porta `guard.leitura_do_ano_de_comparacao()`. Depois de uma falha após a fase 0
+   do lacre, use `--retomar`, nunca uma segunda execução; nunca apague nem edite um `LACRE.json`.
+   Modelos de outras branches só carregam nos worktrees isolados, com o SHA-256 conferido antes.
 
 ## 4. Regras do orquestrador
 

@@ -18,7 +18,7 @@ Ministério da Saúde já usa**.
 ## Em linguagem simples
 
 Na dengue, quase todo mundo melhora sozinho. Só uma pequena parte dos casos vira a forma grave ou leva
-à morte: **cerca de 1 em cada 470 a 630 casos confirmados**, conforme o ano. Em uma epidemia, os
+à morte: **cerca de 1 em cada 470 a 620 casos confirmados**, conforme o ano. Em uma epidemia, os
 serviços de saúde recebem mais pacientes do que conseguem acompanhar de perto e precisam decidir quem
 priorizar.
 
@@ -41,6 +41,7 @@ para dizer o que vai acontecer com uma pessoa.
 
 O ano de 2024 (5,3 milhões de casos, 11.338 graves ou óbitos, uma epidemia grande) foi guardado,
 **lido uma única vez** e só depois que modelo, limiar e critérios estavam congelados.
+A avaliação em 2024 foi executada uma única vez, depois de congelar o modelo. Antes disso, 2024 e 2025 haviam sido lidos apenas em agregados (contagens, prevalência, eventos por região), sem influenciar nenhuma escolha. O perfil de 2025 é anterior à emenda de R1 e à D-97. A reexecução de 2024 para o NFR-02 foi feita num clone descartável (D-101).
 
 | Modelo | PR-AUC<br>(quanto maior, melhor) | O que é |
 |---|---|---|
@@ -84,14 +85,14 @@ tem; a doença renal é a mais extrema.
 | Hepatopatia | 4,89 (3,58 a 6,68) |
 | Diabetes (aos 40 anos) | 2,98 (2,30 a 3,86) |
 | Hipertensão (aos 40 anos) | 2,67 (2,24 a 3,20) |
-| Úlcera péptica | 0,70 (0,42 a 1,17), o IC inclui 1: sem evidência de efeito |
+| Doença ácido-péptica | 0,70 (0,42 a 1,17), o IC inclui 1: sem evidência de efeito |
 
 Duas comorbidades juntas somam menos do que o produto dos efeitos isolados (9 das 15 interações têm IC
 inteiro abaixo de 1). Isso não quer dizer que ter as duas protege: o risco continua bem maior que o de
 quem não tem nenhuma.
 
 **3. Utilidade da decisão (curva de decisão, 2024).** O benefício líquido do M1 fica acima do B1 e da
-regra B2 em quase toda a faixa de limiares de 0,1% a 5%.
+regra B2 em toda a faixa de limiares de 0,1% a 5%.
 
 ![Curva de decisão no teste](reports/teste/decisao.png)
 
@@ -173,7 +174,7 @@ flowchart LR
 - **Disciplina de pesquisa:** o teste é lacrado (`reports/teste/LACRE.json`) e uma segunda execução
   falha; os critérios foram fixados antes; nada foi ajustado depois de ver o resultado. A reprodução da
   avaliação, feita num clone limpo, regerou os 14 arquivos de resultado idênticos byte a byte.
-- **Rastreabilidade:** cada decisão tem um registro (D-01 a D-99) em
+- **Rastreabilidade:** cada decisão tem um registro (D-01 a D-101) em
   [`specs/research.md`](specs/research.md), e cada passo, um teste. São mais de 1.700 testes
   automatizados, e o ambiente é travado em `uv.lock`.
 
@@ -197,6 +198,17 @@ flowchart LR
 - **O teste do M1 usou um só ano.** Em 2025 (1,39 milhão de casos, 3.436 eventos;
   [`reports/perfil_2025.md`](reports/perfil_2025.md)), o M1 só foi comparado com outros modelos, lido uma
   única vez (seção acima). Avaliar o M1 congelado em outro ano fica como trabalho futuro.
+- **Origem do 14% do orçamento de alertas não documentada.** O valor foi fixado no manifesto antes da execução
+  única de 2025 e da leitura dos agregados da comparação (o perfil de 2025 já existia, e não há registro de que o valor tenha sido escolhido a partir dele) e coincide com a taxa de alertas do M1 em 2024 (14,2%); ver D-101.
+- **Exceção ao R7 no profiling.** Células de 1 a 9 casos aparecem como "<10" nos relatórios do projeto,
+  mas não em `profiling/RESULTADOS.md`, gerado pelo notebook de profiling, anterior às regras; ele deve ser
+  regerado com supressão de células < 10 antes de qualquer nova execução do zero (D-101).
+- **Hash do manifesto e fim de linha.** O hash do manifesto gravado no lacre de 2025 vale para a cópia
+  com CRLF (`core.autocrlf=true` no Windows); o blob no git (LF) tem outro SHA-256. Para reproduzir em
+  Linux ou no Colab, normalize o fim de linha (D-101).
+- **Para quem for refazer a comparação (T-8.11).** Os checks de população principal de 2025 têm
+  `esperado: null` e `config/esperado.yaml` não tem seção de 2025. Antes de reusar, crie essa seção
+  (casos 1.387.534 e eventos 3.426 da população principal; 1.389.509 e 3.436 do ano).
 
 ---
 
@@ -249,6 +261,7 @@ embarca microdados.
 | [`tests/`](tests) | Testes automatizados |
 | [`config/`](config) | Configuração (semente única, anos, caminhos) |
 | [`reports/`](reports) | Resultados em agregados (nenhum microdado): descritiva, E1, M1, SHAP, teste |
+| [`reports/comparacao/`](reports/comparacao) | Comparação em 2025 (agregados, figuras e o lacre `LACRE.json`; nenhum microdado) |
 | [`reports/relatorio/relatorio.md`](reports/relatorio/relatorio.md) | **Relatório completo** (TRIPOD+AI), com versão em Word |
 | [`specs/`](specs) | Especificação, plano, decisões e tarefas (convenções do GitHub Spec Kit) |
 | [`specs/goal.md`](specs/goal.md) | Ponto de entrada: objetivo e mapa dos artefatos |

@@ -32,8 +32,13 @@ tarefa `T-N.x` e entrega essa tarefa pronta para revisão. Nada além dela.
   novo só com o "ok" do Programador, instalado por ele no terminal dele (`specs/quickstart.md`,
   seção Local).
 - **Nunca:** editar `specs/constitution.md`, `specs/spec.md` ou `specs/plan.md`; ler dados de 2024
-  antes da T-5.1 (R1); instalar pacote sem o "ok" do Programador; fazer commit ou push; marcar
-  `[x]` na tarefa (quem marca é o orquestrador, depois da revisão).
+  antes da T-5.1 (R1); ler dados de 2025 fora de `guard.leitura_do_ano_de_comparacao()` (R1, R2,
+  constituição 1.5), nem rodar `python -m dengue_sinan.comparar_executar
+  --confirmo-execucao-unica-em-2025`, nem apagar ou editar um `LACRE.json`, sem o "ok" escrito do
+  Programador (depois de uma falha após a fase 0 do lacre, use `--retomar`, nunca uma segunda
+  execução); carregar modelo de outra branch fora dos worktrees isolados ou sem conferir o SHA-256
+  antes (`joblib` executa código ao carregar); instalar pacote sem o "ok" do Programador; fazer
+  commit ou push; marcar `[x]` na tarefa (quem marca é o orquestrador, depois da revisão).
 
 - **Sem segundo plano por padrão.** Rode comandos em primeiro plano, com `timeout`. Segundo plano
   só para execução que passe de ~2 min (ex.: carregar os dados de 2022–23). Nesse caso:

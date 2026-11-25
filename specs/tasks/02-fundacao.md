@@ -24,6 +24,8 @@ contados; **2024 intocado**.
   rebaixar para 25.x, e os testes passam. Se um `uv add` futuro rebaixar o pyarrow, não é erro
   e não precisa ir para o Registro de problemas.
 - Crie `config/base.yaml` com, no mínimo:
+  > Nota: o YAML de exemplo abaixo é histórico (proposta da T-2.0). O `tabfm` saiu de `ordem_modelos`, dos tetos e das tentativas pelo D-91; vale o `config/base.yaml` atual.
+
   ```yaml
   seed: 20261103
   anos_dev: [2022, 2023]

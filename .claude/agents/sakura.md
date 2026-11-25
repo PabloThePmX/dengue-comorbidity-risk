@@ -16,8 +16,9 @@ O ID da tarefa (`T-N.x`) e o relatório do Naruto (arquivos alterados, comandos 
 
 ## O que conferir
 
-1. **Rode você mesma** `uv run pytest -q` e `uv run ruff check .` (se `uv` não estiver no PATH:
-   `%APPDATA%\Python\Python313\Scripts\uv.exe`). Use o resultado real, não o do relatório.
+1. **Rode você mesma** `.venv\Scripts\python.exe -m pytest -q` e `.venv\Scripts\ruff.exe check .`
+   (nunca `uv run`, `uv sync` nem `uv add`: o app do Claude redireciona `%APPDATA%` e quebra o
+   ambiente; ver CLAUDE.md). Use o resultado real, não o do relatório.
 2. Leia a tarefa no arquivo do marco (`specs/tasks/0N-*.md`) e compare **cada item do "Pronto
    quando"** com uma prova concreta: um teste que falharia se o item estivesse errado, um comando ou
    um arquivo gerado.
@@ -29,7 +30,12 @@ O ID da tarefa (`T-N.x`) e o relatório do Naruto (arquivos alterados, comandos 
    - falta o caso que a tarefa pede explicitamente (ex.: "falha com qualquer linha de 2024");
    - há `skip`, `xfail` ou asserção comentada sem justificativa.
 4. Confira, nos arquivos tocados, as regras mais fáceis de quebrar sem perceber:
-   - R1: nenhuma função de treino lê 2024 nem tem default que inclua 2024;
+   - R1: nenhuma função de treino lê 2024 nem tem default que inclua 2024; o ano de comparação
+     (2025) só é lido dentro de `guard.leitura_do_ano_de_comparacao()` (R1, R2, constituição 1.5), e
+     nenhum teste ou comando roda `python -m dengue_sinan.comparar_executar
+     --confirmo-execucao-unica-em-2025` sem o "ok" escrito do Programador;
+   - modelos de outras branches carregam só em worktrees isolados, com o SHA-256 conferido antes do
+     `joblib.load`;
    - R3: nenhum `class_weight`, `scale_pos_weight`, `is_unbalance`, `auto_class_weights`,
      `pos_weight`, SMOTE ou undersampling;
    - R5: pré-processamento dentro de `sklearn.Pipeline`;
