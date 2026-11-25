@@ -121,9 +121,9 @@ validação dela (decisão do Programador, 2026-11-24).
 - Funções puras, sem ler dados reais: carregar as previsões (parquet) e alinhar com o `y` por
   (`ANO`, `LINHA`); recusar linha faltando, duplicada ou `p` fora de [0, 1]; métricas sem limiar
   (PR-AUC, ROC-AUC, Brier, calibration slope e intercepto, observado/esperado, net benefit);
-  recall e precisão entre os 5%, 10% e 14% de maior risco `[ASSUMPTION]` (com empates tratados de
+  recall e precisão entre os 5%, 10% e 14% de maior risco (D-100; com empates tratados de
   forma estável); recall e precisão no limiar próprio de cada modelo (só informação); bootstrap
-  pareado (1.000 reamostras `[ASSUMPTION]`, semente do config, mesmos sorteios para todos) e
+  pareado (1.000 reamostras, D-100; semente do config, mesmos sorteios para todos) e
   diferenças contra o M1 com IC 95%; regra de leitura: "melhor" só se o IC da diferença excluir 0,
   senão "sem diferença detectável" `[ASSUMPTION]`; tabela de conformidade R3 a R6 por modelo
   (reporta, não exclui); supressão R7 (células < 10).

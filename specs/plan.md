@@ -39,7 +39,7 @@ Marco 4. Situação em 2026-11-23 (Marcos 1 a 6 implementados e auditados pelo S
 | Princípio | Como o plano cumpre | Situação |
 |---|---|---|
 | P1 Spec antes do código | Toda tarefa de `tasks/` cita os IDs do spec; decisões no [Registro de decisões](research.md#registro-de-decisões) | Cumpre |
-| P2 Teste congelado | `guard.assert_dev_only` (T-2.2), porta `guard.leitura_do_teste()` (D-94) e lacre da T-5.1 (R1, R2) | Cumpre: guarda testada; avaliação única feita em 2026-11-23 com o "ok" do Programador (D-71); `LACRE.json` gravado por último e conferido byte a byte pelo auditor; nada em `src/`, `config/`, `models/` ou `tests/` mudou depois do teste. SC-02 falhou e foi reportado sem ajuste (D-36) |
+| P2 Teste congelado | `guard.assert_dev_only` (T-2.2), porta `guard.leitura_do_teste()` (D-94) e lacre da T-5.1 (R1, R2) | Cumpre: guarda testada; avaliação única feita em 2026-11-23 com o "ok" do Programador (D-71); `LACRE.json` gravado por último e conferido byte a byte pelo auditor; nada em `src/`, `config/`, `models/` ou `tests/` mudou entre a avaliação e o lacre. Depois, no Marco 8, `guard.py`, `dataset.py` e `config.py` ganharam só a porta do ano de comparação (T-8.2, D-97), sem alterar o caminho de 2024 (os testes antigos não mudaram); a reprodução do NFR-02 vale para o commit `7fbe300`. SC-02 falhou e foi reportado sem ajuste (D-36) |
 | P3 Sem vazamento | Lista fechada de features (R4); `Pipeline` dentro da dobra (R5); validação interna para early stopping (R6) | Cumpre: implementado e auditado nos Marcos 2 a 5; vazamento por completude não se confirmou (D-49) |
 | P4 Baselines e comparação justa | B0–B2 antes dos modelos (T-2.8); mesmas dobras, semente e orçamento (D-53) | Cumpre: B0 e B1 congelados antes do teste (T-5.0, D-93); SC-04 reportado com IC (M1 − B1 = 0,018066; 0,016330 a 0,020070) |
 | P5 Prevalência natural | Sem pesos de classe nem reamostragem (R3); exceção do RF documentada ([Features](#features-e-pré-processamento)) | Cumpre: sem pesos de classe nem reamostragem (R3); na busca de hiperparâmetros, a subamostra estratificada foi usada só no elastic net e não no Random Forest (`reports/m1/comparacao_oof.md`, seção 4) |
@@ -297,8 +297,8 @@ versões de treino diferentes ficam registradas.
 
 **Métricas** (comparáveis entre modelos com limiares diferentes): PR-AUC, ROC-AUC, Brier, calibration slope e
 intercepto, observado/esperado e net benefit, mais recall e precisão entre os 5%, 10% e 14% de maior risco
-`[ASSUMPTION]`. O recall no limiar próprio de cada modelo é só informação (as branches usam o F2 máximo; o M1,
-o recall ≥ B2, D-92). Diferenças contra o M1 por bootstrap pareado, 1.000 reamostras `[ASSUMPTION]`, semente única.
+(D-100). O recall no limiar próprio de cada modelo é só informação (as branches usam o F2 máximo; o M1,
+o recall ≥ B2, D-92). Diferenças contra o M1 por bootstrap pareado, 1.000 reamostras (D-100), semente única.
 
 **Poder estatístico:** 2025 tem 1.389.509 casos e 3.436 eventos (`reports/perfil_2025.md`), cerca de 30% dos
 eventos de 2024. Diferenças pequenas entre modelos próximos provavelmente saem como "sem diferença detectável".

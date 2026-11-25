@@ -5,6 +5,9 @@ Motivo: o teste do R7 (`tests/test_dados_fora_do_git.py`) recusa arquivo rastrea
 tamanho em pixels e reduz a profundidade de cor (sem dithering). Até ~2% dos pixels mudam de cor,
 nos contornos suavizados, o que não afeta a leitura de gráficos de linhas e barras.
 
+Dependência: Pillow, que o `uv.lock` já traz como dependência do matplotlib (não está declarado
+no `pyproject.toml`).
+
 Uso:
     python reports/relatorio/comprimir_docx.py [entrada.docx] [saida.docx]
 Padrão: relatorio.docx, na pasta deste script, regravado no lugar. Um PNG só é trocado se ficar

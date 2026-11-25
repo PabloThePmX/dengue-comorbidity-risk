@@ -365,7 +365,7 @@ A pergunta é se o M1 é melhor que os modelos gerados, para o mesmo problema, n
 - **Conjunto fechado.** O manifesto (`config/comparacao/manifesto.yaml`) foi commitado antes da leitura de 2025 e traz o SHA-256 de cada artefato. Entram o M1, o E1, a B0, a B1 e a B2 do projeto, mais o M1 de duas branches: `feat/soneca` (`m1_soneca`) e `feat/lora` (`m1_lora`). Ficaram de fora a `feat/ricardo`, que não tem artefato, e a `mario`, que não tem commits novos.
 - **"Melhor" é o modelo congelado por cada branch**, escolhido pela validação dela (limites na seção 4.4).
 - **População principal:** 1.387.534 casos e 3.426 eventos, os casos que o E1 estima (D-99), iguais para todos os modelos. A população completa, com 1.389.509 casos e 3.436 eventos, aparece só como informação; os 1.975 casos a mais são os que o E1 não estima.
-- **Regra de leitura:** PR-AUC com IC 95% por bootstrap pareado, com 1.000 reamostras e semente 20261103. A diferença de cada modelo contra o M1 usa as mesmas reamostras. O modelo é "melhor" se o IC da diferença fica acima de zero, "pior" se fica abaixo, e "sem diferença detectável" se inclui zero. As 1.000 reamostras e essa regra são `[ASSUMPTION]`, à espera da revisão do Programador.
+- **Regra de leitura:** PR-AUC com IC 95% por bootstrap pareado, com 1.000 reamostras e semente 20261103. A diferença de cada modelo contra o M1 usa as mesmas reamostras. O modelo é "melhor" se o IC da diferença fica acima de zero, "pior" se fica abaixo, e "sem diferença detectável" se inclui zero. As 1.000 reamostras e essa regra foram confirmadas pelo Programador (D-100). Como são seis comparações contra o M1, conferiu-se também o corte de Bonferroni (z = 2,64), a partir dos ICs publicados: o menor z aproximado é o da soneca (cerca de 3,7), então os seis resultados "pior" resistem à correção.
 
 **Tabela 8 – PR-AUC, diferença contra o M1 e observado/esperado, população principal, 2025**
 
@@ -395,7 +395,7 @@ Fonte: `reports/comparacao/metricas.md` e `reports/comparacao/diferencas.md`. A 
 
 **Figura 8 – Diferença de PR-AUC contra o M1, com IC 95% pareado, população principal, 2025.** Todas as diferenças ficam à esquerda do zero, com IC que exclui zero. Fonte: `reports/comparacao/diferencas_pr_auc.png`.
 
-**Recall e precisão com orçamento de alertas.** Com orçamento fixo, os 5%, 10% e 14% dos casos de maior risco viram alertas (69.377, 138.753 e 194.255 na população principal). Esses cortes são `[ASSUMPTION]` (FR-23) e aguardam a revisão do Programador.
+**Recall e precisão com orçamento de alertas.** Com orçamento fixo, os 5%, 10% e 14% dos casos de maior risco viram alertas (69.377, 138.753 e 194.255 na população principal). Esses cortes foram confirmados (D-100); o de 14% coincide com a taxa de alertas do M1 em 2024 (14,2%).
 
 **Tabela 9 – Recall e precisão por orçamento de alertas, população principal, 2025**
 
@@ -601,6 +601,7 @@ Registro completo em `specs/research.md`, seção "Registro de decisões". D-22 
 | D-92 | Limiar principal: precisão máxima com recall pelo menos igual ao da B2. |
 | D-97 | 2025 como ano de comparação de modelos (emenda do R1 e do R2, constituição 1.5). Lido uma única vez, para o conjunto declarado em manifesto commitado antes; nada é escolhido, ajustado ou substituído pelo resultado; modelo acrescentado depois é exploratório; previsões por caso ficam fora do git; modelos de outras branches rodam só em worktree e ambiente isolados. |
 | D-98 | Plano do Marco 8 e correção de processo: tarefas T-8.0 a T-8.13, US4, FR-23 e SC-09 acrescentados sem renumerar; nenhuma regra ou critério muda; uma feature nova começa pela tarefa e pelo spec. |
+| D-100 | Revisão dos três `[ASSUMPTION]` da comparação de 2025: orçamentos de alertas de 5%, 10% e 14%, 1.000 reamostras e regra de "melhor" pelo IC da diferença, confirmados sem reler 2025; a leitura "pior" resiste ao corte de Bonferroni para seis comparações. |
 
 Fonte: `specs/research.md`.
 

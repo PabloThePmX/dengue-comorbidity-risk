@@ -133,7 +133,7 @@ branches do repositório (`feat/soneca`, `feat/lora`; `feat/ricardo` ainda sem a
   2. **Dado** o lacre, **quando** a comparação roda de novo, **então** falha (R2).
   3. **Dado** um modelo treinado em 2025, ou sem SHA-256 válido, **então** o manifesto é recusado.
   4. **Dado** o resultado, **então** cada modelo tem PR-AUC com IC 95% e a diferença pareada contra o
-     M1 com IC; "melhor" só se o IC da diferença exclui 0, senão "sem diferença detectável" `[ASSUMPTION]`.
+     M1 com IC; "melhor" só se o IC da diferença exclui 0, senão "sem diferença detectável" (D-100).
   5. **Dado** qualquer modelo externo, **então** a conformidade com R3 a R6 é reportada, sem excluí-lo (D-97 f).
 
 ### Casos-limite
@@ -203,7 +203,7 @@ branches do repositório (`feat/soneca`, `feat/lora`; `feat/ricardo` ainda sem a
     nenhum modelo é escolhido, ajustado ou substituído pelo resultado;
   - modelos externos rodam só em worktree e ambiente isolados (o `joblib` executa código ao carregar);
   - métricas sem limiar (PR-AUC, ROC-AUC, Brier, calibração, curva de decisão) e recall e precisão entre os
-    5%, 10% e 14% de maior risco `[ASSUMPTION]`, com bootstrap pareado de 1.000 reamostras `[ASSUMPTION]`;
+    5%, 10% e 14% de maior risco, com bootstrap pareado de 1.000 reamostras (D-100);
   - população principal: os casos que o E1 estima (D-99), igual para todos os modelos; a população completa fica como informação;
   - previsões por caso ficam fora do git (R7); só agregados vão para `reports/comparacao/`.
   Como fazer: [plan › Comparação em 2025](plan.md#comparação-em-2025). Tarefas: [tasks/08-comparacao.md](tasks/08-comparacao.md).
