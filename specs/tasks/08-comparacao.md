@@ -207,7 +207,7 @@ validação dela (decisão do Programador, 2026-11-24).
   registrado com o resultado real (inclusive "sem diferença detectável"), checklist da seção
   Comparação passando.
 
-### [ ] T-8.13 — Fecho do marco
+### [x] T-8.13 — Fecho do marco
 
 - Auditoria do Marco 8 (Sasuke): R1 a R10, R1/R2 1.5, manifesto contra o lacre, nenhuma leitura de
   2025 fora da porta (`git log` e testes), checklist, consistência de IDs. Limpeza: remover os
