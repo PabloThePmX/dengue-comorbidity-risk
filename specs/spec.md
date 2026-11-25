@@ -239,7 +239,7 @@ em bloco pelo Programador (D-95).
 - **SC-09** — A comparação em 2025 roda **uma única vez**, com o manifesto commitado antes, grava o lacre e
   reporta, para cada modelo do conjunto, a PR-AUC com IC 95% e a diferença pareada contra o M1 com IC
   95%. Passa se a execução cumpre as condições do FR-23, **qualquer que seja o resultado** (empate ou
-  M1 pior também passam). Não é critério de desempenho do M1.
+  M1 pior também passam). Não é critério de desempenho do M1. **Resultado (T-8.11, 2026-11-24, hora local): passou.** Lacre em `reports/comparacao/LACRE.json`; o M1 teve a maior PR-AUC entre os sete modelos, com diferença de IC excluindo zero contra os outros seis (`reports/comparacao/diferencas.md`).
 
 ## Premissas
 

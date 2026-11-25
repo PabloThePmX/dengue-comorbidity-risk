@@ -1,5 +1,5 @@
 <!--
-Relatório acadêmico do projeto dengue-comorbidity-risk (Marco 7, T-7.1).
+Relatório acadêmico do projeto dengue-comorbidity-risk (Marco 7, T-7.1; Marco 8, T-8.12, seção 3.7 e 4.4).
 Rascunho em Markdown, para conversão em documento Word no padrão ABNT.
 Todos os números vêm de arquivos de reports/ ou de specs/; cada tabela e figura indica a fonte.
 Caminhos de figura são relativos a reports/relatorio/.
@@ -13,13 +13,13 @@ Caminhos de figura são relativos a reports/relatorio/.
 
 ## Resumo
 
-A dengue grave e o óbito pelo agravo são raros, mas concentram o custo de uma epidemia. Este trabalho usa os microdados públicos do SINAN (DataSUS) de 2022 a 2024 para responder a duas perguntas: quais comorbidades e combinações estão associadas a maior risco de dengue grave ou óbito, e se um modelo de aprendizado de máquina estima esse risco, no primeiro atendimento, melhor que a regra do protocolo do Ministério da Saúde. A população tem 7.784.953 casos confirmados e 15.323 eventos (prevalência de 0,16% a 0,21%). Uma regressão logística com interações, ajustada por idade e sexo em 2022–23, mostrou as maiores razões de chances para doença hematológica (9,32), doença renal (6,80) e doença autoimune (5,02). Cinco modelos preditivos foram comparados por validação cruzada que deixa uma região de fora por vez; venceu o XGBoost. No teste único em 2024, ele obteve PR-AUC de 0,0346, cerca de 16 vezes a prevalência, e superou a logística simples. Contra a regra do protocolo, marcou 46% menos casos, com precisão maior (0,98% contra 0,53%), mas com recall 0,7 ponto percentual menor (65,3% contra 66,0%; IC da diferença de −1,5 a +0,05 ponto percentual), e o critério de sucesso correspondente (SC-02) falhou. O modelo subestimou o risco em 2024 (razão observado/esperado de 1,30). Os resultados são associações, não causas, e o modelo não é ferramenta clínica.
+A dengue grave e o óbito pelo agravo são raros, mas concentram o custo de uma epidemia. Este trabalho usa os microdados públicos do SINAN (DataSUS) de 2022 a 2024 para responder a duas perguntas: quais comorbidades e combinações estão associadas a maior risco de dengue grave ou óbito, e se um modelo de aprendizado de máquina estima esse risco, no primeiro atendimento, melhor que a regra do protocolo do Ministério da Saúde. A população tem 7.784.953 casos confirmados e 15.323 eventos (prevalência de 0,16% a 0,21%). Uma regressão logística com interações, ajustada por idade e sexo em 2022–23, mostrou as maiores razões de chances para doença hematológica (9,32), doença renal (6,80) e doença autoimune (5,02). Cinco modelos preditivos foram comparados por validação cruzada que deixa uma região de fora por vez; venceu o XGBoost. No teste único em 2024, ele obteve PR-AUC de 0,0346, cerca de 16 vezes a prevalência, e superou a logística simples. Contra a regra do protocolo, marcou 46% menos casos, com precisão maior (0,98% contra 0,53%), mas com recall 0,7 ponto percentual menor (65,3% contra 66,0%; IC da diferença de −1,5 a +0,05 ponto percentual), e o critério de sucesso correspondente (SC-02) falhou. O modelo subestimou o risco em 2024 (razão observado/esperado de 1,30). Em 2025, ano lido uma única vez para comparar o modelo com os de duas outras branches do repositório, o M1 teve a maior PR-AUC entre sete modelos (0,0358), com diferença detectável para os outros seis, mas empatou com a branch `soneca` no recall e na precisão por orçamento de alertas. Os resultados são associações, não causas, e o modelo não é ferramenta clínica.
 
 **Palavras-chave:** dengue grave; comorbidades; aprendizado de máquina; predição de risco; SINAN.
 
 ## Abstract
 
-Severe dengue and dengue death are rare, but they concentrate the burden of an epidemic. This work uses public SINAN (DataSUS) microdata from 2022 to 2024 to answer two questions: which comorbidities and combinations are associated with a higher risk of severe dengue or death, and whether a machine learning model estimates this risk, at the first visit, better than the Brazilian Ministry of Health protocol rule. The population has 7,784,953 confirmed cases and 15,323 events (prevalence of 0.16% to 0.21%). A logistic regression with interactions, adjusted for age and sex in 2022–23, showed the largest odds ratios for hematologic disease (9.32), kidney disease (6.80) and autoimmune disease (5.02). Five predictive models were compared with cross-validation that leaves one region out at a time; XGBoost won. In the single test on 2024 data, it reached a PR-AUC of 0.0346, about 16 times the prevalence, and outperformed the simple logistic regression. Against the protocol rule, it flagged 46% fewer cases, with higher precision (0.98% versus 0.53%), but with recall 0.7 percentage points lower (65.3% versus 66.0%; 95% CI of the difference −1.5 to +0.05 percentage points), and the corresponding success criterion (SC-02) failed. The model underestimated risk in 2024 (observed/expected ratio of 1.30). The results are associations, not causes, and the model is not a clinical tool.
+Severe dengue and dengue death are rare, but they concentrate the burden of an epidemic. This work uses public SINAN (DataSUS) microdata from 2022 to 2024 to answer two questions: which comorbidities and combinations are associated with a higher risk of severe dengue or death, and whether a machine learning model estimates this risk, at the first visit, better than the Brazilian Ministry of Health protocol rule. The population has 7,784,953 confirmed cases and 15,323 events (prevalence of 0.16% to 0.21%). A logistic regression with interactions, adjusted for age and sex in 2022–23, showed the largest odds ratios for hematologic disease (9.32), kidney disease (6.80) and autoimmune disease (5.02). Five predictive models were compared with cross-validation that leaves one region out at a time; XGBoost won. In the single test on 2024 data, it reached a PR-AUC of 0.0346, about 16 times the prevalence, and outperformed the simple logistic regression. Against the protocol rule, it flagged 46% fewer cases, with higher precision (0.98% versus 0.53%), but with recall 0.7 percentage points lower (65.3% versus 66.0%; 95% CI of the difference −1.5 to +0.05 percentage points), and the corresponding success criterion (SC-02) failed. The model underestimated risk in 2024 (observed/expected ratio of 1.30). In 2025, a year read only once to compare the model with those of two other repository branches, M1 had the highest PR-AUC among seven models (0.0358), with a detectable difference from the other six, but it tied with the `soneca` branch on recall and precision under a fixed alert budget. The results are associations, not causes, and the model is not a clinical tool.
 
 **Keywords:** severe dengue; comorbidities; machine learning; risk prediction; SINAN.
 
@@ -354,6 +354,86 @@ As duas abas exibem "Projeto acadêmico. Não é ferramenta clínica nem substit
 
 A demonstração **não foi publicada**: roda localmente, por decisão do Programador, embora o FR-11 previsse publicação. O arquivo do modelo (`m1.joblib`) não carrega pela carga normal no XGBoost 3.4.1 do computador local, porque o modelo foi gravado no Colab, em GPU. O aplicativo lê só o bloco com as árvores do modelo. Uma verificação no Colab provou que o resultado é o mesmo do modelo avaliado: o hash das 419 árvores é idêntico, e a maior diferença de risco em 20 casos sintéticos foi de 4,5e-7. O modelo não foi regravado, para não mudar o SHA-256 avaliado no teste (D-36) (Fonte: `reports/verificacao/paridade-m1-demo.json`, `specs/tasks/00-como-usar.md`).
 
+## 3.7 Comparação com modelos de outras branches, em 2025
+
+> **Em uma frase:** em 2025, ano que nenhum modelo viu no treino, o M1 teve a maior PR-AUC entre os sete modelos comparados, com diferença detectável para os outros seis; mas, com orçamento fixo de alertas, ele ficou empatado, dentro do IC, com o modelo da branch `feat/soneca`.
+
+A pergunta é se o M1 é melhor que os modelos gerados, para o mesmo problema, nas outras branches do repositório (FR-23, US4). O teste de 2024 está lacrado (R2), então a comparação usa 2025, o ano de comparação (D-97): dados finais do DataSUS, lidos uma única vez, pela porta própria do módulo de comparação. Nenhum modelo foi escolhido, ajustado ou substituído com base no resultado (R1).
+
+**Conjunto e regras de leitura**
+
+- **Conjunto fechado.** O manifesto (`config/comparacao/manifesto.yaml`) foi commitado antes da leitura de 2025 e traz o SHA-256 de cada artefato. Entram o M1, o E1, a B0, a B1 e a B2 do projeto, mais o M1 de duas branches: `feat/soneca` (`m1_soneca`) e `feat/lora` (`m1_lora`). Ficaram de fora a `feat/ricardo`, que não tem artefato, e a `mario`, que não tem commits novos.
+- **"Melhor" é o modelo congelado por cada branch**, escolhido pela validação dela (limites na seção 4.4).
+- **População principal:** 1.387.534 casos e 3.426 eventos, os casos que o E1 estima (D-99), iguais para todos os modelos. A população completa, com 1.389.509 casos e 3.436 eventos, aparece só como informação; os 1.975 casos a mais são os que o E1 não estima.
+- **Regra de leitura:** PR-AUC com IC 95% por bootstrap pareado, com 1.000 reamostras e semente 20261103. A diferença de cada modelo contra o M1 usa as mesmas reamostras. O modelo é "melhor" se o IC da diferença fica acima de zero, "pior" se fica abaixo, e "sem diferença detectável" se inclui zero. As 1.000 reamostras e essa regra são `[ASSUMPTION]`, à espera da revisão do Programador.
+
+**Tabela 8 – PR-AUC, diferença contra o M1 e observado/esperado, população principal, 2025**
+
+| Modelo | PR-AUC (IC 95%) | Diferença contra o M1 (IC 95%) | Leitura | Observado/esperado (IC 95%) |
+|---|---|---|---|---|
+| M1 (XGBoost, projeto) | 0,0358 (0,0320 a 0,0406) | referência | — | 1,455 (1,447 a 1,463) |
+| M1 soneca (externo) | 0,0329 (0,0294 a 0,0368) | −0,0029 (−0,0047 a −0,0016) | pior | 1,441 (1,433 a 1,449) |
+| M1 lora (externo) | 0,0297 (0,0266 a 0,0332) | −0,0061 (−0,0086 a −0,0042) | pior | 1,452 (1,444 a 1,459) |
+| E1 (logística explicativa) | 0,0206 (0,0183 a 0,0236) | −0,0152 (−0,0187 a −0,0124) | pior | 1,354 (1,348 a 1,360) |
+| B1 (logística simples) | 0,0164 (0,0146 a 0,0188) | −0,0194 (−0,0233 a −0,0161) | pior | 1,366 (1,363 a 1,370) |
+| B0 (prevalência) | 0,0025 (0,0025 a 0,0025) | −0,0334 (−0,0381 a −0,0295) | pior | 1,520 (1,520 a 1,520) |
+| B2 (regra do protocolo) | 0,0049 (0,0048 a 0,0051) | −0,0309 (−0,0356 a −0,0271) | pior | 0,009 (0,009 a 0,009) |
+
+Fonte: `reports/comparacao/metricas.md` e `reports/comparacao/diferencas.md`. A B2 é uma regra de 0 ou 1, então a PR-AUC, a calibração e o observado/esperado dela não têm a mesma leitura que os dos modelos de probabilidade; os valores são os que o script gravou. A B0 dá a mesma probabilidade a todos, e por isso o IC da PR-AUC dela é degenerado.
+
+**Resultado principal**
+
+- **O M1 tem a maior PR-AUC do conjunto:** 0,0358 (IC 0,0320 a 0,0406), cerca de 14,5 vezes a prevalência de 2025 (0,247%). Todas as diferenças contra ele são negativas, e o IC exclui zero nos seis casos (Figura 8). Pela regra de leitura, os seis são "pior".
+- **As branches ficam mais perto do M1.** A soneca tem cerca de 92% da PR-AUC do M1 (diferença de −0,0029; IC −0,0047 a −0,0016). A lora fica mais abaixo (−0,0061; IC −0,0086 a −0,0042). Para o E1 e a B1 a distância é maior (−0,0152 e −0,0194).
+- **O M1 subestimou o risco.** O observado/esperado foi 1,455 (IC 1,447 a 1,463), contra 1,301 em 2024 (seção 3.5.3). Todos os modelos de probabilidade subestimaram, entre 1,354 (E1) e 1,520 (B0), inclusive as duas branches (1,441 e 1,452). Como o padrão é comum, a hipótese de que o risco de 2025 ficou acima do de 2022–23 é plausível, mas não foi testada aqui. A inclinação de calibração do M1 foi 0,933 (IC 0,913 a 0,952). Os critérios SC-01 a SC-04 são do teste de 2024 e não foram reavaliados.
+
+![Figura 7](../comparacao/pr_auc.png)
+
+**Figura 7 – PR-AUC com IC 95% por modelo, população principal, 2025.** A linha tracejada é o acaso (prevalência de 0,247%). Os marcadores vazados são os modelos de outras branches. Fonte: `reports/comparacao/pr_auc.png`.
+
+![Figura 8](../comparacao/diferencas_pr_auc.png)
+
+**Figura 8 – Diferença de PR-AUC contra o M1, com IC 95% pareado, população principal, 2025.** Todas as diferenças ficam à esquerda do zero, com IC que exclui zero. Fonte: `reports/comparacao/diferencas_pr_auc.png`.
+
+**Recall e precisão com orçamento de alertas.** Com orçamento fixo, os 5%, 10% e 14% dos casos de maior risco viram alertas (69.377, 138.753 e 194.255 na população principal). Esses cortes são `[ASSUMPTION]` (FR-23) e aguardam a revisão do Programador.
+
+**Tabela 9 – Recall e precisão por orçamento de alertas, população principal, 2025**
+
+| Modelo | Recall, 5% (IC 95%) | Recall, 10% (IC 95%) | Recall, 14% (IC 95%) | Precisão, 5% (IC 95%) |
+|---|---|---|---|---|
+| M1 (XGBoost, projeto) | 0,446 (0,428 a 0,463) | 0,575 (0,558 a 0,592) | 0,652 (0,634 a 0,668) | 0,0220 (0,0212 a 0,0228) |
+| M1 soneca (externo) | 0,442 (0,425 a 0,459) | 0,577 (0,559 a 0,593) | 0,654 (0,637 a 0,670) | 0,0218 (0,0210 a 0,0226) |
+| M1 lora (externo) | 0,418 (0,401 a 0,436) | 0,553 (0,534 a 0,571) | 0,616 (0,598 a 0,632) | 0,0206 (0,0198 a 0,0215) |
+| E1 (logística explicativa) | 0,346 (0,331 a 0,362) | 0,469 (0,453 a 0,486) | 0,531 (0,514 a 0,547) | 0,0171 (0,0164 a 0,0179) |
+| B1 (logística simples) | 0,323 (0,308 a 0,338) | 0,437 (0,421 a 0,454) | 0,496 (0,479 a 0,513) | 0,0159 (0,0152 a 0,0167) |
+| B0 (prevalência) | 0,038 (0,032 a 0,045) | 0,077 (0,069 a 0,087) | 0,130 (0,119 a 0,142) | 0,0019 (0,0016 a 0,0022) |
+| B2 (regra do protocolo) | 0,139 (0,128 a 0,151) | 0,271 (0,257 a 0,286) | 0,357 (0,341 a 0,373) | 0,0069 (0,0063 a 0,0074) |
+
+Fonte: `reports/comparacao/orcamentos.md`.
+
+- **M1 e soneca empatam.** No corte de 5%, o recall é 0,446 contra 0,442, e a precisão é 0,0220 contra 0,0218. No de 14%, o recall é 0,652 contra 0,654. Os ICs se sobrepõem em todos os cortes. Essas métricas não têm regra de "melhor" nem IC da diferença neste relatório (seção 4.4).
+- **A lora fica atrás no recall** (0,418 no corte de 5%), e os ICs se sobrepõem só em parte (0,401 a 0,436 contra 0,428 a 0,463).
+- **E1 e B1 ficam abaixo** do M1 e das branches em todos os cortes.
+- **B0 e B2 não são lidas por esse corte.** Elas dão o mesmo risco a muitos casos, e o orçamento os desempata pela linha do arquivo (`orcamentos.md`). Os números delas refletem um corte arbitrário.
+- **Com o limiar próprio de cada modelo (só informação),** o M1 (limiar 0,002155) marca 205.798 casos, com recall 0,664 e precisão 0,0111. A soneca (limiar 0,025828) marca 12.490, com recall 0,197 e precisão 0,0541, e a lora (limiar 0,023047) marca 13.672, com recall 0,193 e precisão 0,0483. Os limiares das branches são os de F2 máximo (D-97, e), por isso marcam poucos casos e não se comparam ao corte de 5%.
+
+![Figura 9](../comparacao/orcamentos.png)
+
+**Figura 9 – Recall e precisão por orçamento de alertas (5%, 10% e 14%), população principal, 2025.** Barras: IC 95%. Fonte: `reports/comparacao/orcamentos.png`.
+
+**Calibração e curva de decisão.** Nenhuma caixa de calibração foi suprimida pelo R7 (0 de 52; Figura 10, Apêndice E). Na curva de decisão (Figura 11, Apêndice E), o M1 e a soneca se cruzam: no grid de 0,1% a 5,0% (50 limiares), a soneca fica acima em 39 e o M1 em 11, com diferenças de até cerca de 3 × 10⁻⁵ de benefício líquido e sem IC. A lora não fica acima do M1 em nenhum. Diferente de 2024 (seção 3.5.4), o M1 não é a melhor estratégia em toda a faixa.
+
+**Conformidade R3 a R6.** Os sete modelos passam em R3 (sem correção de desbalanceamento) e em R4 (variáveis no dicionário), e foram treinados sem 2025. A soneca e a lora rodaram com pandas e numpy de versões diferentes das do treino, e a conformidade marca `versoes_diferentes_do_treino` como verdadeiro. Para os modelos do projeto, a versão do treino não está declarada, e o item fica não determinado. As duas branches foram carregadas em worktree e ambiente isolados, com o SHA-256 conferido antes (D-97, g). O quadro completo é a Figura 12 (Apêndice E).
+
+**SC-09.** O SC-09 não mede o desempenho do M1: passa se a execução cumpre as condições do FR-23, seja qual for o resultado. Cada condição tem prova no repositório:
+
+- **execução única:** o lacre (`reports/comparacao/LACRE.json`) existe e impede nova avaliação, e o relatório de verificação T-8.11 tem `passou: true` em seis checks (`reports/verificacao/T-8.11.json`);
+- **manifesto commitado antes:** o lacre grava o hash do manifesto, e o manifesto não mudou depois do commit que o lacre registra (`d5570c8`);
+- **lacre antes das figuras:** o check `lacre_antes_das_figuras` passou;
+- **resultado completo:** PR-AUC com IC e diferença pareada com IC para cada modelo (`reports/comparacao/diferencas.md`).
+
+Logo, o SC-09 passa. Isso não significa que o M1 seja melhor em tudo: no recall e na precisão por orçamento empata com a soneca, e na curva de decisão a soneca fica acima em mais limiares.
+
 ---
 
 # 4 DISCUSSÃO
@@ -376,7 +456,7 @@ A demonstração **não foi publicada**: roda localmente, por decisão do Progra
 - **Sem doenças respiratórias:** asma, DPOC e obesidade não estão na ficha (D-18); a B2 é uma versão parcial do grupo B.
 - **Idade por ano de nascimento:** erro de até 1 ano quando o código é inválido (D-50).
 - **Deriva em 2024:** subestimação em todo o país, maior no Nordeste e no Centro-Oeste.
-- **Sem validação em outro ano:** o modelo foi avaliado só em 2024. Os dados finais de 2025 existem (1.389.509 casos na população do projeto e 3.436 eventos, prevalência de 0,247%; `reports/perfil_2025.md`), mas não foram usados: com cerca de 30% dos eventos de 2024, os intervalos de confiança seriam mais largos, e a avaliação em um segundo ano fica como trabalho futuro.
+- **Um ano de teste e um ano de comparação:** o M1 foi avaliado em 2024, e 2025 serviu só para comparar modelos (seções 3.7 e 4.4). A avaliação do M1 congelado em outro ano segue como trabalho futuro.
 - **Rótulo muito raro:** 6 dos 21 pares e os perfis com 5 ou mais comorbidades ficaram sem estimativa.
 - **Padrão "todas as 7 comorbidades":** influencia os OR das comorbidades raras (D-77).
 - **Supressão dedutível:** células "<10" podem ser deduzidas por subtração dos totais (D-75). No perfil dos falsos negativos (3.5.6), isso vale para quatro células de 1 a 9 casos (gestante, 2 comorbidades, região Norte e atraso de 15 dias ou mais); o `erros.md` está no lacre e não foi regerado, e este relatório não reproduz essas células (D-95).
@@ -393,7 +473,16 @@ A demonstração **não foi publicada**: roda localmente, por decisão do Progra
 
 "Alto risco" é um sinal de triagem de baixa precisão: em 2024, cerca de 99 de cada 100 marcados não evoluíram para dengue grave ou óbito. Não é diagnóstico, não indica conduta e não substitui a avaliação médica nem o protocolo. O modelo não foi validado clinicamente e não deve ser usado com pacientes.
 
----
+## 4.4 Limitações da comparação em 2025
+
+- **Um ano, com poucos eventos.** São 3.426 eventos na população principal (3.436 na completa), cerca de 30% dos 11.338 de 2024. O IC da PR-AUC do M1 tem amplitude de 0,0086, quase o dobro dos 0,0047 de 2024, e a diferença para a soneca (−0,0029) é pequena. Só um segundo ano diz se a ordem se repete.
+- **Versões de bibliotecas diferentes.** A soneca e a lora rodaram com pandas e numpy de versões diferentes das do treino. O efeito sobre as previsões não foi medido.
+- **"Melhor" é o modelo congelado de cada branch**, não o melhor que ela produziu. O MLP e o XGBoost da lora tinham PR-AUC de validação um pouco maior que a do elastic net, mas não têm artefato commitado, e o Programador manteve o modelo congelado (`specs/tasks/08-comparacao.md`, "Fora do escopo"). A `feat/ricardo` (sem artefato) e a `mario` (sem commits novos) ficaram fora, e um modelo acrescentado depois é exploratório (D-97, c).
+- **R7 na branch `feat/lora`.** O pickle do modelo guarda 20 linhas de microdados de 2022–23 (`background_df`), sem dado de 2025. A cópia só existe no worktree local, e as temporárias foram apagadas (T-8.5). Não foi verificado se o arquivo está rastreado na branch, e microdado em artefato de branch exige decisão do Programador.
+- **A B2 é parcial.** A ficha não tem asma, DPOC nem obesidade (seção 4.2). A contagem de alertas da regra em 2025 não está nos agregados, e por isso o corte de 5% não a representa.
+- **Recall e precisão sem diferença pareada.** A regra de "melhor" usa só a PR-AUC. Para recall e precisão por orçamento, os agregados trazem o IC de cada modelo, mas não o da diferença contra o M1. O empate da seção 3.7 é sobreposição de ICs, não um teste.
+- **Sem recalibração.** R1 e D-36 proíbem ajuste com 2025, então nenhum modelo foi recalibrado, e o observado/esperado ficou entre 1,354 e 1,520. O ano de comparação foi lido uma vez (R2), e esta seção não muda o M1, o limiar nem os critérios SC-01 a SC-04.
+
 
 # 5 CONCLUSÃO
 
@@ -403,6 +492,7 @@ A demonstração **não foi publicada**: roda localmente, por decisão do Progra
 2. *E as combinações?* Só 4 dos 15 pares estimados mostram risco além da soma dos efeitos, e 3 pares têm conclusão aditiva sensível ao método; uma mulher de 60 a 79 anos com doença renal e hipertensão tem risco estimado de 2,987%, contra 0,194% sem comorbidades.
 3. *O aprendizado de máquina acrescenta algo?* Sobre a logística simples, sim (cerca do dobro da PR-AUC no teste). Sobre a regra do protocolo, só em parte: 46% menos alertas, mas recall abaixo do da regra, e o SC-02 falhou.
 4. *O risco é confiável?* A ordenação, sim (slope 0,945); o nível, não em 2024 (subestimação de cerca de 30%).
+5. *E em 2025?* Lido uma vez, para comparar com outras branches (seção 3.7): o M1 teve a maior PR-AUC entre os sete modelos, com diferença detectável para os seis, mas empatou com a branch `soneca` no recall e na precisão por orçamento de alertas, e subestimou o risco de novo (observado/esperado de 1,455).
 
 **Trabalhos futuros:** recalibração periódica avaliada num ano não visto; atributos geográficos contínuos (por exemplo, incidência recente no município); TabFM e ensemble num novo teste; sensibilidade de duplicatas (D-47).
 
@@ -509,6 +599,8 @@ Registro completo em `specs/research.md`, seção "Registro de decisões". D-22 
 | D-77 | Padrão "todas as 7 comorbidades": população mantida, com sensibilidade. |
 | D-91 | TabFM fora do M1 por inviabilidade medida na GPU T4. |
 | D-92 | Limiar principal: precisão máxima com recall pelo menos igual ao da B2. |
+| D-97 | 2025 como ano de comparação de modelos (emenda do R1 e do R2, constituição 1.5). Lido uma única vez, para o conjunto declarado em manifesto commitado antes; nada é escolhido, ajustado ou substituído pelo resultado; modelo acrescentado depois é exploratório; previsões por caso ficam fora do git; modelos de outras branches rodam só em worktree e ambiente isolados. |
+| D-98 | Plano do Marco 8 e correção de processo: tarefas T-8.0 a T-8.13, US4, FR-23 e SC-09 acrescentados sem renumerar; nenhuma regra ou critério muda; uma feature nova começa pela tarefa e pelo spec. |
 
 Fonte: `specs/research.md`.
 
@@ -570,6 +662,7 @@ A tabela abaixo é uma leitura reconstruída do Registro de execução (`specs/t
 | 2026-11-23 | B0 e B1 congelados; avaliação única em 2024 (commit `91425ad`, semente 20261103) | 49 checks aprovados; SC-02 falhou | `reports/teste/LACRE.json`, `reports/verificacao/T-5.1.json` |
 | 2026-11-23 | Demonstração local (commit `97cca70`); paridade no Colab (clone do commit `bc6708c`) | mesmo hash das 419 árvores | `reports/verificacao/paridade-m1-demo.json` |
 | 2026-11-23 | Reprodução do teste (NFR-02), clone limpo do commit `7fbe300` | 14 arquivos de resultado idênticos; só o `LACRE.json` difere; sem retreino | `reports/verificacao/T-7.3-nfr02.json` |
+| 2026-11-24 (hora local) | Comparação em 2025 (T-8.6 a T-8.11), execução única com lacre (commit `d5570c8`) | População principal de 1.387.534 casos e 3.426 eventos; M1 com maior PR-AUC que os seis outros modelos, com diferença de IC excluindo zero | `reports/comparacao/LACRE.json`, `reports/verificacao/T-8.11.json` |
 
 **Evidência do MLflow.** O MLflow registra 45 execuções em 7 sessões, de 2026-11-17 a 2026-11-19 (horário UTC). A primeira busca do elastic net (2026-11-17 13:00) terminou como FAILED e foi repetida às 13:27, quando terminou. As duas últimas execuções de seleção (2026-11-18 23:54 e 2026-11-19 01:38) trazem os mesmos valores: limiar 0,002155, limiar F2 0,021514, recall no limiar 0,6846 e Brier calibrado 0,001599. Elas correspondem às rodadas do D-92 (Fonte: `reports/mlflow/cronologia.md`).
 
@@ -587,17 +680,34 @@ A tabela agrupa os itens do TRIPOD+AI (Collins et al., 2024) por seção, sem a 
 | Métodos: dados e participantes | Fonte, período, critérios de inclusão, fluxo | 2.1, Tabela 1, Apêndice B | Coberto | Fluxograma por ano e motivos de exclusão. |
 | Métodos: desfecho | Definição, momento e ruído do rótulo | 2.2 | Coberto | Inclui a mudança em relação ao pré-projeto (D-22). |
 | Métodos: preditores e vazamento | Lista, momento de disponibilidade, exclusões | 2.3 | Coberto | Revisão das 121 colunas. |
-| Métodos: tamanho da amostra | Justificativa do número de eventos | 2.1, 2.4 | Parcial | Eventos por dobra e subgrupo reportados; cálculo formal (Riley et al., 2021) não feito. |
+| Métodos: tamanho da amostra | Justificativa do número de eventos | 2.1, 2.4, 3.7 | Parcial | Eventos por dobra e subgrupo reportados, e os de 2025 (3.426 na população principal) na comparação; cálculo formal (Riley et al., 2021) não feito. |
 | Métodos: dados ausentes | Tratamento e extensão | 2.3, Apêndice B | Coberto | Categoria "Ausente" e checagem de completude. |
-| Métodos: análise | Modelos, ajuste, validação, calibração, métricas, incerteza | 2.4 a 2.8 | Coberto | Inclui desbalanceamento (D-38) e limiar (D-33, D-92). |
+| Métodos: análise | Modelos, ajuste, validação, calibração, métricas, incerteza | 2.4 a 2.8, 3.7 | Coberto | Inclui desbalanceamento (D-38) e limiar (D-33, D-92). A comparação de 2025 tem conjunto fechado declarado antes da leitura e regra de leitura fixa (3.7). |
 | Métodos: equidade | Avaliação por subgrupos | 2.7, 3.5.5 | Parcial | Por região; por estado, só o Espírito Santo. |
 | Métodos: ética | Aprovação ou dispensa | 2.10 | Coberto | Dispensa pela Resolução CNS 510/2016. |
 | Resultados: participantes | Características da população | 3.1, Tabela 2 | Coberto | Desenvolvimento 2022–23. |
-| Resultados: desenvolvimento e especificação | Comparação de modelos e modelo final | 3.2 a 3.4 | Parcial | E1 com coeficientes publicados; M1 (árvores) fora do repositório. |
-| Resultados: desempenho | Discriminação, calibração, utilidade, subgrupos, erros | 3.5 | Coberto | Teste único em 2024 com IC. |
-| Resultados: atualização do modelo | Recalibração ou atualização | 4.1, 5 | Não feito | Proibido depois do teste (D-36); proposto como trabalho futuro. |
-| Discussão | Interpretação, limitações e uso no cuidado | 4.1 a 4.3 | Parcial | Sem validação clínica; o relatório e o modelo não passaram por revisão de profissional de saúde (FR-21), e não há revisão prevista; qualquer uso clínico exigiria essa validação. |
-| Outras informações | Financiamento, conflitos, protocolo, disponibilidade de dados e código, envolvimento do público | 2.1, 2.9 | Parcial | Dados: microdados abertos do SINAN (2.1). Código: repositório do projeto, <https://github.com/PabloThePmX/dengue-comorbidity-risk>. Financiamento e conflitos: trabalho acadêmico sem financiamento externo; o autor declara não haver conflitos de interesse. Protocolo: documentos de especificação no repositório, sem registro em base pública. Envolvimento de pacientes e público: não feito. |
+| Resultados: desenvolvimento e especificação | Comparação de modelos e modelo final | 3.2 a 3.4, 3.7 | Parcial | E1 com coeficientes publicados; M1 (árvores) fora do repositório. Os modelos das branches `soneca` e `lora` têm artefato fora da main, com SHA-256 no manifesto (3.7). |
+| Resultados: desempenho | Discriminação, calibração, utilidade, subgrupos, erros | 3.5, 3.7 | Coberto | Teste único em 2024 com IC (3.5); comparação única em 2025, com IC pareado contra o M1 (3.7). |
+| Resultados: atualização do modelo | Recalibração ou atualização | 4.1, 5 | Não feito | Proibido depois do teste (D-36); proposto como trabalho futuro. A comparação de 2025 também não recalibrou nem reajustou nenhum modelo (D-97, b). |
+| Discussão | Interpretação, limitações e uso no cuidado | 4.1 a 4.4 | Parcial | Limitações da comparação de 2025 em 4.4. Sem validação clínica; o relatório e o modelo não passaram por revisão de profissional de saúde (FR-21), e não há revisão prevista; qualquer uso clínico exigiria essa validação. |
+| Outras informações | Financiamento, conflitos, protocolo, disponibilidade de dados e código, envolvimento do público | 2.1, 2.9, 3.7 | Parcial | Dados: microdados abertos do SINAN (2.1). Comparação de 2025: manifesto em `config/comparacao/manifesto.yaml`; artefatos das branches fora da main. Código: repositório do projeto, <https://github.com/PabloThePmX/dengue-comorbidity-risk>. Financiamento e conflitos: trabalho acadêmico sem financiamento externo; o autor declara não haver conflitos de interesse. Protocolo: documentos de especificação no repositório, sem registro em base pública. Envolvimento de pacientes e público: não feito. |
+
+# APÊNDICE E – FIGURAS COMPLEMENTARES DA COMPARAÇÃO EM 2025
+
+Figuras de apoio à seção 3.7.
+
+![Figura 10](../comparacao/calibracao.png)
+
+**Figura 10 – Calibração por caixas de risco, sete modelos, 2025.** Eixos logarítmicos; barras: IC 95%; a linha tracejada é a calibração perfeita. A B2 aparece em um único ponto, por ser uma regra binária. Fonte: `reports/comparacao/calibracao.png`.
+
+![Figura 11](../comparacao/curva_decisao.png)
+
+**Figura 11 – Curva de decisão, população principal, 2025.** A curva mais alta é a melhor estratégia em cada limiar. Fonte: `reports/comparacao/curva_decisao.png`.
+
+![Figura 12](../comparacao/conformidade.png)
+
+**Figura 12 – Conformidade por modelo (R3, R4, treino sem 2025, versões e externo).** "n/d" é sem informação ou item que não se aplica. Fonte: `reports/comparacao/conformidade.png` e `reports/comparacao/conformidade.md`.
+
 
 <!-- MENSAGENS-CHAVE PARA OS SLIDES
 

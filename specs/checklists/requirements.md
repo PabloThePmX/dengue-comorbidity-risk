@@ -2,7 +2,7 @@
 
 > Adaptado do Spec Kit para projeto acadêmico de ML. Refazer a cada mudança relevante do spec e
 > antes da entrega (T-7.3).
-> **Última avaliação:** 2026-11-24, spec v0.21 e plan v0.20 (Marcos 1 a 7 concluídos; teste de 2024 avaliado uma vez). A seção "Comparação em 2025 (Marco 8)", no fim, tem itens abertos de propósito.
+> **Última avaliação:** 2026-11-24, spec v0.21 e plan v0.20 (Marcos 1 a 7 concluídos; teste de 2024 avaliado uma vez). A seção "Comparação em 2025 (Marco 8)", no fim, tem itens abertos de propósito (SC-09 no spec e auditoria da T-8.13). Seção Comparação revisada em 2026-11-24 (T-8.12): itens abertos são o `.docx` e a linha do SC-09 (T-8.12) e a auditoria (T-8.13).
 
 ## Requisitos
 
@@ -59,8 +59,9 @@
 - [x] Constituição 1.5 (R1 e R2 com o ano de comparação) e D-97 registrados; porta, config e manifesto com testes
   (T-8.1 a T-8.3).
 - [x] Scripts isolados da `soneca` e da `lora` validados, sem leitura de 2024 nem de 2025 (T-8.4 e T-8.5).
-- [ ] Previsões do próprio projeto dentro da porta (T-8.6); B0 e B1 finais copiados do Drive.
-- [ ] Avaliador, gráficos e orquestrador com ensaio ponta a ponta em ano sintético (T-8.7 a T-8.9).
-- [ ] "Ok" do Programador e execução única em 2025, com lacre (T-8.10 e T-8.11).
-- [ ] Relatório e README atualizados com o resultado real (T-8.12).
-- [ ] Auditoria do marco e limpeza dos worktrees (T-8.13).
+- [x] Previsões do próprio projeto dentro da porta (T-8.6); B0 e B1 finais copiados do Drive. Verificado na T-8.6: 42 testes, previsões de 2022 sem métrica, `prever_projeto.py` com SHA-256 conferido antes da carga.
+- [x] Avaliador, gráficos e orquestrador com ensaio ponta a ponta em ano sintético (T-8.7 a T-8.9). Verificado nas tarefas T-8.7 a T-8.9 (testes e ensaio em tmp, sem 2025 nem 2024).
+- [x] "Ok" do Programador e execução única em 2025, com lacre (T-8.10 e T-8.11). Lacre em `reports/comparacao/LACRE.json`; `reports/verificacao/T-8.11.json` com `passou: true` em 6 checks.
+- [x] Relatório e README atualizados com o resultado real (T-8.12). `reports/relatorio/relatorio.md` (seções 3.7 e 4.4, Resumo, Abstract, Apêndices A, C, D e E), o `.docx` (regerado com `gerar_docx.js` e reduzido por `comprimir_docx.py`, para caber no limite do R7) e `README.md`, com números de `reports/comparacao/`.
+- [ ] SC-09 com o resultado real registrado no spec (T-8.12). **Pendente:** o agente não edita o spec; a prova do SC-09 está na seção 3.7 do relatório (bloco "SC-09") e a linha a registrar depende do Programador.
+- [ ] Auditoria do marco e limpeza dos worktrees (T-8.13). Fora do escopo da T-8.12.

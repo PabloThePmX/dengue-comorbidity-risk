@@ -10,7 +10,7 @@ Ministério da Saúde já usa**.
 
 **Atalhos:** [em linguagem simples](#em-linguagem-simples) ·
 [resultados](#resultados-do-teste-de-2024) · [como foi feito](#como-foi-feito) ·
-[limitações](#o-que-não-deu-certo-e-os-limites) · [rodar a demo](#demo-streamlit) ·
+[limitações](#o-que-não-deu-certo-e-os-limites) · [comparação em 2025](#comparação-com-outras-branches-2025) · [rodar a demo](#demo-streamlit) ·
 [relatório completo](reports/relatorio/relatorio.md)
 
 ---
@@ -107,6 +107,36 @@ comorbidades. É contribuição no modelo, **não causa**.
 
 ---
 
+## Comparação com outras branches (2025)
+
+Em 2025, um ano que nenhum modelo viu no treino, o modelo do projeto (M1) foi comparado com dois modelos gerados em outras branches do repositório (`feat/soneca` e `feat/lora`) e com os baselines. O ano foi lido **uma única vez**, com o conjunto de modelos declarado antes em um manifesto commitado. A população principal tem 1.387.534 casos e 3.426 eventos.
+
+| Modelo | PR-AUC (IC 95%) | Diferença contra o M1 (IC 95%) |
+|---|---|---|
+| **M1 (XGBoost, projeto)** | **0,0358** (0,0320 a 0,0406) | referência |
+| M1 soneca (outra branch) | 0,0329 (0,0294 a 0,0368) | −0,0029 (−0,0047 a −0,0016) |
+| M1 lora (outra branch) | 0,0297 (0,0266 a 0,0332) | −0,0061 (−0,0086 a −0,0042) |
+| E1 (logística explicativa) | 0,0206 (0,0183 a 0,0236) | −0,0152 (−0,0187 a −0,0124) |
+| B1 (logística simples) | 0,0164 (0,0146 a 0,0188) | −0,0194 (−0,0233 a −0,0161) |
+| B0 (prevalência) | 0,0025 | −0,0334 (−0,0381 a −0,0295) |
+| B2 (regra do protocolo)* | 0,0049 | −0,0309 (−0,0356 a −0,0271) |
+
+\* A B2 é uma regra de 0 ou 1; seu valor de PR-AUC não tem a mesma leitura que o dos modelos de probabilidade.
+
+- **O M1 teve a maior PR-AUC.** A diferença para os seis outros é negativa, com IC que exclui zero. Pela regra de leitura, os seis ficaram "pior".
+- **Com orçamento fixo de alertas, houve empate com a branch `soneca`.** Nos 5% de casos de maior risco, o recall foi 0,446 (M1) contra 0,442 (soneca), com ICs sobrepostos.
+- **O M1 subestimou o risco de novo**, com observado/esperado de 1,455, como em 2024.
+- **O SC-09 passou.** Ele mede se a comparação cumpriu as condições (execução única, manifesto e lacre), e não o desempenho do M1.
+- **Limites:** um ano com 3.436 eventos, versões de bibliotecas diferentes do treino nas duas branches, e "melhor" significa o modelo congelado por cada branch. A lista completa está na [seção 4.4 do relatório](reports/relatorio/relatorio.md).
+
+![PR-AUC com IC 95% por modelo, 2025](reports/comparacao/pr_auc.png)
+
+![Diferença de PR-AUC contra o M1, com IC 95% pareado, 2025](reports/comparacao/diferencas_pr_auc.png)
+
+Ano de comparação 2025, avaliação única (R2), só agregados (R7). Detalhes e demais figuras: [relatório, seção 3.7](reports/relatorio/relatorio.md).
+
+---
+
 ## Como foi feito
 
 ```mermaid
@@ -143,8 +173,8 @@ flowchart LR
 - **Disciplina de pesquisa:** o teste é lacrado (`reports/teste/LACRE.json`) e uma segunda execução
   falha; os critérios foram fixados antes; nada foi ajustado depois de ver o resultado. A reprodução da
   avaliação, feita num clone limpo, regerou os 14 arquivos de resultado idênticos byte a byte.
-- **Rastreabilidade:** cada decisão tem um registro (D-01 a D-96) em
-  [`specs/research.md`](specs/research.md), e cada passo, um teste. São mais de 1.400 testes
+- **Rastreabilidade:** cada decisão tem um registro (D-01 a D-99) em
+  [`specs/research.md`](specs/research.md), e cada passo, um teste. São mais de 1.700 testes
   automatizados, e o ambiente é travado em `uv.lock`.
 
 ---
@@ -164,9 +194,9 @@ flowchart LR
   feito". `NDUPLIC_N` e `TP_SISTEMA` não constam no dicionário oficial, então o significado dos códigos
   não tem fonte.
 - **Não houve revisão por profissional de saúde**, e não há uso clínico previsto.
-- **O teste usou um só ano.** Os dados finais de 2025 existem (1,39 milhão de casos, 3.436 eventos;
-  [`reports/perfil_2025.md`](reports/perfil_2025.md)) e não foram usados. Validar em um segundo ano fica
-  como trabalho futuro.
+- **O teste do M1 usou um só ano.** Em 2025 (1,39 milhão de casos, 3.436 eventos;
+  [`reports/perfil_2025.md`](reports/perfil_2025.md)), o M1 só foi comparado com outros modelos, lido uma
+  única vez (seção acima). Avaliar o M1 congelado em outro ano fica como trabalho futuro.
 
 ---
 

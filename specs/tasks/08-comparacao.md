@@ -197,7 +197,7 @@ validação dela (decisão do Programador, 2026-11-24).
 - **Pronto quando:** o lacre existe, os agregados e as figuras existem, o JSON de verificação tem
   `"passou": true`, `git status` não lista nenhum parquet de previsões e a segunda execução falha.
 
-### [ ] T-8.12 — Relatório e README
+### [x] T-8.12 — Relatório e README
 
 - Nova seção de resultados da comparação no relatório (e no Word), com as figuras e a tabela;
   limitações (3.436 eventos; versões diferentes; "melhor" por modelo congelado; R7 da `lora`; `ricardo`
