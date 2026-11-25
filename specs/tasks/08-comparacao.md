@@ -180,7 +180,7 @@ validação dela (decisão do Programador, 2026-11-24).
 > antes da T-8.10: hash dos JSON de conformidade no lacre, teste de `--retomar` com manifesto divergente e
 > teste com `calcular` quebrado.
 
-### [ ] T-8.10 — 🛑 Go/no-go e "ok" do Programador
+### [x] T-8.10 — 🛑 Go/no-go e "ok" do Programador
 
 - Listar ao Programador, antes de ler 2025: o manifesto (modelos, limiares, orçamentos), o que foi
   verificado e o que não foi, os `[ASSUMPTION]` (orçamentos 5/10/14%, 1.000 reamostras, regra de
@@ -189,7 +189,7 @@ validação dela (decisão do Programador, 2026-11-24).
   `lora`). Suíte inteira verde, `ruff` limpo, árvore limpa, tudo commitado e enviado.
 - **Pronto quando:** o Programador responde "ok" por escrito. Sem o "ok", nada abre a porta.
 
-### [ ] T-8.11 — 🛑 Execução única em 2025 (R2, D-97)
+### [x] T-8.11 — 🛑 Execução única em 2025 (R2, D-97)
 
 - `python -m dengue_sinan.comparar` (execução real). Roda **uma vez**; o resultado é reportado como
   saiu (resultado pior ou empate é resultado). Agregados em `reports/comparacao/`; relatório de

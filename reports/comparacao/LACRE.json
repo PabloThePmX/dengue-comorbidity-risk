@@ -1,0 +1,40 @@
+{
+  "ano": 2025,
+  "commit": "d5570c836af2b725234c98a80a3f713bc4b179b4",
+  "arvore_limpa": true,
+  "sha256_manifesto": "1c7dc8454e6e83ad504fabc7aef489a0b9f497c37aa8be3eab4b8b05d8915f6c",
+  "sha256_entrada": "f8edcaa8154a362cf7836e4289a01cf15b39f4d64f091b1cf136b9da5717bc19",
+  "sha256_artefatos": {
+    "m1_main": "394c0f19e9384dc41e4e13b872a29ac8b8fb9de1d0f0413ba5c72321d0e9901a",
+    "e1_main": "7d669a7f2faba9d28c5974c0095d6ae8ef790400a3af6fa29c8c5b142c289ebc",
+    "b1_main": "9271ca6f2d4c45134ce6a2a5292878d7a989d0cc35293cda195c0a65ea6e6504",
+    "b0_main": "b6e4ad9c92adfc63561d69fff52e3a25eaf62eb21fe83a26ec13edfa94b32ee3",
+    "m1_soneca": "6286d444d050279727db1ba2b7de4960114dddbf47a41d6075749ab4d9fbfde6",
+    "m1_lora": "2f65a1ccf183d5f79bbac5eab6062906033f502c044562bd5c3be9bcc6371ce2"
+  },
+  "sha256_previsoes": {
+    "m1_main": "9f767f752293585642a7611be290e1dafe4d1e73ea98ef54d7ef95c5b93eaf0e",
+    "e1_main": "7110a5a9c9139200c5f3674bfa0081bcc77d5c975653346df72207f2d764e8ff",
+    "b1_main": "779a6dcb14ccb17214463dee9235d4fa02f569f3f96a614c797bfab1f11f56f8",
+    "b0_main": "3f7b6806dcbb2be64b7f969a153666173ff4bc7431c7d2753d9d583400a180e5",
+    "b2_regra": "aefdfee079da4fbe200fccb642b89d8a3a52288e2e98eab0235e44a14f7e8733",
+    "m1_soneca": "f10c5ae8be14a2d1a242affb47ba330e9591d23edbc6ac30e56aab607640c271",
+    "m1_lora": "72e493cab17ad6f1e1e419ab3c4f8bbd4efc0bf69ecb1596d9a28f1c5fddbf7c"
+  },
+  "sha256_conformidade": {
+    "m1_main": "0b0194f025494b665ae6356dd2c86344b0265c165cc1ffd8f0e0eb7c8936784f",
+    "e1_main": "dce63b19a7ed08dcb868824e7aa489fd380a4ba5dc5f933c363963a96bcba377",
+    "b1_main": "ba90a5e6497d07ae3e17f8147e83498159643d0d85b440f245d868ca61217944",
+    "b0_main": "858d1ee2ba2ba65c12909e8813932aec60008ce741895abba811a734f2c03b6d",
+    "b2_regra": "877faedf818cc2f6db98a6ab29e3f66d62a2a66b7b2a6611d67dde2cdbdf267f",
+    "m1_soneca": "93fb4fb03392b563b404c36c51028c6e015090ab9efbfc5866a91846a71858c1",
+    "m1_lora": "7b67ef4b90e8d6ab487946af9e3233915606d1796a3eeda180dfb2ced92fb563"
+  },
+  "sha256_dbc": "87831a1ee61d03d0f83dcb788c23b1a5cfd938ec22f7e44313833e9eb6445d29",
+  "semente": 20261103,
+  "reamostras": 1000,
+  "gravado_em_utc": "2026-11-25T01:11:11Z",
+  "aviso": "existir aqui impede nova avaliação (R2)",
+  "status": "concluido",
+  "sha256_metricas": "f7b3060436a1d947a5cb9c48dab02a86694a97eac1e118d19a269d3f4a9ba7af"
+}
